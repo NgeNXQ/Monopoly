@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Шар_2" data-name="Шар 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 97.18 92.42">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Gold_Radial);
+        stroke: #1d1d1b;
+        stroke-miterlimit: 10;
+        stroke-width: 5.67px;
+      }
+    </style>
+    <radialGradient id="Gold_Radial" data-name="Gold Radial" cx="48.59" cy="46.82" fx="48.59" fy="46.82" r="41.47" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fffad2"/>
+      <stop offset=".11" stop-color="#fbf2c0"/>
+      <stop offset=".34" stop-color="#f3de94"/>
+      <stop offset=".37" stop-color="#f2dc8e"/>
+      <stop offset=".69" stop-color="#f0bf00"/>
+      <stop offset="1" stop-color="#c9961a"/>
+    </radialGradient>
+  </defs>
+  <g id="_Шар_1-2" data-name="Шар 1">
+    <polygon class="cls-1" points="48.59 6.41 61.72 33.01 91.08 37.28 69.84 57.99 74.85 87.24 48.59 73.43 22.32 87.24 27.34 57.99 6.09 37.28 35.46 33.01 48.59 6.41"/>
+  </g>
+</svg>
