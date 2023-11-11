@@ -1,10 +1,10 @@
 ﻿using TMPro;
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 public sealed class MonopolyCell : MonoBehaviour
 {
-    public enum MonopolyCellType : byte
+    internal enum MonopolyCellType : byte
     {
         Tax,
         Jail,
@@ -16,14 +16,14 @@ public sealed class MonopolyCell : MonoBehaviour
         Property,    
     }
 
-    #region Type
-
-    [Header("Type")]
+    [SerializeField]
+    internal MonopolyCellType Type;
 
     [SerializeField]
-    public MonopolyCellType Type;
+    private Image imageMortgagedCell;
 
-    #endregion
+    [SerializeField]
+    private TextMeshProUGUI textPrice;
 
     #region Pricing
 
@@ -33,60 +33,53 @@ public sealed class MonopolyCell : MonoBehaviour
     private int initialPrice;
 
     [SerializeField]
-    private int initialRent;
-
-    [SerializeField]
-    internal int mortgageValue;
-
-    [SerializeField]
     internal int[] rentValues;
 
-    public bool IsMortgaged { get; private set; }
-
-    //public bool IsMortgaged { get; private set; }
+    [SerializeField]
+    private int initialMortgageValue;
 
     #endregion
 
-    private TMP_Text costText;
+    internal int CurrentRentPrice { get; }
 
-    private void Awake()
-    {
-        //if (this.Type == MonopolyCellType.Property || this.Type == MonopolyCellType.Vehicle)
-        //{
-           // this.rentValues = new int[5];
-            //this.GetComponentsInChildren<TMP_Text>()[0].text = $"₴ {this.initialPrice}";
-        //}
-    }
+    internal int CurrentMortgageValue { get; }
+
+    internal bool IsMortgaged { get; private set; }
 
     private void OnValidate()
     {
-        //if (this.costText != null)
-        //{
-            //this.rentValues = new int[5];
-            //this.costText.text = $"₴ {this.initialPrice}";
-        //}
+        if ((this.Type == MonopolyCellType.Property || this.Type == MonopolyCellType.Vehicle) && this.textPrice == null)
+            throw new System.NullReferenceException($"{nameof(this.textPrice)} is not set.");
+
+        // Check if all rent prices are input
     }
 
-    internal int MortgageCell()
+    private void Awake()
     {
-        //this.IsMortgaged = true;
-
-        //change visual
-
-        return this.mortgageValue;
+        if (this.Type == MonopolyCellType.Property || this.Type == MonopolyCellType.Vehicle)
+            this.textPrice.text = $"₴ {this.initialPrice}К";
     }
 
-    internal int UnMortgageCell()
-    {
-        //this.isMortgaged = false;
+//   internal int MortgageCell()
+//    {
+//        //this.IsMortgaged = true;
+//
+//        //change visual
+//
+//        return this.CurrentMortgageValue;
+//    }
 
-        //change visual
+//    internal int UnMortgageCell()
+//    {
+//        //this.isMortgaged = false;
+//
+//        //change visual
+//
+//        return this.CurrentMortgageValue;
+//    }
 
-        return this.mortgageValue;
-    }
-
-    public void OnOwnerUpdated()
-    {
-
-    }
+//    public void OnOwnerUpdated()
+//    {
+//
+//    }
 }

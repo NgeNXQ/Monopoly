@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public sealed class MonopolyBoard : MonoBehaviour
 {
     [SerializeField]
-    private List<MonopolyCell> route;
+    public List<MonopolyCell> route;
 
     private void Awake() => this.route = new List<MonopolyCell>();
 
