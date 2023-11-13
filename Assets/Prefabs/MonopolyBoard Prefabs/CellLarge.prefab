@@ -35,7 +35,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 2.5, y: 2.5}
+  m_SizeDelta: {x: 2, y: 2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6206790269422480020
 CanvasRenderer:
@@ -121,6 +121,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65a10f6dab59b894e95058c195eaa94e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Type: 0
+  imageMortgagedCell: {fileID: 0}
+  textPrice: {fileID: 0}
+  initialPrice: 0
+  rentValues: 
+  initialMortgageValue: 0
 --- !u!1 &6786966792516350182
 GameObject:
   m_ObjectHideFlags: 0

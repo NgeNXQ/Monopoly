@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Шар_2" data-name="Шар 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 136.37 136.37">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke: url(#Foliage_9);
+      }
+
+      .cls-1, .cls-2 {
+        fill: none;
+        stroke-width: 11.34px;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke-miterlimit: 10;
+      }
+
+      .cls-4 {
+        fill: #e30613;
+      }
+
+      .cls-5 {
+        fill: #706f6f;
+      }
+
+      .cls-2 {
+        stroke: #e30613;
+        stroke-dasharray: 0 0 12.27 12.27;
+      }
+
+      .cls-3 {
+        fill: #3c3c3b;
+        stroke: #fff;
+        stroke-width: 4.25px;
+      }
+    </style>
+    <linearGradient id="Foliage_9" data-name="Foliage 9" x1="0" y1="68.19" x2="136.37" y2="68.19" gradientUnits="userSpaceOnUse">
+      <stop offset=".01" stop-color="#f9e69e"/>
+      <stop offset=".51" stop-color="#efcb00"/>
+      <stop offset="1" stop-color="#c7a400"/>
+    </linearGradient>
+  </defs>
+  <g id="_Шар_4" data-name="Шар 4">
+    <circle class="cls-5" cx="68.19" cy="68.19" r="61.33"/>
+    <circle class="cls-1" cx="68.19" cy="68.19" r="62.5"/>
+    <circle class="cls-2" cx="68.19" cy="68.19" r="62.5" transform="translate(-28.24 68.19) rotate(-45)"/>
+    <circle class="cls-3" cx="68.19" cy="68.19" r="50.56"/>
+    <path class="cls-4" d="m96.64,58.71c0,4.05-1.55,8.1-4.63,11.19l-1.38,1.38-22.36,22.36-22.37-22.36,22.36-22.37,1.38-1.38c6.18-6.17,16.19-6.17,22.37,0,3.08,3.09,4.63,7.14,4.63,11.18Z"/>
+    <path class="cls-4" d="m90.63,71.28l-22.36,22.36-22.37-22.36-1.54-1.55c-6.18-6.18-6.18-16.19,0-22.36,3.09-3.09,7.13-4.64,11.18-4.64s8.09,1.55,11.18,4.64l23.91,23.91Z"/>
+  </g>
+</svg>
