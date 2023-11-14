@@ -19,6 +19,9 @@ public class ChanceField : MonoBehaviour
     Player player;
     ChanceCardSO pickedCard;
 
+    public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
+    public static ShowInputPanel OnShowInputPanel;
+
     private void OnEnable()
     {
         MonopolyCell.OnDrawChanceCard += DrawCard;
@@ -157,5 +160,8 @@ public class ChanceField : MonoBehaviour
         {
             GameManager.instance.SwitchPlayer();
         }
+
+        if (!isMoving)
+            OnShowInputPanel.Invoke(true, GameManager.instance.RolledADounle, !GameManager.instance.RolledADounle);
     }
 }

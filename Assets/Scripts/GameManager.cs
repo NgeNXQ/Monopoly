@@ -45,6 +45,9 @@ public sealed class GameManager : MonoBehaviour
     bool isDoubleRolled;
     int doubleRollCount;
 
+    public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
+    public static ShowInputPanel OnShowInputPanel;
+
     private void Awake()
     {
         instance = this;
@@ -82,6 +85,8 @@ public sealed class GameManager : MonoBehaviour
 
             players[i].Initialize(monopolyBoard.route[0], this.startBalance, info, playerToken);
         }
+
+        OnShowInputPanel.Invoke(true, true, true);
     }
 
     public void RollDice()
@@ -141,6 +146,8 @@ public sealed class GameManager : MonoBehaviour
         {
             StartCoroutine(DelayBetweenSwitchPlayer());
         }
+
+        OnShowInputPanel.Invoke(true, false, false);
     }
 
     IEnumerator DelayBeforeMove(int rolledDice)
@@ -165,6 +172,8 @@ public sealed class GameManager : MonoBehaviour
         {
             currentPlayer = 0;
         }
+
+        OnShowInputPanel.Invoke(true, true, true);
     }
 
     public int[] LastRolledDice()
@@ -182,5 +191,19 @@ public sealed class GameManager : MonoBehaviour
         int currentTaxCollected = taxPool;
         taxPool = 0;
         return currentTaxCollected;
+    }
+
+    public void RemovePlayer(Player player)
+    {
+        players.Remove(player);
+        CheckForGameOver();
+    }
+
+    void CheckForGameOver()
+    {
+        if (players.Count == 1)
+        {
+
+        }
     }
 }

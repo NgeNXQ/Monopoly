@@ -23,6 +23,9 @@ public sealed class Player
 
     public bool IsInJail { get; private set; }
 
+    public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
+    public static ShowInputPanel OnShowInputPanel;
+
     public int[] CountHousesAndHotels()
     {
         int houses = 0;
@@ -83,6 +86,7 @@ public sealed class Player
     {
         CurrentPosition = newNode;
         newNode.PlayerLandedOnNode(this);
+
     }
 
     public void CollectMoney(int amount)
@@ -104,13 +108,20 @@ public sealed class Player
 
         //update ui
         this.playerInfo.SetPlayerBalance(balance);
+
+
     }
 
     public void PayRent(int rentAmount, Player owner)
     {
         if (balance < rentAmount)
         {
+            if (balance < rentAmount)
+            {
+                HandleInsufficientFunds(rentAmount);
+            }
 
+            OnShowInputPanel.Invoke(true, false, false);
         }
 
         balance -= rentAmount;
@@ -123,8 +134,10 @@ public sealed class Player
     {
         if (balance < amount)
         {
-
+            HandleInsufficientFunds(amount);
         }
+
+        OnShowInputPanel.Invoke(true, false, false);
 
         balance -= amount;
 
@@ -175,12 +188,20 @@ public sealed class Player
 
     public void CheckIfPlayerHasASet()
     {
+        List<MonopolyCell> processedSet = null;
+
         foreach (var node in playerCells)
         {
             var (list, allSame) = MonopolyBoard.instance.PlayerHasAllNodesOfSet(node);
+
+            if (!allSame)
+            {
+                continue;
+            }
+
             List<MonopolyCell> nodeSet = list;
 
-            if (nodeSet != null)
+            if (nodeSet != null && nodeSet != processedSet)
             {
                 bool hasMordgadedNode = nodeSet.Any(node => node.IsMortgaged) ? true: false;
 
@@ -188,7 +209,8 @@ public sealed class Player
                 {
                     if (nodeSet[0].Type == MonopolyCell.MonopolyCellType.Property)
                     {
-
+                        BuildHouseOrHotelEvenly(nodeSet);
+                        processedSet = nodeSet;
                     }
                 }
             }
@@ -221,6 +243,7 @@ public sealed class Player
             {
                 node.BuildHouseOrHotel();
                 PayTax(node.HouseCost);
+                break;
             }
         }
     }
@@ -228,5 +251,80 @@ public sealed class Player
     bool CanAffordAHouse(int price)
     {
         return balance >= price;
+    }
+
+    void HandleInsufficientFunds(int amounToPay)
+    {
+        int housesToSell = 0;
+        int allHouses = 0;
+        int propertiesToMortgage = 0;
+        int allPropertiesToMortgage = 0;
+
+        foreach (var node in playerCells)
+        {
+            allHouses += node.NumberOfHouses;
+        }
+
+        while (balance < amounToPay && allHouses > 0)
+        {
+            foreach (var node in playerCells)
+            {
+                housesToSell = node.NumberOfHouses;
+
+                if (housesToSell > 0)
+                {
+                    CollectMoney(node.SellHouseOrHotel());
+                    allHouses--;
+
+                    if (balance >= amounToPay)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        foreach (var node in playerCells)
+        {
+            allPropertiesToMortgage += (node.IsMortgaged) ? 0 : 1;
+        }
+
+        while (balance < amounToPay && allPropertiesToMortgage > 0)
+        {
+            foreach (var node in playerCells)
+            {
+                propertiesToMortgage = (node.IsMortgaged) ? 0 : 1;
+
+                if (propertiesToMortgage > 0)
+                {
+                    this.CollectMoney(node.MortgageCell());
+                    allPropertiesToMortgage--;
+
+                    if (balance >= amounToPay)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+
+        Bankrupt();
+    }
+
+    public void Bankrupt()
+    {
+        // update visual
+
+        for (int i = playerCells.Count; i >= 0; i--)
+        {
+            playerCells[i].ResetNode();
+        }
+
+        GameManager.instance.RemovePlayer(this);
+    }
+
+    public void RemoveProperty(MonopolyCell node)
+    {
+        playerCells.Remove(node);
     }
 }

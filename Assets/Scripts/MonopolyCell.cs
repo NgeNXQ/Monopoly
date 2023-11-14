@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static MonopolyCell;
 
 public sealed class MonopolyCell : MonoBehaviour
 {
@@ -77,6 +78,12 @@ public sealed class MonopolyCell : MonoBehaviour
     [SerializeField] public GameObject[] houses;
     [SerializeField] public GameObject hotel;
 
+    public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
+    public static ShowInputPanel OnShowInputPanel;
+
+    public delegate void ShowPropertyBuyPanel(MonopolyCell node, Player player);
+    public static ShowPropertyBuyPanel OnShowPropertyBuyPanel;
+
     private void OnValidate()
     {
         if ((this.Type == MonopolyCellType.Property || this.Type == MonopolyCellType.Transport) && this.textPrice == null)
@@ -94,14 +101,16 @@ public sealed class MonopolyCell : MonoBehaviour
             this.textPrice.text = $"₴ {this.initialPrice}К";
     }
 
-//   internal int MortgageCell()
-//    {
-//        //this.IsMortgaged = true;
-//
-//        //change visual
-//
-//        return this.CurrentMortgageValue;
-//    }
+    internal int MortgageCell()
+    {
+        //        //this.IsMortgaged = true;
+        //
+        //        //change visual
+        //
+        //        return this.CurrentMortgageValue;
+
+        return 0;
+    }
 
     internal void UnMortgageCell()
     {
@@ -141,6 +150,7 @@ public sealed class MonopolyCell : MonoBehaviour
                     }
                     else if (Owner != null && player.CanAfford(this.initialPrice))
                     {
+                        OnShowPropertyBuyPanel.Invoke(this, player);
                         player.BuyProperty(this);
                         OnOwnerUpdated();
                     }
@@ -221,7 +231,7 @@ public sealed class MonopolyCell : MonoBehaviour
         if (!continueTurn)
             return;
 
-
+        OnShowInputPanel.Invoke(true, GameManager.instance.RolledADounle, !GameManager.instance.RolledADounle);
     }
 
     public void ContinueGame()
@@ -293,6 +303,7 @@ public sealed class MonopolyCell : MonoBehaviour
     public void SetOWner(Player player)
     {
         Owner = player;
+        OnOwnerUpdated();
     }
 
     public int CalculateGambleRent()
@@ -404,13 +415,15 @@ public sealed class MonopolyCell : MonoBehaviour
         }
     }
 
-    public void SellHouseOrHotel()
+    public int SellHouseOrHotel()
     {
         if (Type == MonopolyCellType.Property)
         {
             numberOfHouses--;
             VisualizeHouses();
         }
+
+        return HouseCost / 2;
     }
 
     public void ResetNode()
@@ -427,6 +440,10 @@ public sealed class MonopolyCell : MonoBehaviour
             VisualizeHouses();
         }
 
+        Owner.RemoveProperty(this);
+
         // Change visual
     }
+
+
 }

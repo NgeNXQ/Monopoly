@@ -19,6 +19,9 @@ public class CommunityCard : MonoBehaviour
     Player player;
     CommunnityCardSO pickedCard;
 
+    public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
+    public static ShowInputPanel OnShowInputPanel;
+
     private void OnEnable()
     {
         MonopolyCell.OnDrawCommunityCard += DrawCard;
@@ -133,5 +136,8 @@ public class CommunityCard : MonoBehaviour
         {
             GameManager.instance.SwitchPlayer();
         }
+
+        if (!isMoving)
+            OnShowInputPanel.Invoke(true, GameManager.instance.RolledADounle, !GameManager.instance.RolledADounle);
     }
 }
