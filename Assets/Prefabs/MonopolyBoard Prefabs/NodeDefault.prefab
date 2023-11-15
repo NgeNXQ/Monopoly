@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 5331361571106668218}
   - component: {fileID: 2696165767035220650}
   m_Layer: 0
-  m_Name: Canvas
+  m_Name: NodeCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -252,7 +252,7 @@ GameObject:
   - component: {fileID: 4372918308061956861}
   - component: {fileID: 107075547068659525}
   m_Layer: 0
-  m_Name: ImageCell
+  m_Name: ImageMonopolySprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -327,7 +327,7 @@ GameObject:
   - component: {fileID: 8971594310825216896}
   - component: {fileID: 5028140065738607375}
   m_Layer: 0
-  m_Name: ImageIndustry
+  m_Name: ImageMonopolySet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -551,7 +551,7 @@ GameObject:
   - component: {fileID: 3953292161018051812}
   - component: {fileID: -5928487063108403412}
   m_Layer: 0
-  m_Name: CellDefault
+  m_Name: NodeDefault
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -586,15 +586,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65a10f6dab59b894e95058c195eaa94e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Type: 7
-  imageMortgagedCell: {fileID: 0}
-  textPrice: {fileID: 3338866452751487064}
-  imageOwner: {fileID: 0}
-  imageMortgage: {fileID: 0}
-  cellMonopolyType: {fileID: 5028140065738607375}
-  initialPrice: 500
-  rentValues: 0000000000000000000000000000000000000000
-  initialMortgageValue: 0
+  ImageMonopolySetType: {fileID: 5028140065738607375}
 --- !u!1001 &1243109906074533010
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -605,7 +597,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -3888481672020999207, guid: aac8b14b0f7ae7b43aecd57a1be0255d, type: 3}
       propertyPath: m_Name
-      value: CellDefault
+      value: NodeDefault
       objectReference: {fileID: 0}
     - target: {fileID: 8742538545776668643, guid: aac8b14b0f7ae7b43aecd57a1be0255d, type: 3}
       propertyPath: m_LocalScale.y

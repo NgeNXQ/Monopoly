@@ -1,330 +1,358 @@
 //using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
+using System.Collections.Generic;
 
-[System.Serializable]
+
+//[System.Serializable]
 public sealed class Player
 {
-    [SerializeField]
-    public string Name;
+    private List<MonopolyNode> nodes;
 
-    private int balance;
-    private int turnsInJail;
+    [SerializeField] private string name;
 
-    [SerializeField]
-    public GameObject Token;
+    [SerializeField] private GameObject token;
 
-    [HideInInspector]
-    public MonopolyCell CurrentPosition { get; private set; }
+    public int Balance { get; set; }
 
-    public bool IsInJail { get; private set; }
+    public bool IsInJail { get; set; }
 
-    public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
-    public static ShowInputPanel OnShowInputPanel;
+    public int TurnsInJail { get; set; }
 
-    public int[] CountHousesAndHotels()
+    public GameObject Token { get => this.token; }
+
+    public MonopolyNode CurrentPosition { get; set; }
+
+
+    public Player(string name, int balance)
     {
-        int houses = 0;
-        int hotels = 0;
-
-        foreach (var node in playerCells) 
-        { 
-            if (node.NumberOfHouses != 5)
-            {
-                houses += node.NumberOfHouses;
-            }
-            else
-            {
-                hotels += 1;
-            }
-        }
-
-        int[] allBuildings = new int[] { houses, hotels };
-        return allBuildings;
+        this.name = name;
+        this.TurnsInJail = 0;
+        this.Balance = balance;
+        nodes = new List<MonopolyNode>();
     }
 
-    [SerializeField]
-    private List<MonopolyCell> playerCells = new List<MonopolyCell>();
-
-    // PLAYER INFO
-
-    private PlayerInfo playerInfo;
-
-
-
-    public Player(MonopolyCell cell, int balance, PlayerInfo playerInfo)
+    public void Initialize(int balance, PlayerInfo playerInfo, GameObject token)
     {
-        this.balance = balance;
-        this.CurrentPosition = cell;
-        this.playerInfo = playerInfo;
+        this.Balance = balance;
+        //this.CurrentPosition = cell;
+        //this.playerInfo = playerInfo;
+        //this.Token = token;
 
-        this.playerInfo.SetPlayerName(this.Name);
-        this.playerInfo.SetPlayerBalance(this.balance);
+        //this.playerInfo.SetPlayerName(this.Name);
+        //this.playerInfo.SetPlayerBalance(this.balance);
     }
 
-    public int ReadMoney()
+    public void Initialize(int balance, GameObject token)
     {
-        return this.balance;
+        this.token = token;
+        this.Balance = balance;
+        this.CurrentPosition = MonopolyBoard.Instance.StartingNode;
     }
 
-    public void Initialize(MonopolyCell cell, int balance, PlayerInfo playerInfo, GameObject token)
-    {
-        this.balance = balance;
-        this.CurrentPosition = cell;
-        this.playerInfo = playerInfo;
-        this.Token = token;
+    
 
-        this.playerInfo.SetPlayerName(this.Name);
-        this.playerInfo.SetPlayerBalance(this.balance);
-    }
+    //public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
+    //public static ShowInputPanel OnShowInputPanel;
 
-    public void SetNewCurrentNode(MonopolyCell newNode)
-    {
-        CurrentPosition = newNode;
-        newNode.PlayerLandedOnNode(this);
+    //public int[] CountHousesAndHotels()
+    //{
+    //    int houses = 0;
+    //    int hotels = 0;
 
-    }
+    //    foreach (var node in playerCells)
+    //    {
+    //        if (node.NumberOfHouses != 5)
+    //        {
+    //            houses += node.NumberOfHouses;
+    //        }
+    //        else
+    //        {
+    //            hotels += 1;
+    //        }
+    //    }
 
-    public void CollectMoney(int amount)
-    {
-        balance += amount;
-        playerInfo.SetPlayerBalance(balance);
-    }
+    //    int[] allBuildings = new int[] { houses, hotels };
+    //    return allBuildings;
+    //}
 
-    internal bool CanAfford(int price)
-    {
-        return price <= balance;
-    }
+    //[SerializeField]
+    //private List<MonopolyCell> playerCells = new List<MonopolyCell>();
 
-    public void BuyProperty(MonopolyCell cell)
-    {
-        this.balance -= cell.BaseRentPrice;
-        cell.SetOWner(this);
-        playerCells.Add(cell);
+    //PLAYER INFO
 
-        //update ui
-        this.playerInfo.SetPlayerBalance(balance);
+    //private PlayerInfo playerInfo;
 
 
-    }
 
-    public void PayRent(int rentAmount, Player owner)
-    {
-        if (balance < rentAmount)
-        {
-            if (balance < rentAmount)
-            {
-                HandleInsufficientFunds(rentAmount);
-            }
+    //public Player(MonopolyCell cell, int balance, PlayerInfo playerInfo)
+    //{
+    //    this.balance = balance;
+    //    this.CurrentPosition = cell;
+    //    this.playerInfo = playerInfo;
 
-            OnShowInputPanel.Invoke(true, false, false);
-        }
+    //    this.playerInfo.SetPlayerName(this.Name);
+    //    this.playerInfo.SetPlayerBalance(this.balance);
+    //}
 
-        balance -= rentAmount;
-        owner.CollectMoney(rentAmount);
+    //public int ReadMoney()
+    //{
+    //    return this.balance;
+    //}
 
-        //update ui
-    }
+    //public void Initialize(MonopolyCell cell, int balance, PlayerInfo playerInfo, GameObject token)
+    //{
+    //    this.balance = balance;
+    //    this.CurrentPosition = cell;
+    //    this.playerInfo = playerInfo;
+    //    this.Token = token;
 
-    internal void PayTax(int amount)
-    {
-        if (balance < amount)
-        {
-            HandleInsufficientFunds(amount);
-        }
+    //    this.playerInfo.SetPlayerName(this.Name);
+    //    this.playerInfo.SetPlayerBalance(this.balance);
+    //}
 
-        OnShowInputPanel.Invoke(true, false, false);
+    //public void SetNewCurrentNode(MonopolyCell newNode)
+    //{
+    //    CurrentPosition = newNode;
+    //    newNode.PlayerLandedOnNode(this);
 
-        balance -= amount;
+    //}
 
-        //update ui
-    }
+    //public void CollectMoney(int amount)
+    //{
+    //    balance += amount;
+    //    playerInfo.SetPlayerBalance(balance);
+    //}
 
-    public void GoToJail(int indexOnBoard)
-    {
-        //const int JAIL_CELL_INDEX = 10;
+    //internal bool CanAfford(int price)
+    //{
+    //    return price <= balance;
+    //}
 
-        IsInJail = true;
-        //this.Token.transform.position = MonopolyBoard.instance.route[JAIL_CELL_INDEX].transform.position;
-       // CurrentPosition = MonopolyBoard.instance.route[JAIL_CELL_INDEX];
+    //public void BuyProperty(MonopolyCell cell)
+    //{
+    //    this.balance -= cell.BaseRentPrice;
+    //    cell.SetOWner(this);
+    //    playerCells.Add(cell);
 
-        MonopolyBoard.instance.MovePlayerToken(this, CalculateDistanceFromJail(indexOnBoard));
-        GameManager.instance.ResetRolledDouble();
-    }
+    //    update ui
+    //    this.playerInfo.SetPlayerBalance(balance);
 
-    public void SetOutOfJail()
-    {
-        IsInJail = false;
-        turnsInJail = 0;
-    }
 
-    int CalculateDistanceFromJail(int indexOnBoard)
-    {
-        int result = 0;
-        const int JAIL_CELL_INDEX = 10;
+    //}
 
-        if (indexOnBoard > JAIL_CELL_INDEX)
-        {
-            result = -(indexOnBoard - JAIL_CELL_INDEX);
-        }
-        else
-        {
-            result = JAIL_CELL_INDEX - indexOnBoard;
-        }
+    //public void PayRent(int rentAmount, Player owner)
+    //{
+    //    if (balance < rentAmount)
+    //    {
+    //        if (balance < rentAmount)
+    //        {
+    //            HandleInsufficientFunds(rentAmount);
+    //        }
 
-        return result;
-    }
+    //        OnShowInputPanel.Invoke(true, false, false);
+    //    }
 
-    public int NumberTurnsInJail => turnsInJail;
+    //    balance -= rentAmount;
+    //    owner.CollectMoney(rentAmount);
 
-    public void IncreaseNumberOfTurnsInJail()
-    {
-        turnsInJail++;
-    }
+    //    update ui
+    //}
 
-    public void CheckIfPlayerHasASet()
-    {
-        List<MonopolyCell> processedSet = null;
+    //internal void PayTax(int amount)
+    //{
+    //    if (balance < amount)
+    //    {
+    //        HandleInsufficientFunds(amount);
+    //    }
 
-        foreach (var node in playerCells)
-        {
-            var (list, allSame) = MonopolyBoard.instance.PlayerHasAllNodesOfSet(node);
+    //    OnShowInputPanel.Invoke(true, false, false);
 
-            if (!allSame)
-            {
-                continue;
-            }
+    //    balance -= amount;
 
-            List<MonopolyCell> nodeSet = list;
+    //    update ui
+    //}
 
-            if (nodeSet != null && nodeSet != processedSet)
-            {
-                bool hasMordgadedNode = nodeSet.Any(node => node.IsMortgaged) ? true: false;
+    //public void GoToJail(int indexOnBoard)
+    //{
+    //    const int JAIL_CELL_INDEX = 10;
 
-                if (!hasMordgadedNode)
-                {
-                    if (nodeSet[0].Type == MonopolyCell.MonopolyCellType.Property)
-                    {
-                        BuildHouseOrHotelEvenly(nodeSet);
-                        processedSet = nodeSet;
-                    }
-                }
-            }
-        }
-    }
+    //    IsInJail = true;
+    //    this.Token.transform.position = MonopolyBoard.instance.route[JAIL_CELL_INDEX].transform.position;
+    //    CurrentPosition = MonopolyBoard.instance.route[JAIL_CELL_INDEX];
 
-    public void BuildHouseOrHotelEvenly(List<MonopolyCell> nodesToBuildOn)
-    {
-        int minHouses = int.MinValue;
-        int maxHouses = int.MinValue;
+    //    MonopolyBoard.instance.MovePlayerToken(this, CalculateDistanceFromJail(indexOnBoard));
+    //    GameManager.instance.ResetRolledDouble();
+    //}
 
-        foreach (var node in nodesToBuildOn)
-        {
-            int numOfHouses = node.NumberOfHouses;
+    //public void SetOutOfJail()
+    //{
+    //    IsInJail = false;
+    //    turnsInJail = 0;
+    //}
 
-            if (numOfHouses < minHouses)
-            {
-                minHouses = numOfHouses;
-            }
+    //int CalculateDistanceFromJail(int indexOnBoard)
+    //{
+    //    int result = 0;
+    //    const int JAIL_CELL_INDEX = 10;
 
-            if (numOfHouses > maxHouses && numOfHouses < 5)
-            {
-                maxHouses = numOfHouses;
-            }
-        }
+    //    if (indexOnBoard > JAIL_CELL_INDEX)
+    //    {
+    //        result = -(indexOnBoard - JAIL_CELL_INDEX);
+    //    }
+    //    else
+    //    {
+    //        result = JAIL_CELL_INDEX - indexOnBoard;
+    //    }
 
-        foreach (var node in nodesToBuildOn)
-        {
-            if (node.NumberOfHouses == minHouses && node.NumberOfHouses < 5 && CanAffordAHouse(node.HouseCost))
-            {
-                node.BuildHouseOrHotel();
-                PayTax(node.HouseCost);
-                break;
-            }
-        }
-    }
+    //    return result;
+    //}
 
-    bool CanAffordAHouse(int price)
-    {
-        return balance >= price;
-    }
+    //public int NumberTurnsInJail => turnsInJail;
 
-    void HandleInsufficientFunds(int amounToPay)
-    {
-        int housesToSell = 0;
-        int allHouses = 0;
-        int propertiesToMortgage = 0;
-        int allPropertiesToMortgage = 0;
+    //public void IncreaseNumberOfTurnsInJail()
+    //{
+    //    turnsInJail++;
+    //}
 
-        foreach (var node in playerCells)
-        {
-            allHouses += node.NumberOfHouses;
-        }
+    //public void CheckIfPlayerHasASet()
+    //{
+    //    List<MonopolyCell> processedSet = null;
 
-        while (balance < amounToPay && allHouses > 0)
-        {
-            foreach (var node in playerCells)
-            {
-                housesToSell = node.NumberOfHouses;
+    //    foreach (var node in playerCells)
+    //    {
+    //        var (list, allSame) = MonopolyBoard.instance.PlayerHasAllNodesOfSet(node);
 
-                if (housesToSell > 0)
-                {
-                    CollectMoney(node.SellHouseOrHotel());
-                    allHouses--;
+    //        if (!allSame)
+    //        {
+    //            continue;
+    //        }
 
-                    if (balance >= amounToPay)
-                    {
-                        return;
-                    }
-                }
-            }
-        }
+    //        List<MonopolyCell> nodeSet = list;
 
-        foreach (var node in playerCells)
-        {
-            allPropertiesToMortgage += (node.IsMortgaged) ? 0 : 1;
-        }
+    //        if (nodeSet != null && nodeSet != processedSet)
+    //        {
+    //            bool hasMordgadedNode = nodeSet.Any(node => node.IsMortgaged) ? true : false;
 
-        while (balance < amounToPay && allPropertiesToMortgage > 0)
-        {
-            foreach (var node in playerCells)
-            {
-                propertiesToMortgage = (node.IsMortgaged) ? 0 : 1;
+    //            if (!hasMordgadedNode)
+    //            {
+    //                if (nodeSet[0].Type == MonopolyCell.MonopolyCellType.Property)
+    //                {
+    //                    BuildHouseOrHotelEvenly(nodeSet);
+    //                    processedSet = nodeSet;
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
-                if (propertiesToMortgage > 0)
-                {
-                    this.CollectMoney(node.MortgageCell());
-                    allPropertiesToMortgage--;
+    //public void BuildHouseOrHotelEvenly(List<MonopolyCell> nodesToBuildOn)
+    //{
+    //    int minHouses = int.MinValue;
+    //    int maxHouses = int.MinValue;
 
-                    if (balance >= amounToPay)
-                    {
-                        return;
-                    }
-                }
-            }
-        }
+    //    foreach (var node in nodesToBuildOn)
+    //    {
+    //        int numOfHouses = node.NumberOfHouses;
 
-        Bankrupt();
-    }
+    //        if (numOfHouses < minHouses)
+    //        {
+    //            minHouses = numOfHouses;
+    //        }
 
-    public void Bankrupt()
-    {
-        // update visual
+    //        if (numOfHouses > maxHouses && numOfHouses < 5)
+    //        {
+    //            maxHouses = numOfHouses;
+    //        }
+    //    }
 
-        for (int i = playerCells.Count; i >= 0; i--)
-        {
-            playerCells[i].ResetNode();
-        }
+    //    foreach (var node in nodesToBuildOn)
+    //    {
+    //        if (node.NumberOfHouses == minHouses && node.NumberOfHouses < 5 && CanAffordAHouse(node.HouseCost))
+    //        {
+    //            node.BuildHouseOrHotel();
+    //            PayTax(node.HouseCost);
+    //            break;
+    //        }
+    //    }
+    //}
 
-        GameManager.instance.RemovePlayer(this);
-    }
+    //bool CanAffordAHouse(int price)
+    //{
+    //    return balance >= price;
+    //}
 
-    public void RemoveProperty(MonopolyCell node)
-    {
-        playerCells.Remove(node);
-    }
+    //void HandleInsufficientFunds(int amounToPay)
+    //{
+    //    int housesToSell = 0;
+    //    int allHouses = 0;
+    //    int propertiesToMortgage = 0;
+    //    int allPropertiesToMortgage = 0;
+
+    //    foreach (var node in playerCells)
+    //    {
+    //        allHouses += node.NumberOfHouses;
+    //    }
+
+    //    while (balance < amounToPay && allHouses > 0)
+    //    {
+    //        foreach (var node in playerCells)
+    //        {
+    //            housesToSell = node.NumberOfHouses;
+
+    //            if (housesToSell > 0)
+    //            {
+    //                CollectMoney(node.SellHouseOrHotel());
+    //                allHouses--;
+
+    //                if (balance >= amounToPay)
+    //                {
+    //                    return;
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    foreach (var node in playerCells)
+    //    {
+    //        allPropertiesToMortgage += (node.IsMortgaged) ? 0 : 1;
+    //    }
+
+    //    while (balance < amounToPay && allPropertiesToMortgage > 0)
+    //    {
+    //        foreach (var node in playerCells)
+    //        {
+    //            propertiesToMortgage = (node.IsMortgaged) ? 0 : 1;
+
+    //            if (propertiesToMortgage > 0)
+    //            {
+    //                this.CollectMoney(node.MortgageCell());
+    //                allPropertiesToMortgage--;
+
+    //                if (balance >= amounToPay)
+    //                {
+    //                    return;
+    //                }
+    //            }
+    //        }
+    //    }
+
+    //    Bankrupt();
+    //}
+
+    //public void Bankrupt()
+    //{
+    //    update visual
+
+    //    for (int i = playerCells.Count; i >= 0; i--)
+    //    {
+    //        playerCells[i].ResetNode();
+    //    }
+
+    //    GameManager.instance.RemovePlayer(this);
+    //}
+
+    //public void RemoveProperty(MonopolyCell node)
+    //{
+    //    playerCells.Remove(node);
+    //}
 }

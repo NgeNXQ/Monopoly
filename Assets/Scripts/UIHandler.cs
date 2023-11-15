@@ -5,41 +5,21 @@ using UnityEngine.UI;
 
 public sealed class UIHandler : MonoBehaviour
 {
-    [SerializeField] GameObject inputPanel;
-    [SerializeField] Button buttonRollDice;
-    [SerializeField] Button buttonEndTurn;
+    [SerializeField] private Button buttonRollDices;
 
-    private void OnEnable()
+    public static UIHandler Instance { get; private set; }
+
+    private void Awake() => Instance = this;
+
+    public void ShowButtonRollDices()
     {
-        GameManager.OnShowInputPanel += ShowPanel;
-        MonopolyCell.OnShowInputPanel += ShowPanel;
-        CommunityCard.OnShowInputPanel += ShowPanel;
-        ChanceField.OnShowInputPanel += ShowPanel;
-        Player.OnShowInputPanel += ShowPanel;
+        this.buttonRollDices.interactable = true;
+        this.buttonRollDices.gameObject.SetActive(true);
     }
 
-    private void OnDisable()
+    public void HideButtonRollDices()
     {
-        GameManager.OnShowInputPanel -= ShowPanel;
-        MonopolyCell.OnShowInputPanel -= ShowPanel;
-        CommunityCard.OnShowInputPanel -= ShowPanel;
-        ChanceField.OnShowInputPanel += ShowPanel;
-        Player.OnShowInputPanel -= ShowPanel;
+        this.buttonRollDices.interactable = false;
+        this.buttonRollDices.gameObject.SetActive(false);
     }
-
-    private void Start()
-    {
-        
-    }
-
-    void ShowPanel(bool showPanl, bool enableRollDice, bool enableEndTurn)
-    {
-        inputPanel.SetActive(showPanl);
-        buttonRollDice.interactable = enableRollDice;
-        buttonEndTurn.interactable = enableEndTurn;
-
-        
-    }
-
-
 }
