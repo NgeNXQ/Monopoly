@@ -3,19 +3,22 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 
 public sealed class GameManager : MonoBehaviour
 {
-    const int CIRCLE_BONUS = 2000;
-    const int MAX_TURNS_IN_JAIL = 3;
     const int START_BALANCE = 15000;
+
+    const int CIRCLE_BONUS = 2000;
+    const int EXACT_CIRCLE_BONUS = 3000;
+
+    const int MAX_TURNS_IN_JAIL = 3;
     const int MAX_DOUBLES_IN_ROW = 2;
-    const float PLAYER_MOVEMENT_SPEED = 10.0f;
 
-    public static GameManager Instance;
+    const float PLAYER_MOVEMENT_SPEED = 25.0f;
 
-    private List<Player> players;
+    [SerializeField] private List<Player> players = new List<Player>();
+
+    public static GameManager Instance { get; private set; }
 
     private int currentPlayerIndex;
 
@@ -25,23 +28,29 @@ public sealed class GameManager : MonoBehaviour
 
     public int SecondCubeValue { get; private set; }
 
-    public bool HasRolledDouble { get => FirstCubeValue == SecondCubeValue; }
+    public int TotalRollResult { get => this.FirstCubeValue + this.SecondCubeValue; }
 
-    //public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
-    //public static ShowInputPanel OnShowInputPanel;
+    public bool HasRolledDouble { get => this.FirstCubeValue == this.SecondCubeValue; }
 
     private void Awake()
     {
         Instance = this;
 
+        foreach (Player player in this.players)
+            player.Initialize(START_BALANCE);
+
 #if DEBUG
-        this.players = new List<Player>();
-        this.players.Add(new Player("#TestName", START_BALANCE));
+        //this.players = new List<Player>();
+        //this.players.Add(new Player("#TestName", START_BALANCE));
 #endif
     }
 
+    private void Start() => UIHandler.Instance.ShowButtonRollDices();
+
     public void RollDices()
     {
+        UIHandler.Instance.DeactivateButtonRollDices();
+
         const int MIN_CUBE_VALUE = 1;
         const int MAX_CUBE_VALUE = 6;
 
@@ -68,24 +77,29 @@ public sealed class GameManager : MonoBehaviour
         }
 
 #if DEBUG
-        Debug.Log($"Cube 1: {this.FirstCubeValue}; Cube 2: {this.SecondCubeValue}.");
+        Debug.Log($"{this.FirstCubeValue}; {this.SecondCubeValue}");
 #endif
 
-        this.MovePlayer(this.players[this.currentPlayerIndex], this.FirstCubeValue + this.SecondCubeValue);
+        this.MovePlayer(this.players[this.currentPlayerIndex], this.TotalRollResult);
     }
 
     public void SwitchPlayer()
     {
-        if (this.HasRolledDouble)
+        if (this.HasRolledDouble && !this.players[this.currentPlayerIndex].IsInJail)
         {
             ++this.currentPlayerDoubles;
 
             if (this.currentPlayerDoubles >= MAX_DOUBLES_IN_ROW + 1)
                 this.SendToJail(this.players[this.currentPlayerIndex]);
+
+            UIHandler.Instance.ActivateButtonRollDices();
         }
         else
         {
             ++this.currentPlayerIndex;
+            this.currentPlayerIndex %= this.players.Count;
+
+            UIHandler.Instance.HideButtonRollDices();
 
             if (this.players[this.currentPlayerIndex].IsInJail)
             {
@@ -103,107 +117,15 @@ public sealed class GameManager : MonoBehaviour
     public void SendToJail(Player player)
     {
         player.IsInJail = true;
-        // this.MovePlayer(player, );
-        // Update position
+        this.MovePlayer(player, MonopolyBoard.Instance.GetDistanceBetweenNodes(player.CurrentNode, MonopolyBoard.Instance.NodeJail));
     }
 
     public void ReleaseFromJail(Player player)
     {
         player.TurnsInJail = 0;
         player.IsInJail = false;
-    }
-
-    //public void MovePlayerToken(MonopolyCell.MonopolyCellType type, Player player)
-    //{
-    //    int indexOfNextNodeType = -1;
-    //    int indexOnBoard = route.IndexOf(player.CurrentPosition);
-    //    int startSearchIndex = (indexOnBoard + 1) % route.Count;
-    //    int nodeSearches = 0;
-
-    //    while (indexOfNextNodeType != -1 && nodeSearches <= route.Count)
-    //    {
-    //        if (route[startSearchIndex].Type == type)
-    //        {
-    //            indexOfNextNodeType = startSearchIndex;
-    //        }
-
-    //        startSearchIndex = (startSearchIndex + 1) % route.Count;
-    //        nodeSearches++;
-    //    }
-
-    //    if (indexOfNextNodeType != -1)
-    //    {
-    //        return;
-    //    }
-
-    //    StartCoroutine(MovePlayerInSteps(player, nodeSearches));
-    //}
-
-    public void MovePlayer(Player player, int steps)
-    {
-        StartCoroutine(MovePlayerInSteps(player, steps));
-
-        IEnumerator MovePlayerInSteps(Player player, int steps)
-        {
-            //int stepsLeft = steps;
-            //GameObject tokenToMove = player.Token;
-
-            bool movedOverStart = false;
-            int currentNodeIndex = MonopolyBoard.Instance.Nodes.IndexOf(player.CurrentPosition);
-
-            //bool isMovingForward = steps > 0;
-
-            if (steps > 0)
-            {
-                while (steps > 0)
-                {
-                    ++currentNodeIndex;
-
-                    if (currentNodeIndex > MonopolyBoard.Instance.Nodes.Count - 1)
-                    {
-                        currentNodeIndex = 0;
-                        movedOverStart = true;
-                    }
-
-                    Vector2 endPosition = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position;
-
-                    while (MoveToNextNode(this.players[this.currentPlayerIndex].Token, endPosition))
-                        yield return null;
-
-                    --steps;
-                }
-            }
-            else
-            {
-                while (steps > 0)
-                {
-                    --currentNodeIndex;
-
-                    if (currentNodeIndex < 0)
-                    {
-                        movedOverStart = true;
-                        currentNodeIndex = MonopolyBoard.Instance.Nodes.Count - 1;
-                    }
-
-                    Vector2 endPosition = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position;
-
-                    while (MoveToNextNode(this.players[this.currentPlayerIndex].Token, endPosition))
-                        yield return null;
-
-                    ++steps;
-                }
-            }
-
-            if (movedOverStart)
-                this.SendBalance(this.players[this.currentPlayerIndex], CIRCLE_BONUS);
-
-            player.CurrentPosition = MonopolyBoard.Instance.Nodes[currentNodeIndex];
-
-            //GameManager.instance.RollDice();
-        }
-
-        bool MoveToNextNode(GameObject tokenToMove, Vector3 endPosition) 
-            => endPosition != (tokenToMove.transform.position = Vector3.MoveTowards(tokenToMove.transform.position, endPosition, PLAYER_MOVEMENT_SPEED * Time.deltaTime));
+        this.currentPlayerDoubles = 0;
+        this.MovePlayer(player, this.TotalRollResult);
     }
 
     public void SendBalance(Player player, int balanceAmount)
@@ -212,6 +134,69 @@ public sealed class GameManager : MonoBehaviour
 
         // Update ui
     }
+
+    public void MovePlayer(Player player, int steps)
+    {
+        StartCoroutine(MovePlayerInSteps(player, steps));
+
+        IEnumerator MovePlayerInSteps(Player player, int steps)
+        {
+            Vector2 endPosition;
+            int indexOnBoard = player.CurrentNodeIndex;
+
+            if (steps > 0)
+            {
+                while (steps > 0)
+                {
+                    ++indexOnBoard;
+
+                    if (indexOnBoard > MonopolyBoard.Instance.Nodes.Count - 1)
+                    {
+                        indexOnBoard = 0;
+                        this.SendBalance(player, CIRCLE_BONUS);
+                    }
+
+                    endPosition = MonopolyBoard.Instance.Nodes[indexOnBoard].transform.position;
+
+                    while (MoveToNextNode(player.gameObject, endPosition))
+                        yield return null;
+
+                    --steps;
+                }
+            }
+            else
+            {
+                while (steps < 0)
+                {
+                    --indexOnBoard;
+
+                    if (indexOnBoard < 0)
+                    {
+                        this.SendBalance(player, CIRCLE_BONUS);
+                        indexOnBoard = MonopolyBoard.Instance.Nodes.Count - 1;
+                    }
+
+                    endPosition = MonopolyBoard.Instance.Nodes[indexOnBoard].transform.position;
+
+                    while (MoveToNextNode(player.gameObject, endPosition))
+                        yield return null;
+
+                    ++steps;
+                }
+            }
+
+            player.CurrentNode = MonopolyBoard.Instance.Nodes[indexOnBoard];
+
+            this.SwitchPlayer();
+        }
+
+        bool MoveToNextNode(GameObject tokenToMove, Vector3 endPosition)
+            => endPosition != (tokenToMove.transform.position = Vector3.MoveTowards(tokenToMove.transform.position, endPosition, PLAYER_MOVEMENT_SPEED * Time.deltaTime));
+    }
+
+
+
+
 
     //[SerializeField]
     //private MonopolyBoard monopolyBoard;

@@ -1,16 +1,12 @@
-//using System;
 using UnityEngine;
 using System.Collections.Generic;
 
-
 //[System.Serializable]
-public sealed class Player
+public sealed class Player : MonoBehaviour
 {
     private List<MonopolyNode> nodes;
 
-    [SerializeField] private string name;
-
-    [SerializeField] private GameObject token;
+    [SerializeField] private string Name;
 
     public int Balance { get; set; }
 
@@ -18,38 +14,32 @@ public sealed class Player
 
     public int TurnsInJail { get; set; }
 
-    public GameObject Token { get => this.token; }
+    public MonopolyNode CurrentNode { get; set; }
 
-    public MonopolyNode CurrentPosition { get; set; }
+    public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
 
-
-    public Player(string name, int balance)
-    {
-        this.name = name;
-        this.TurnsInJail = 0;
-        this.Balance = balance;
-        nodes = new List<MonopolyNode>();
-    }
-
-    public void Initialize(int balance, PlayerInfo playerInfo, GameObject token)
+    public void Initialize(int balance)
     {
         this.Balance = balance;
-        //this.CurrentPosition = cell;
-        //this.playerInfo = playerInfo;
-        //this.Token = token;
-
-        //this.playerInfo.SetPlayerName(this.Name);
-        //this.playerInfo.SetPlayerBalance(this.balance);
+        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
     }
 
-    public void Initialize(int balance, GameObject token)
+    public void BuyProperty(MonopolyNode node)
     {
-        this.token = token;
-        this.Balance = balance;
-        this.CurrentPosition = MonopolyBoard.Instance.StartingNode;
+
     }
 
-    
+    public void PledgeProperty(MonopolyNode node)
+    {
+
+    }
+
+    public void UpgradeProperty(MonopolyNode node)
+    {
+
+    }
+
+
 
     //public delegate void ShowInputPanel(bool activatePanel, bool activateRollDice, bool activateEndTurn);
     //public static ShowInputPanel OnShowInputPanel;

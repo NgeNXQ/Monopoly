@@ -50,7 +50,47 @@ public sealed class MonopolyNode : MonoBehaviour
 
     public bool IsMortgaged { get; private set; }
 
-    
+
+    public void OnPlayerLandedPropertyNode(Player player)
+    {
+        if (this.Owner == player)
+            return;
+
+        if (this.Owner == null)
+        {
+            // Offer user to buy a node
+            return;
+        }
+
+        if (this.Owner != null)
+        {
+            // Force player to pay a rent
+            return;
+        }
+    }
+
+    public void OnPlayerLandedChanceNode(Player player)
+    {
+        // Handle chance node
+    }
+
+    public void OnPlayerLandedTaxNode(Player player)
+    {
+        // Handle tax node
+    }
+
+    public void OnPlayerLandedGoToJailNode(Player player)
+    {
+        // Handle jail node
+    }
+
+    public void OnPlayerLandedStartNode(Player player)
+    {
+        // Handle start node
+        //GameManager.Instance.SendBalance(player, GameManager.Instance.EXACT_CIRCLE_BONUS);
+    }
+
+
     //public delegate void DrawCommunityCard(Player player);
     //public static DrawCommunityCard OnDrawCommunityCard;
 
