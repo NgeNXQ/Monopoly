@@ -1,12 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public sealed class UIHandler : MonoBehaviour
 {
     [SerializeField] private Button buttonRollDices;
+
+    [SerializeField] private Transform panelPlayers;
+
+    [SerializeField] private Transform panelPlayer;
 
     public static UIHandler Instance { get; private set; }
 
@@ -39,5 +40,8 @@ public sealed class UIHandler : MonoBehaviour
         this.buttonRollDices.interactable = false;
     }
 
-    private void OnDestroy() => buttonRollDices.onClick.RemoveListener(GameManager.Instance.RollDices);
+    private void OnDestroy()
+    {
+        buttonRollDices.onClick.RemoveListener(GameManager.Instance.RollDices);
+    }
 }

@@ -6,7 +6,8 @@ using System.Runtime.CompilerServices;
 [System.Serializable]
 public sealed class MonopolyNode : MonoBehaviour
 {
-    public enum MonopolyCellType : byte
+    [System.Serializable]
+    public enum MonopolyNodeType : byte
     {
         Tax,
         Jail,
@@ -18,38 +19,31 @@ public sealed class MonopolyNode : MonoBehaviour
         Transport
     }
 
-    [Space]
+    public MonopolyNodeType Type;
 
-    [SerializeField] public MonopolyCellType Type;
-
-    [Space]
-    [Header("Visuals")]
-    [Space]
-
-    [SerializeField] public Image ImageMonopolySetType;
+    public Image ImageMonopolySetType;
 
     #region Pricing
 
-    [Space]
-    [Header("Pricing")]
-    [Space]
+    [SerializeField] public int taxAmount;
 
-    [SerializeField] private int priceInitial;
+    [SerializeField] public int priceInitial;
 
-    [SerializeField] private int priceMortgage;
+    [SerializeField] public int priceMortgage;
 
-    [SerializeField] private List<int> pricesRent = new List<int>();
+    [SerializeField] public List<int> pricesRent = new List<int>();
 
     #endregion
 
     private int currentLevel;
 
-    public Player Owner { get; private set; }
-
     public int CurrentRentingPrice { get; } // implement logic
 
-    public bool IsMortgaged { get; private set; }
+    public Player Owner { get; set; }
 
+    public bool IsMortgaged { get; set; }
+
+    public int TaxAmount { get => this.taxAmount; }
 
     public void OnPlayerLandedPropertyNode(Player player)
     {

@@ -21,12 +21,35 @@ public sealed class Player : MonoBehaviour
     public void Initialize(int balance)
     {
         this.Balance = balance;
+        this.nodes = new List<MonopolyNode>();
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+    }
+
+    public void Pay(int amount)
+    {
+        if (this.Balance >= amount)
+        {
+            this.Balance -= amount;
+        }
+        else
+        {
+            // Handle insufficient balance
+        }
     }
 
     public void BuyProperty(MonopolyNode node)
     {
+        if (this.Balance >= node.priceInitial)
+        {
+            this.nodes.Add(node);
+            node.Owner = this;
 
+            //Update ui
+        }
+        else
+        {
+            // handle this case
+        }
     }
 
     public void PledgeProperty(MonopolyNode node)

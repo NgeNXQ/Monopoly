@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 2637670997205394187}
   - component: {fileID: 76276201278848456}
   m_Layer: 5
-  m_Name: PlayerPanel
+  m_Name: PanelPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -162,7 +162,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5784825573561046600}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -231,7 +231,7 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 0
+  m_ChildAlignment: 1
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
@@ -266,8 +266,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b98908267da13744483ad997166bea85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerNameText: {fileID: 2344647799733600937}
-  playerBalanceText: {fileID: 6593640739971408029}
+  textPlayerName: {fileID: 2344647799733600937}
+  textPlayerBalance: {fileID: 6593640739971408029}
 --- !u!1 &9097043316067099093
 GameObject:
   m_ObjectHideFlags: 0

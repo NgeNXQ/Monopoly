@@ -13,8 +13,6 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     [SerializeField] public MonopolyNode NodeSendToJail;
 
-    //[SerializeField] public MonopolyNode StartingNode;
-
     [Space]
     [Header("Monopolies")]
     [Space]
