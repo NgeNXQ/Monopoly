@@ -7,6 +7,8 @@ public sealed class MonopolyBoard : MonoBehaviour
     [Header("Special nodes")]
     [Space]
 
+    [SerializeField] public MonopolyNode Casino;
+
     [SerializeField] public MonopolyNode NodeJail;
 
     [SerializeField] public MonopolyNode NodeStart;

@@ -14,9 +14,10 @@ public sealed class MonopolyNode : MonoBehaviour
         Start,
         Gamble,
         Chance,
+        Casino,
         SendJail,
         Property,
-        Transport
+        Transport, 
     }
 
     public MonopolyNodeType Type;

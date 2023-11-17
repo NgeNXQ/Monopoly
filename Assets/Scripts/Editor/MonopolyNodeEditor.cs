@@ -15,18 +15,15 @@ public class MonopolyNodeEditor : Editor
 
         EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"));
 
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Visuals", EditorStyles.boldLabel);
-        EditorGUILayout.Space();
-
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("ImageMonopolySetType"));
-
         if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Property
             || monopolyNode.Type == MonopolyNode.MonopolyNodeType.Transport
             || monopolyNode.Type == MonopolyNode.MonopolyNodeType.Gamble
             || monopolyNode.Type == MonopolyNode.MonopolyNodeType.Tax) 
         {
             EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Visuals", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("ImageMonopolySetType"));
             EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
             EditorGUILayout.Space();
         }
