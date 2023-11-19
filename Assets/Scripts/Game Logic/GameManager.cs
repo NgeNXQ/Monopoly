@@ -3,6 +3,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using static UnityEngine.GraphicsBuffer;
 
 public sealed class GameManager : MonoBehaviour
 {
@@ -15,6 +16,18 @@ public sealed class GameManager : MonoBehaviour
     const int MAX_DOUBLES_IN_ROW = 2;
 
     const float PLAYER_MOVEMENT_SPEED = 25.0f;
+
+    [Space]
+    [Header("Visuals")]
+    [Space]
+
+    //[SerializeField] private GameObject panelOk;
+
+    //[SerializeField] private GameObject panelPay;
+
+    //[SerializeField] private MonopolyNodeInfo panelOffer;
+
+    //[SerializeField] private MonopolyNodeInfo panelTradeOffer;
 
     [SerializeField] private List<Player> players = new List<Player>();
 
@@ -47,17 +60,20 @@ public sealed class GameManager : MonoBehaviour
 #endif
     }
 
-    private void Start() => UIHandler.Instance.ShowButtonRollDices();
+    private void Start() => UIManager.Instance.ShowButtonRoll();
 
     public void RollDices()
     {
-        UIHandler.Instance.DeactivateButtonRollDices();
+        UIManager.Instance.HideButtonRolls();
 
         const int MIN_CUBE_VALUE = 1;
         const int MAX_CUBE_VALUE = 6;
 
-        this.FirstCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
-        this.SecondCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
+        //this.FirstCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE);
+        //this.SecondCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE);
+
+        this.FirstCubeValue = 2;
+        this.SecondCubeValue = 2;
 
         if (this.CurrentPlayer.IsInJail)
         {
@@ -87,31 +103,129 @@ public sealed class GameManager : MonoBehaviour
 
     public void SwitchPlayer()
     {
-        if (this.HasRolledDouble && !this.CurrentPlayer.IsInJail)
+        UIManager.Instance.ShowButtonRoll();
+
+        //if (this.HasRolledDouble && !this.CurrentPlayer.IsInJail)
+        //{
+        //    ++this.currentPlayerDoubles;
+
+        //    if (this.currentPlayerDoubles >= MAX_DOUBLES_IN_ROW + 1)
+        //        this.SendToJail(this.CurrentPlayer);
+
+        //    UIHandler.Instance.ActivateButtonRollDices();
+        //}
+        //else
+        //{
+        //    ++this.currentPlayerIndex;
+        //    this.currentPlayerIndex %= this.players.Count;
+
+        //    UIHandler.Instance.HideButtonRollDices();
+
+        //    if (this.CurrentPlayer.IsInJail)
+        //    {
+        //        UIHandler.Instance.ShowButtonRollDices();
+
+        //        // Handle jail case
+        //    }
+        //    else
+        //    {
+        //        UIHandler.Instance.ShowButtonRollDices();
+        //    }
+        //}
+    }
+
+    public void MovePlayer(Player player, int steps)
+    {
+        bool hasFinishedCircle = false;
+        int currentNodeIndex = player.CurrentNodeIndex;
+
+        while (steps != 0)
         {
-            ++this.currentPlayerDoubles;
+            --steps;
 
-            if (this.currentPlayerDoubles >= MAX_DOUBLES_IN_ROW + 1)
-                this.SendToJail(this.CurrentPlayer);
+            currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
 
-            UIHandler.Instance.ActivateButtonRollDices();
+            hasFinishedCircle = MonopolyBoard.Instance.Nodes[currentNodeIndex] == MonopolyBoard.Instance.NodeStart;
+
+            Vector3 direction = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position - player.transform.position;
+
+            player.transform.Translate(direction);
         }
-        else
+
+        player.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
+
+        if (hasFinishedCircle && player.CurrentNode != MonopolyBoard.Instance.NodeStart)
+            this.SendBalance(player, CIRCLE_BONUS);
+
+        this.HandlePlayerLanding(player);
+        this.SwitchPlayer();
+    }
+
+    public void HandlePlayerLanding(Player player)
+    {
+        if (player.CurrentNode.Owner != player)
         {
-            ++this.currentPlayerIndex;
-            this.currentPlayerIndex %= this.players.Count;
-
-            UIHandler.Instance.HideButtonRollDices();
-
-            if (this.CurrentPlayer.IsInJail)
+            switch (player.CurrentNode.Type)
             {
-                UIHandler.Instance.ShowButtonRollDices();
-
-                // Handle jail case
-            }
-            else
-            {
-                UIHandler.Instance.ShowButtonRollDices();
+                case MonopolyNode.MonopolyNodeType.Tax:
+                    UIManager.Instance.ShowPanelFee(this.CurrentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    break;
+                case MonopolyNode.MonopolyNodeType.Jail:
+                    UIManager.Instance.ShowPanelOk(this.CurrentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    break;
+                case MonopolyNode.MonopolyNodeType.Start:
+                    this.SendBalance(player, EXACT_CIRCLE_BONUS);
+                    //update ui
+                    break;
+                case MonopolyNode.MonopolyNodeType.Gamble:
+                    {
+                        if (player.CurrentNode.Owner == null)
+                        {
+                            // show ui
+                            player.BuyProperty(player.CurrentNode);
+                        }
+                        else
+                        {
+                            // show ui
+                            player.Pay(player.CurrentNode.CurrentRentingPrice * (this.FirstCubeValue + this.SecondCubeValue));
+                        }
+                    }
+                    break;
+                case MonopolyNode.MonopolyNodeType.Chance:
+                    // show ui
+                    break;
+                case MonopolyNode.MonopolyNodeType.SendJail:
+                    UIManager.Instance.ShowPanelOk(this.CurrentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    this.SendToJail(player);
+                    break;
+                case MonopolyNode.MonopolyNodeType.Property:
+                    {
+                        if (player.CurrentNode.Owner == null)
+                        {
+                            // show ui
+                            player.BuyProperty(player.CurrentNode);
+                        }
+                        else
+                        {
+                            // show ui
+                            player.Pay(player.CurrentNode.CurrentRentingPrice);
+                        }
+                    }
+                    break;
+                case MonopolyNode.MonopolyNodeType.Transport:
+                    {
+                        if (player.CurrentNode.Owner == null)
+                        {
+                            // show ui
+                            player.BuyProperty(player.CurrentNode);
+                        }
+                        else
+                        {
+                            // show ui
+                            player.Pay(player.CurrentNode.CurrentRentingPrice);
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -130,146 +244,31 @@ public sealed class GameManager : MonoBehaviour
         this.MovePlayer(player, this.TotalRollResult);
     }
 
-    public void SendBalance(Player player, int balanceAmount)
+    public void SendBalance(Player player, int amount)
     {
-        player.Balance += balanceAmount;
+        player.Balance += amount;
 
         // Update ui
     }
 
-    // Update player movemet (simplify)
-    public void MovePlayer(Player player, int steps)
+    public void CollectFee()
     {
-        StartCoroutine(MovePlayerInSteps(player, steps));
-
-        IEnumerator MovePlayerInSteps(Player player, int steps)
+        if (this.CurrentPlayer.CurrentNode.TaxAmount <= this.CurrentPlayer.Balance)
+            this.CurrentPlayer.Balance -= this.CurrentPlayer.CurrentNode.TaxAmount;
+        else
         {
-            Vector2 endPosition;
-            int indexOnBoard = player.CurrentNodeIndex;
-
-            if (steps > 0)
-            {
-                while (steps > 0)
-                {
-                    ++indexOnBoard;
-
-                    if (indexOnBoard > MonopolyBoard.Instance.Nodes.Count - 1)
-                    {
-                        indexOnBoard = 0;
-                        this.SendBalance(player, CIRCLE_BONUS);
-                    }
-
-                    endPosition = MonopolyBoard.Instance.Nodes[indexOnBoard].transform.position;
-
-                    while (MoveToNextNode(player.gameObject, endPosition))
-                        yield return null;
-
-                    --steps;
-                }
-            }
-            else
-            {
-                while (steps < 0)
-                {
-                    --indexOnBoard;
-
-                    if (indexOnBoard < 0)
-                    {
-                        this.SendBalance(player, CIRCLE_BONUS);
-                        indexOnBoard = MonopolyBoard.Instance.Nodes.Count - 1;
-                    }
-
-                    endPosition = MonopolyBoard.Instance.Nodes[indexOnBoard].transform.position;
-
-                    while (MoveToNextNode(player.gameObject, endPosition))
-                        yield return null;
-
-                    ++steps;
-                }
-            }
-
-            player.CurrentNode = MonopolyBoard.Instance.Nodes[indexOnBoard];
-
-            this.HandlePlayerLanding(player);
-            this.SwitchPlayer();
+            // handle insufficient funds
         }
 
-        bool MoveToNextNode(GameObject tokenToMove, Vector3 endPosition)
-            => endPosition != (tokenToMove.transform.position = Vector3.MoveTowards(tokenToMove.transform.position, endPosition, PLAYER_MOVEMENT_SPEED * Time.deltaTime));
+        UIManager.Instance.HidePanelFee();
     }
 
-    public void HandlePlayerLanding(Player player)
+    public void BuyProperty()
     {
-        if (player.CurrentNode.Owner != player) 
-        {
-            switch (player.CurrentNode.Type)
-            {
-                case MonopolyNode.MonopolyNodeType.Tax:
-                    // show ui
-                    //player.Pay(player.CurrentNode.TaxAmount);
-                    break;
-                case MonopolyNode.MonopolyNodeType.Jail:
-                    // show ui
-                    break;
-                case MonopolyNode.MonopolyNodeType.Start:
-                    this.SendBalance(player, EXACT_CIRCLE_BONUS);
-                    //update ui
-                    break;
-                case MonopolyNode.MonopolyNodeType.Gamble:
-                    {
-                        if (player.CurrentNode.Owner == null)
-                        {
-                            // show ui
-                            player.BuyProperty(player.CurrentNode);
-                        }
-                        else
-                        {
-                            // show ui
-                            player.Pay(player.CurrentNode.CurrentRentingPrice);
-                        }
-                    }
-                    break;
-                case MonopolyNode.MonopolyNodeType.Chance:
-                    // show ui
-                    // handle payment if needed
-                    break;
-                case MonopolyNode.MonopolyNodeType.SendJail:
-                    // show ui
-                    this.SendToJail(player);
-                    break;
-                case MonopolyNode.MonopolyNodeType.Property:
-                    {
-                        if (player.CurrentNode.Owner == null)
-                        {
-                            // show ui
-                            player.BuyProperty(player.CurrentNode);
-                        }
-                        else
-                        {
-                            // show ui
-                            player.Pay(player.CurrentNode.CurrentRentingPrice);
-                        }
-                    }
-                    // show ui
-                    break;
-                case MonopolyNode.MonopolyNodeType.Transport:
-                    {
-                        if (player.CurrentNode.Owner == null)
-                        {
-                            // show ui
-                            player.BuyProperty(player.CurrentNode);
-                        }
-                        else
-                        {
-                            // show ui
-                            player.Pay(player.CurrentNode.CurrentRentingPrice);
-                        }
-                    }
-                    // show ui
-                    break;
-            }
-        }
+        UIManager.Instance.HidePanelFee();
     }
+
+
 
 
 
