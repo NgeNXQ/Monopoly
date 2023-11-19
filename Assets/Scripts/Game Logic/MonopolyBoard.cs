@@ -55,20 +55,4 @@ public sealed class MonopolyBoard : MonoBehaviour
 
         return toNodeIndex - fromNodeIndex;
     }
-
-    //public (List<MonopolyCell> list, bool AlSame) PlayerHasAllNodesOfSet(MonopolyCell cell)
-    //{
-    //    bool alSame = false;
-
-    //    foreach (var nodeSet in nodeSetList)
-    //    {
-    //        if (nodeSet.nodesInSet.Contains(cell))
-    //        {
-    //            alSame = nodeSet.nodesInSet.All(node => node.Owner == cell.Owner);
-    //            return (nodeSet.nodesInSet, alSame);
-    //        }
-    //    }
-
-    //    return (null, false);
-    //}
 }

@@ -1,13 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 [System.Serializable]
 public sealed class MonopolyNode : MonoBehaviour
 {
     [System.Serializable]
-    public enum MonopolyNodeType : byte
+    public enum MonopolyNodeType
     {
         Tax,
         Jail,
@@ -21,6 +20,10 @@ public sealed class MonopolyNode : MonoBehaviour
     }
 
     public MonopolyNodeType Type;
+
+    public Image ImageMonopolyNode;
+
+    public Sprite SpriteMonopolyNode;
 
     public Image ImageMonopolySetType;
 
@@ -45,6 +48,8 @@ public sealed class MonopolyNode : MonoBehaviour
     public bool IsMortgaged { get; set; }
 
     public int TaxAmount { get => this.taxAmount; }
+
+    private void Awake() => this.ImageMonopolyNode.sprite = this.SpriteMonopolyNode;
 
     public void OnPlayerLandedPropertyNode(Player player)
     {

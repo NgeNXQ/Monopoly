@@ -2,19 +2,17 @@
 
 using UnityEditor;
 
-[CustomEditor(typeof(ChanceNodeUISO))]
-public class ChanceNodeUISOEditor : Editor
+[CustomEditor(typeof(ChanceNodeSO))]
+public sealed class ChanceNodeSOEditor : Editor
 {
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
 
-        ChanceNodeUISO chanceNode = (ChanceNodeUISO)target;
+        ChanceNodeSO chanceNode = (ChanceNodeSO)target;
 
         EditorGUILayout.Space();
-
         EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"));
-
         EditorGUILayout.Space();
 
         EditorGUILayout.Space();
@@ -24,7 +22,7 @@ public class ChanceNodeUISOEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("Description"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("MonopolyNodeImage"));
 
-        if (chanceNode.Type == ChanceNodeUISO.ChanceNodeType.Reward || chanceNode.Type == ChanceNodeUISO.ChanceNodeType.Penality)
+        if (chanceNode.Type == ChanceNodeSO.ChanceNodeType.Reward || chanceNode.Type == ChanceNodeSO.ChanceNodeType.Penalty)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
@@ -33,10 +31,10 @@ public class ChanceNodeUISOEditor : Editor
 
         switch (chanceNode.Type)
         {
-            case ChanceNodeUISO.ChanceNodeType.Reward:
+            case ChanceNodeSO.ChanceNodeType.Reward:
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("Reward"));
                 break;
-            case ChanceNodeUISO.ChanceNodeType.Penality:
+            case ChanceNodeSO.ChanceNodeType.Penalty:
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("Penalty"));
                 break;
         }
