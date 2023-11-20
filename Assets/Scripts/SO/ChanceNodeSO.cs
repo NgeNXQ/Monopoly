@@ -8,7 +8,6 @@ public sealed class ChanceNodeSO : MonoBehaviour
         Reward,
         Penalty,
         SkipTurn,
-        Birthday,
         SendJail,
         RandomMovement
     }

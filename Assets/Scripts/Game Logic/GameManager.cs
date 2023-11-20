@@ -1,9 +1,5 @@
-#define DEBUG
-
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using static UnityEngine.GraphicsBuffer;
 
 public sealed class GameManager : MonoBehaviour
 {
@@ -17,19 +13,9 @@ public sealed class GameManager : MonoBehaviour
 
     const float PLAYER_MOVEMENT_SPEED = 25.0f;
 
-    [Space]
-    [Header("Visuals")]
-    [Space]
-
-    //[SerializeField] private GameObject panelOk;
-
-    //[SerializeField] private GameObject panelPay;
-
-    //[SerializeField] private MonopolyNodeInfo panelOffer;
-
-    //[SerializeField] private MonopolyNodeInfo panelTradeOffer;
-
     [SerializeField] private List<Player> players = new List<Player>();
+
+    [SerializeField] private List<ChanceNodeSO> chances = new List<ChanceNodeSO>();
 
     public static GameManager Instance { get; private set; }
 
@@ -51,10 +37,10 @@ public sealed class GameManager : MonoBehaviour
     {
         Instance = this;
 
-        foreach (Player player in this.players)
-            player.Initialize(START_BALANCE);
+        //foreach (Player player in this.players)
+        //    player.Initialize(START_BALANCE);
 
-#if DEBUG
+#if Debug
         //this.players = new List<Player>();
         //this.players.Add(new Player("#TestName", START_BALANCE));
 #endif
@@ -69,11 +55,13 @@ public sealed class GameManager : MonoBehaviour
         const int MIN_CUBE_VALUE = 1;
         const int MAX_CUBE_VALUE = 6;
 
-        //this.FirstCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE);
-        //this.SecondCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE);
+        this.FirstCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
+        this.SecondCubeValue = Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
 
+#if Debug
         this.FirstCubeValue = 2;
         this.SecondCubeValue = 2;
+#endif
 
         if (this.CurrentPlayer.IsInJail)
         {
@@ -94,7 +82,7 @@ public sealed class GameManager : MonoBehaviour
             }  
         }
 
-#if DEBUG
+#if Debug
         Debug.Log($"{this.FirstCubeValue}; {this.SecondCubeValue}");
 #endif
 
@@ -175,68 +163,34 @@ public sealed class GameManager : MonoBehaviour
                     break;
                 case MonopolyNode.MonopolyNodeType.Start:
                     this.SendBalance(player, EXACT_CIRCLE_BONUS);
-                    //update ui
                     break;
                 case MonopolyNode.MonopolyNodeType.Gamble:
-                    {
-                        if (player.CurrentNode.Owner == null)
-                        {
-                            // show ui
-                            player.BuyProperty(player.CurrentNode);
-                        }
-                        else
-                        {
-                            // show ui
-                            player.Pay(player.CurrentNode.CurrentRentingPrice * (this.FirstCubeValue + this.SecondCubeValue));
-                        }
-                    }
+                    player.HandlePropertyLanding();
                     break;
                 case MonopolyNode.MonopolyNodeType.Chance:
-                    // show ui
+                    this.HandleChanceLanding(Random.Range(0, this.chances.Count));
                     break;
                 case MonopolyNode.MonopolyNodeType.SendJail:
                     UIManager.Instance.ShowPanelOk(this.CurrentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
                     this.SendToJail(player);
                     break;
                 case MonopolyNode.MonopolyNodeType.Property:
-                    {
-                        if (player.CurrentNode.Owner == null)
-                        {
-                            // show ui
-                            player.BuyProperty(player.CurrentNode);
-                        }
-                        else
-                        {
-                            // show ui
-                            player.Pay(player.CurrentNode.CurrentRentingPrice);
-                        }
-                    }
+                    player.HandlePropertyLanding();
                     break;
                 case MonopolyNode.MonopolyNodeType.Transport:
-                    {
-                        if (player.CurrentNode.Owner == null)
-                        {
-                            // show ui
-                            player.BuyProperty(player.CurrentNode);
-                        }
-                        else
-                        {
-                            // show ui
-                            player.Pay(player.CurrentNode.CurrentRentingPrice);
-                        }
-                    }
+                    player.HandlePropertyLanding();
                     break;
             }
         }
     }
 
-    public void SendToJail(Player player)
+    private void SendToJail(Player player)
     {
         player.IsInJail = true;
         this.MovePlayer(player, MonopolyBoard.Instance.GetDistanceBetweenNodes(player.CurrentNode, MonopolyBoard.Instance.NodeJail));
     }
 
-    public void ReleaseFromJail(Player player)
+    private void ReleaseFromJail(Player player)
     {
         player.TurnsInJail = 0;
         player.IsInJail = false;
@@ -244,7 +198,7 @@ public sealed class GameManager : MonoBehaviour
         this.MovePlayer(player, this.TotalRollResult);
     }
 
-    public void SendBalance(Player player, int amount)
+    private void SendBalance(Player player, int amount)
     {
         player.Balance += amount;
 
@@ -266,6 +220,32 @@ public sealed class GameManager : MonoBehaviour
     public void BuyProperty()
     {
         UIManager.Instance.HidePanelFee();
+    }
+
+    private void HandleChanceLanding(int index)
+    {
+        switch (this.chances[index].Type) 
+        {
+            case ChanceNodeSO.ChanceNodeType.Reward:
+                UIManager.Instance.ShowPanelOk(null, null);
+                break;
+            case ChanceNodeSO.ChanceNodeType.Penalty:
+                UIManager.Instance.ShowPanelFee(null, null);
+                break;
+            case ChanceNodeSO.ChanceNodeType.SkipTurn:
+                UIManager.Instance.ShowPanelOk(null, null);
+                //this.CurrentPlayer.SkipTurn = true;
+                //this.SwitchPlayer();
+                break;
+            case ChanceNodeSO.ChanceNodeType.SendJail:
+                UIManager.Instance.ShowPanelOk(null, null);
+                this.SendToJail(this.CurrentPlayer);
+                break;
+            case ChanceNodeSO.ChanceNodeType.RandomMovement:
+                UIManager.Instance.ShowPanelOk(null, null);
+                //this.MovePlayer(this.CurrentPlayer, Random.Range())
+                break;
+        }
     }
 
 

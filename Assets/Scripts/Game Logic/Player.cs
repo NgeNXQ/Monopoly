@@ -1,9 +1,69 @@
 using UnityEngine;
+using Unity.Netcode;
 using System.Collections.Generic;
+using Unity.Collections;
 
 //[System.Serializable]
-public sealed class Player : MonoBehaviour
+//public sealed class Player : MonoBehaviour
+public sealed class Player : NetworkBehaviour
 {
+    // only default valu-types (NO CLASSES) :(
+    private NetworkVariable<int> randomNumber = new NetworkVariable<int>(5, NetworkVariableReadPermission.Everyone, 
+                                                                            NetworkVariableWritePermission.Owner);
+
+    public struct MyStruct : INetworkSerializable
+    {
+        public int _int;
+        public bool _bool;
+        public FixedString128Bytes message;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref _int);
+            serializer.SerializeValue(ref _bool);
+            serializer.SerializeValue(ref message);
+        }
+    }
+
+    [ServerRpc]
+    private void TestServerRpc(ServerRpcParams serverRpcParams)
+    {
+        //serverRpcParams.Receive.SenderClientId;
+
+        // can pass a string
+        // only runs on server, not on client
+        // uses when client is not allowed to do anything on server, just asks to do like so
+    }
+
+    [ClientRpc]
+    private void TestClientRpc(ClientRpcParams clientRpcParams)
+    {
+        //serverRpcParams.Receive.SenderClientId;
+
+        // server runs something that will be executed on clients (myabe even only on specific clients)
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (!this.IsOwner)
+            Destroy(this);
+
+        randomNumber.OnValueChanged += (int previousValue, int newValue) => { };
+    }
+
+    private void Update()
+    {
+        
+
+        //Transform spawnedObject = Instantiate(someObjectToSpawn);
+        //spawnedObject.GetComponent<NetworkObject>().Spawn(true);
+
+        //Transform spawnedObject = Instantiate(someObjectToSpawn);
+        //spawnedObject.GetComponent<NetworkObject>().Despawn(true);
+
+        // to spawn on client it is necessary to use ServerRpc
+    }
+
     private List<MonopolyNode> nodes;
 
     [SerializeField] private string Name;
@@ -15,6 +75,10 @@ public sealed class Player : MonoBehaviour
     public int TurnsInJail { get; set; }
 
     public MonopolyNode CurrentNode { get; set; }
+
+    //public bool IsSkipTurn { get; set; }
+
+
 
     public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
 
@@ -60,6 +124,19 @@ public sealed class Player : MonoBehaviour
     public void UpgradeProperty(MonopolyNode node)
     {
 
+    }
+
+    public void HandlePropertyLanding()
+    {
+        switch (this.CurrentNode.Owner)
+        {
+            case null:
+                UIManager.Instance.ShowPanelOffer(null, "");
+                break;
+            case Player nodeOwner when nodeOwner != this:
+                UIManager.Instance.ShowPanelFee(null, "");
+                break;
+        }
     }
 
 

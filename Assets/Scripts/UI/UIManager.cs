@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,11 @@ public sealed class UIManager : MonoBehaviour
     [Header("Panel OK")]
     [Space]
 
-    [SerializeField] private UIMonopolyNodeCard panelOk;
+    [SerializeField] private RectTransform panelOk;
+
+    [SerializeField] private Image imagePanelOk;
+
+    [SerializeField] private TMP_Text textPanelOk;
 
     [SerializeField] private Button buttonOkPanelOk;
 
@@ -21,7 +26,11 @@ public sealed class UIManager : MonoBehaviour
     [Header("Panel Fee")]
     [Space]
 
-    [SerializeField] private UIMonopolyNodeCard panelFee;
+    [SerializeField] private RectTransform panelFee;
+
+    [SerializeField] private Image imagePanelFee;
+
+    [SerializeField] private TMP_Text textPanelFee;
 
     [SerializeField] private Button buttonPayPanelFee;
 
@@ -29,7 +38,11 @@ public sealed class UIManager : MonoBehaviour
     [Header("Panel Offer")]
     [Space]
 
-    [SerializeField] private UIMonopolyNodeCard panelOffer;
+    [SerializeField] private RectTransform panelOffer;
+
+    [SerializeField] private Image imagepanelOffer;
+
+    [SerializeField] private TMP_Text textpanelOffer;
 
     [SerializeField] private Button buttonBuyPanelOffer;
 
@@ -55,7 +68,8 @@ public sealed class UIManager : MonoBehaviour
     public void ShowPanelOk(Sprite sprite, string description)
     {
         this.panelOk.gameObject.SetActive(true);
-        this.panelOk.UpdateUI(sprite, description);
+        this.textPanelOk.text = description;
+        this.imagePanelOk.sprite = sprite;
     }
 
     public void HidePanelOk() => this.panelOk.gameObject.SetActive(false);
@@ -63,10 +77,20 @@ public sealed class UIManager : MonoBehaviour
     public void ShowPanelFee(Sprite sprite, string description)
     {
         this.panelFee.gameObject.SetActive(true);
-        this.panelOk.UpdateUI(sprite, description);
+        this.textPanelFee.text = description;
+        this.imagePanelFee.sprite = sprite;
     }
 
     public void HidePanelFee() => this.panelFee.gameObject.SetActive(false);
+
+    public void ShowPanelOffer(Sprite sprite, string description)
+    {
+        this.panelOffer.gameObject.SetActive(true);
+        this.textpanelOffer.text = description;
+        this.imagepanelOffer.sprite = sprite;
+    }
+
+    public void HidePanelOffer() => this.panelOffer.gameObject.SetActive(false);
 
     public void ShowButtonRoll() => this.buttonRoll.gameObject.SetActive(true);
 

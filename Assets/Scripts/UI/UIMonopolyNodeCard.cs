@@ -1,16 +1,19 @@
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+//using TMPro;
+//using UnityEngine;
+//using UnityEngine.UI;
 
-public sealed class UIMonopolyNodeCard : MonoBehaviour
-{
-    [SerializeField] private Image imageMonopolyNode;
+//public sealed class UIMonopolyNodeCard : MonoBehaviour
+//{
+//    //[SerializeField] public Image imageMonopolyNode;
 
-    [SerializeField] private TMP_Text textDescription;
+//    //[SerializeField] public TMP_Text textDescription;
 
-    public void UpdateUI(Sprite sprite, string text)
-    {
-        this.textDescription.text = text;
-        this.imageMonopolyNode.sprite = sprite;
-    }
-}
+//    //[HideInInspector] public Sprite SpriteMonopolyNode;
+
+//    //[HideInInspector] public string Description;
+
+//    //private void OnGUI()
+//    //{
+//       // Debug.Log("Updated");
+//    //}
+//}
