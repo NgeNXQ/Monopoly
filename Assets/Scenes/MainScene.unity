@@ -274,6 +274,7 @@ GameObject:
   m_Component:
   - component: {fileID: 163544181}
   - component: {fileID: 163544182}
+  - component: {fileID: 163544183}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -308,9 +309,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 710b7501b14d3cb4aa84ddc617c80e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  players:
-  - {fileID: 0}
-  chances: []
+--- !u!114 &163544183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 163544180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 3038508443
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &255812632
 GameObject:
   m_ObjectHideFlags: 0
@@ -359,7 +377,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 255812635}
-    PlayerPrefab: {fileID: 5328073845778533468, guid: 03453f637a16bb5458f3b77f35ed8828, type: 3}
+    PlayerPrefab: {fileID: 6664082868912979496, guid: 075d89063a5c40347973aaa79cad57a2, type: 3}
     Prefabs:
       NetworkPrefabsLists: []
     TickRate: 30
@@ -4427,16 +4445,15 @@ GameObject:
   m_Component:
   - component: {fileID: 1488704003}
   - component: {fileID: 1488704007}
-  - component: {fileID: 1488704006}
+  - component: {fileID: 1488704008}
   - component: {fileID: 1488704005}
-  - component: {fileID: 1488704004}
   m_Layer: 0
-  m_Name: PanelPlayers
+  m_Name: PanelPlayersInfo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1488704003
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4453,23 +4470,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 335, y: 0}
-  m_SizeDelta: {x: 300, y: 30}
+  m_AnchoredPosition: {x: 300, y: 350}
+  m_SizeDelta: {x: 30, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1488704004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1488704002}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_HorizontalFit: 0
-  m_VerticalFit: 1
 --- !u!114 &1488704005
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4487,16 +4490,24 @@ MonoBehaviour:
     m_Right: 15
     m_Top: 15
     m_Bottom: 15
-  m_ChildAlignment: 1
-  m_Spacing: 15
-  m_ChildForceExpandWidth: 1
+  m_ChildAlignment: 4
+  m_Spacing: 30
+  m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 1
+  m_ChildControlWidth: 0
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &1488704006
+--- !u!222 &1488704007
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1488704002}
+  m_CullTransparentMesh: 1
+--- !u!114 &1488704008
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4526,14 +4537,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!222 &1488704007
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1488704002}
-  m_CullTransparentMesh: 1
 --- !u!1 &1509847744
 GameObject:
   m_ObjectHideFlags: 0

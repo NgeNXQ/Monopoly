@@ -1,143 +1,128 @@
 using UnityEngine;
 using Unity.Netcode;
-using System.Collections.Generic;
 using Unity.Collections;
 
-//[System.Serializable]
-//public sealed class Player : MonoBehaviour
 public sealed class Player : NetworkBehaviour
 {
-    // only default valu-types (NO CLASSES) :(
-    private NetworkVariable<int> randomNumber = new NetworkVariable<int>(5, NetworkVariableReadPermission.Everyone, 
-                                                                            NetworkVariableWritePermission.Owner);
-
-    public struct MyStruct : INetworkSerializable
-    {
-        public int _int;
-        public bool _bool;
-        public FixedString128Bytes message;
-
-        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
-        {
-            serializer.SerializeValue(ref _int);
-            serializer.SerializeValue(ref _bool);
-            serializer.SerializeValue(ref message);
-        }
-    }
-
-    [ServerRpc]
-    private void TestServerRpc(ServerRpcParams serverRpcParams)
-    {
-        //serverRpcParams.Receive.SenderClientId;
-
-        // can pass a string
-        // only runs on server, not on client
-        // uses when client is not allowed to do anything on server, just asks to do like so
-    }
-
-    [ClientRpc]
-    private void TestClientRpc(ClientRpcParams clientRpcParams)
-    {
-        //serverRpcParams.Receive.SenderClientId;
-
-        // server runs something that will be executed on clients (myabe even only on specific clients)
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        if (!this.IsOwner)
-            Destroy(this);
-
-        randomNumber.OnValueChanged += (int previousValue, int newValue) => { };
-    }
-
-    private void Update()
-    {
-        
-
-        //Transform spawnedObject = Instantiate(someObjectToSpawn);
-        //spawnedObject.GetComponent<NetworkObject>().Spawn(true);
-
-        //Transform spawnedObject = Instantiate(someObjectToSpawn);
-        //spawnedObject.GetComponent<NetworkObject>().Despawn(true);
-
-        // to spawn on client it is necessary to use ServerRpc
-    }
-
-    private List<MonopolyNode> nodes;
-
-    [SerializeField] private string Name;
+    [SerializeField] private SO_PlayerVisuals playerVisuals;
 
     public int Balance { get; set; }
 
-    public bool IsInJail { get; set; }
-
-    public int TurnsInJail { get; set; }
-
-    public MonopolyNode CurrentNode { get; set; }
-
-    //public bool IsSkipTurn { get; set; }
-
-
-
-    public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
-
-    public void Initialize(int balance)
+    public override void OnNetworkSpawn()
     {
-        this.Balance = balance;
-        this.nodes = new List<MonopolyNode>();
-        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+        this.Balance = GameManager.START_BALANCE;
+        this.playerVisuals.PlayerPanel.UpdateBalance(this);
+        GameObject.Instantiate(this.playerVisuals.PlayerToken, this.transform);
+        this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
+        //GameObject.Instantiate(this.playerVisuals.PlayerPanel, this.playerVisuals.PanelPlayersInformation);
+        this.playerVisuals.PlayerPanel.SetUpPlayerInfo(new FixedString32Bytes(this.playerVisuals.PlayerNickname), this.playerVisuals.PlayerColor);
     }
 
-    public void Pay(int amount)
-    {
-        if (this.Balance >= amount)
-        {
-            this.Balance -= amount;
-        }
-        else
-        {
-            // Handle insufficient balance
-        }
-    }
+    //private List<MonopolyNode> nodes;
 
-    public void BuyProperty(MonopolyNode node)
-    {
-        if (this.Balance >= node.priceInitial)
-        {
-            this.nodes.Add(node);
-            node.Owner = this;
+    //public int Balance { get; set; }
 
-            //Update ui
-        }
-        else
-        {
-            // handle this case
-        }
-    }
+    //public bool IsInJail { get; set; }
 
-    public void PledgeProperty(MonopolyNode node)
-    {
+    //public int TurnsInJail { get; set; }
 
-    }
+    //public MonopolyNode CurrentNode { get; set; }
 
-    public void UpgradeProperty(MonopolyNode node)
-    {
+    ////public bool IsSkipTurn { get; set; }
 
-    }
+    //public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
 
-    public void HandlePropertyLanding()
-    {
-        switch (this.CurrentNode.Owner)
-        {
-            case null:
-                UIManager.Instance.ShowPanelOffer(null, "");
-                break;
-            case Player nodeOwner when nodeOwner != this:
-                UIManager.Instance.ShowPanelFee(null, "");
-                break;
-        }
-    }
+    //public void Initialize(int balance)
+    //{
+    //    this.Balance = balance;
+    //    this.nodes = new List<MonopolyNode>();
+    //    this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+    //}
+
+    //public void Pay(int amount)
+    //{
+    //    if (this.Balance >= amount)
+    //    {
+    //        this.Balance -= amount;
+    //    }
+    //    else
+    //    {
+    //        // Handle insufficient balance
+    //    }
+    //}
+
+    //public void BuyProperty(MonopolyNode node)
+    //{
+    //    if (this.Balance >= node.priceInitial)
+    //    {
+    //        this.nodes.Add(node);
+    //        node.Owner = this;
+
+    //        //Update ui
+    //    }
+    //    else
+    //    {
+    //        // handle this case
+    //    }
+    //}
+
+    //public void PledgeProperty(MonopolyNode node)
+    //{
+
+    //}
+
+    //public void UpgradeProperty(MonopolyNode node)
+    //{
+
+    //}
+
+    //public void HandlePropertyLanding()
+    //{
+    //    switch (this.CurrentNode.Owner)
+    //    {
+    //        case null:
+    //            UIManager.Instance.ShowPanelOffer(null, "");
+    //            break;
+    //        case Player nodeOwner when nodeOwner != this:
+    //            UIManager.Instance.ShowPanelFee(null, "");
+    //            break;
+    //    }
+    //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

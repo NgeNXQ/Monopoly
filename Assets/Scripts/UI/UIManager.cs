@@ -60,9 +60,9 @@ public sealed class UIManager : MonoBehaviour
     {
         Instance = this;
 
-        this.buttonRoll.onClick.AddListener(GameManager.Instance.RollDices);
-        this.buttonOkPanelOk.onClick.AddListener(GameManager.Instance.SwitchPlayer);
-        this.buttonPayPanelFee.onClick.AddListener(GameManager.Instance.CollectFee);
+        //this.buttonRoll.onClick.AddListener(GameManager.Instance.RollDices);
+        //this.buttonOkPanelOk.onClick.AddListener(GameManager.Instance.SwitchPlayer);
+        //this.buttonPayPanelFee.onClick.AddListener(GameManager.Instance.CollectFee);
     }
 
     public void ShowPanelOk(Sprite sprite, string description)
@@ -98,8 +98,8 @@ public sealed class UIManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        this.buttonRoll.onClick.RemoveListener(GameManager.Instance.RollDices);
-        this.buttonOkPanelOk.onClick.RemoveListener(GameManager.Instance.SwitchPlayer);
-        this.buttonPayPanelFee.onClick.RemoveListener(GameManager.Instance.CollectFee);
+        //this.buttonRoll.onClick.RemoveListener(GameManager.Instance.RollDices);
+        //this.buttonOkPanelOk.onClick.RemoveListener(GameManager.Instance.SwitchPlayer);
+        //this.buttonPayPanelFee.onClick.RemoveListener(GameManager.Instance.CollectFee);
     }
 }

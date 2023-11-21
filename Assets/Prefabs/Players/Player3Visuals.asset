@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d3c8607f4497e14d992b271469d5d1a, type: 3}
+  m_Name: Player3Visuals
+  m_EditorClassIdentifier: 
+  PlayerColor: {r: 0, g: 1, b: 0, a: 0}
+  PlayerNickname: Player3
+  PlayerToken: {fileID: -3888481672020999207, guid: ef232143344a85e4798a77602528178c, type: 3}
+  PlayerPanel: {fileID: 4898906605269763668, guid: a5a879e782805cc40a58eb4c7357da22, type: 3}
