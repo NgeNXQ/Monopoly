@@ -189,7 +189,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_TargetDisplay: 0
 --- !u!114 &1008501323617422202
 MonoBehaviour:
@@ -239,6 +239,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 685338689835785634}
     m_Modifications:
+    - target: {fileID: -7871556540511652807, guid: 056867baf024f724db47220564f86bf7, type: 3}
+      propertyPath: m_SortingOrder
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: -3888481672020999207, guid: 056867baf024f724db47220564f86bf7, type: 3}
       propertyPath: m_Name
       value: NodeLarge

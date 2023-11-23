@@ -1,53 +1,146 @@
+using System;
+using System.Linq;
 using UnityEngine;
-using System.Collections.Generic;
 using Unity.Netcode;
+using System.Collections.Generic;
 
 public sealed class GameManager : NetworkBehaviour
 {
-    public const int START_BALANCE = 15000;
+    #region Values
 
-    //    const int CIRCLE_BONUS = 2000;
-    //    const int EXACT_CIRCLE_BONUS = 3000;
+    [Space]
+    [Header("Values")]
+    [Space]
 
-    //    const int MAX_TURNS_IN_JAIL = 3;
-    //    const int MAX_DOUBLES_IN_ROW = 2;
+    [SerializeField] [Range(0, 1_000_000)] private int startingBalance = 15_000;
 
-    //    const float PLAYER_MOVEMENT_SPEED = 25.0f;
+    [SerializeField] [Range(0, 1_000_000)] private int circleBonus = 2_000;
 
-    //    [SerializeField] private List<ChanceNodeSO> chances = new List<ChanceNodeSO>();
+    [SerializeField] [Range(0, 1_000_000)] private int exactCircleBonus = 3_000;
+
+    [SerializeField] [Range(0, 100)] private int maxTurnsInJail = 3;
+
+    [SerializeField] [Range(0, 100)] private int maxDoublesInRow = 2;
+
+    [SerializeField] [Range(0.0f, 1_000.0f)] private float playerMovementSpeed = 25.0f;
+
+    #endregion
+
+    #region Chance Cards
+
+    [Space]
+    [Header("Chance cards")]
+    [Space]
+
+    [SerializeField] private List<ChanceNodeSO> chanceCards = new List<ChanceNodeSO>();
+
+    #endregion
 
     public static GameManager Instance { get; private set; }
 
-    //private NetworkList<NetworkObjectReference> players;
+    private List<Player> players;
 
-    //    private int currentPlayerIndex;
+    private ulong currentPlayerId;
 
-    //    private int currentPlayerDoubles;
+    private int currentPlayerIndex;
 
-    //    public int FirstCubeValue { get; private set; }
+    private int currentPlayerRolledDoubles;
 
-    //    public int SecondCubeValue { get; private set; }
+    public int FirstCubeValue { get; private set; }
 
-    //    public Player CurrentPlayer { get => this.players[this.currentPlayerIndex]; }
+    public int SecondCubeValue { get; private set; }
 
-    //    public int TotalRollResult { get => this.FirstCubeValue + this.SecondCubeValue; }
+    public int CircleBonus { get => this.circleBonus; }
 
-    //    public bool HasRolledDouble { get => this.FirstCubeValue == this.SecondCubeValue; }
+    public int MaxTurnsInJail { get => this.maxTurnsInJail; }
 
-    private void Awake()
-    {
-        if (!NetworkManager.IsHost)
-            GameObject.Destroy(this);
+    public int MaxDoublesInRow { get => this.maxDoublesInRow; }
 
-        Instance = this;
+    public int StartingBalance { get => this.startingBalance; }
 
-        //foreach (var item in NetworkManager.Singleton.Connected)
-        //{
+    public int ExactCircleBonus { get => this.exactCircleBonus; }
 
-        //}
+    public float PlayerMovementSpeed { get => this.playerMovementSpeed; }
 
-        // SPAWN PLAYERS FROM CONNECTED PLAYERS LIST
-    }
+    public int TotalRollResult { get => this.FirstCubeValue + this.SecondCubeValue; }
+
+    public bool HasRolledDouble { get => this.FirstCubeValue == this.SecondCubeValue; }
+
+    private Player currentPlayer { get => this.players[this.currentPlayerIndex]; }
+
+    private void Awake() => Instance = this;
+
+    //[ClientRpc]
+    //public void 
+
+    //[ClientRpc]
+    //public void SwitchPlayerClientRpc(ClientRpcParams serverRpcParams = default)
+    //{
+    //    //UIManager.Instance.ShowButtonRoll();
+
+    //    //if (this.HasRolledDouble && !this.currentPlayer.IsInJail)
+    //    //{
+    //    //    ++this.currentPlayerRolledDoubles;
+
+    //    //    if (this.currentPlayerRolledDoubles >= this.MaxDoublesInRow + 1)
+    //    //        this.SendToJail(this.currentPlayer);
+
+    //    //    //UIHandler.Instance.ActivateButtonRollDices();
+    //    //}
+    //    //else
+    //    //{
+    //    //    ++this.currentPlayerIndex;
+    //    //    this.currentPlayerIndex %= this.players.Count;
+
+    //    //    //UIHandler.Instance.HideButtonRollDices();
+
+    //    //    if (this.currentPlayer.IsInJail)
+    //    //    {
+    //    //        //UIHandler.Instance.ShowButtonRollDices();
+
+    //    //        // Handle jail case
+    //    //    }
+    //    //    else
+    //    //    {
+    //    //        //UIHandler.Instance.ShowButtonRollDices();
+    //    //    }
+    //    //}
+    //}
+
+    //[ClientRpc]
+    //public void MovePlayer(Player player, int steps)
+    //{
+    //    bool hasFinishedCircle = false;
+    //    int currentNodeIndex = player.CurrentNodeIndex;
+
+    //    while (steps != 0)
+    //    {
+    //        --steps;
+
+    //        currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
+
+    //        hasFinishedCircle = MonopolyBoard.Instance.Nodes[currentNodeIndex] == MonopolyBoard.Instance.NodeStart;
+
+    //        Vector3 direction = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position - player.transform.position;
+
+    //        player.transform.Translate(direction);
+    //    }
+
+    //    player.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
+
+    //    //if (hasFinishedCircle && player.CurrentNode != MonopolyBoard.Instance.NodeStart)
+    //    //    this.SendBalance(player, CIRCLE_BONUS);
+
+    //    //this.HandlePlayerLanding(player);
+    //    //this.SwitchPlayer();
+    //}
+
+    //[ClientRpc]
+    //private void SendToJail(Player player)
+    //{
+    //    player.IsInJail = true;
+    //    this.MovePlayer(player, MonopolyBoard.Instance.GetDistanceBetweenNodes(player.CurrentNode, MonopolyBoard.Instance.NodeJail));
+    //}
 
 
 
@@ -94,65 +187,9 @@ public sealed class GameManager : NetworkBehaviour
     //        this.MovePlayer(this.CurrentPlayer, this.TotalRollResult);
     //    }
 
-    //    public void SwitchPlayer()
-    //    {
-    //        UIManager.Instance.ShowButtonRoll();
 
-    //        //if (this.HasRolledDouble && !this.CurrentPlayer.IsInJail)
-    //        //{
-    //        //    ++this.currentPlayerDoubles;
 
-    //        //    if (this.currentPlayerDoubles >= MAX_DOUBLES_IN_ROW + 1)
-    //        //        this.SendToJail(this.CurrentPlayer);
 
-    //        //    UIHandler.Instance.ActivateButtonRollDices();
-    //        //}
-    //        //else
-    //        //{
-    //        //    ++this.currentPlayerIndex;
-    //        //    this.currentPlayerIndex %= this.players.Count;
-
-    //        //    UIHandler.Instance.HideButtonRollDices();
-
-    //        //    if (this.CurrentPlayer.IsInJail)
-    //        //    {
-    //        //        UIHandler.Instance.ShowButtonRollDices();
-
-    //        //        // Handle jail case
-    //        //    }
-    //        //    else
-    //        //    {
-    //        //        UIHandler.Instance.ShowButtonRollDices();
-    //        //    }
-    //        //}
-    //    }
-
-    //    public void MovePlayer(Player player, int steps)
-    //    {
-    //        bool hasFinishedCircle = false;
-    //        int currentNodeIndex = player.CurrentNodeIndex;
-
-    //        while (steps != 0)
-    //        {
-    //            --steps;
-
-    //            currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
-
-    //            hasFinishedCircle = MonopolyBoard.Instance.Nodes[currentNodeIndex] == MonopolyBoard.Instance.NodeStart;
-
-    //            Vector3 direction = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position - player.transform.position;
-
-    //            player.transform.Translate(direction);
-    //        }
-
-    //        player.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
-
-    //        if (hasFinishedCircle && player.CurrentNode != MonopolyBoard.Instance.NodeStart)
-    //            this.SendBalance(player, CIRCLE_BONUS);
-
-    //        this.HandlePlayerLanding(player);
-    //        this.SwitchPlayer();
-    //    }
 
     //    public void HandlePlayerLanding(Player player)
     //    {
@@ -189,11 +226,7 @@ public sealed class GameManager : NetworkBehaviour
     //        }
     //    }
 
-    //    private void SendToJail(Player player)
-    //    {
-    //        player.IsInJail = true;
-    //        this.MovePlayer(player, MonopolyBoard.Instance.GetDistanceBetweenNodes(player.CurrentNode, MonopolyBoard.Instance.NodeJail));
-    //    }
+
 
     //    private void ReleaseFromJail(Player player)
     //    {

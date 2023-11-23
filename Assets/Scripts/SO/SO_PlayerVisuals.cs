@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Player", menuName = "Monopoly/Create new Player", order = 1)]
+[CreateAssetMenu(fileName = "New Player Visuals", menuName = "Monopoly/Create new Player Visuals", order = 1)]
 public sealed class SO_PlayerVisuals : ScriptableObject
 {
     [Space]

@@ -1,43 +1,70 @@
 using UnityEngine;
 using Unity.Netcode;
 using Unity.Collections;
+using System.Collections.Generic;
 
 public sealed class Player : NetworkBehaviour
 {
+    [SerializeField] private GameObject panelPlayersInfo;
+
     [SerializeField] private SO_PlayerVisuals playerVisuals;
+
+    private List<MonopolyNode> nodes;
 
     public int Balance { get; set; }
 
+    public bool IsInJail { get; set; }
+
+    public bool IsSkipTurn { get; set; }
+
+    public int TurnsInJail { get; set; }
+
+    public MonopolyNode CurrentNode { get; set; }
+
+    public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
+
+    public Player()
+    {
+        this.nodes = new List<MonopolyNode>();
+        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+
+        //NetworkObjectReference
+    }
+
+    // Fix double spawn bug
     public override void OnNetworkSpawn()
     {
-        this.Balance = GameManager.START_BALANCE;
+        if (!this.IsOwner)
+            GameObject.Destroy(this);
+
+        this.InitializePlayer();
+        this.InitializePlayerServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void InitializePlayerServerRpc()
+    {
+        if (!this.IsOwner)
+            this.InitializePlayer();
+    }
+
+    private void InitializePlayer()
+    {
+        this.Balance = GameManager.Instance.StartingBalance;
         this.playerVisuals.PlayerPanel.UpdateBalance(this);
+
+        this.nodes = new List<MonopolyNode>();
+        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+
         GameObject.Instantiate(this.playerVisuals.PlayerToken, this.transform);
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
-        //GameObject.Instantiate(this.playerVisuals.PlayerPanel, this.playerVisuals.PanelPlayersInformation);
+
+        // Add panel
+        // GameObject.Instantiate(this.playerVisuals.PlayerPanel.gameObject, this.panelPlayersInfo.transform);
+
         this.playerVisuals.PlayerPanel.SetUpPlayerInfo(new FixedString32Bytes(this.playerVisuals.PlayerNickname), this.playerVisuals.PlayerColor);
     }
 
-    //private List<MonopolyNode> nodes;
-
-    //public int Balance { get; set; }
-
-    //public bool IsInJail { get; set; }
-
-    //public int TurnsInJail { get; set; }
-
-    //public MonopolyNode CurrentNode { get; set; }
-
-    ////public bool IsSkipTurn { get; set; }
-
-    //public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
-
-    //public void Initialize(int balance)
-    //{
-    //    this.Balance = balance;
-    //    this.nodes = new List<MonopolyNode>();
-    //    this.CurrentNode = MonopolyBoard.Instance.NodeStart;
-    //}
 
     //public void Pay(int amount)
     //{
