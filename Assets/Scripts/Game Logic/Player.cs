@@ -2,6 +2,8 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
+using System.Collections;
 
 public sealed class Player : NetworkBehaviour
 {
@@ -9,7 +11,7 @@ public sealed class Player : NetworkBehaviour
 
     [SerializeField] private SO_PlayerVisuals playerVisuals;
 
-    private List<MonopolyNode> nodes;
+    public List<MonopolyNode> OwnedNodes { get; private set; }
 
     public int Balance { get; set; }
 
@@ -23,29 +25,56 @@ public sealed class Player : NetworkBehaviour
 
     public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
 
-    public Player()
+    private void Awake()
     {
-        this.nodes = new List<MonopolyNode>();
+        this.OwnedNodes = new List<MonopolyNode>();
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+    }
 
-        //NetworkObjectReference
+    [SerializeField] private int stepsDebug;
+
+    private void Update()
+    {
+        StartCoroutine(MovePlayerCoroutine(stepsDebug));
+    }
+
+    private IEnumerator MovePlayerCoroutine(int steps)
+    {
+        float delayBetweenMoves = 0.1f;
+        int currentNodeIndex = this.CurrentNodeIndex;
+
+        while (steps != 0)
+        {
+            --steps;
+
+            currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
+
+            Vector3 targetPosition = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position;
+
+            this.transform.Translate(targetPosition - this.transform.position);
+
+            yield return new WaitForSeconds(delayBetweenMoves);
+        }
+
+        this.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
     }
 
     // Fix double spawn bug
     public override void OnNetworkSpawn()
     {
         if (!this.IsOwner)
-            GameObject.Destroy(this);
+            return;
 
         this.InitializePlayer();
         this.InitializePlayerServerRpc();
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    //[ServerRpc(RequireOwnership = false)]
+    [ServerRpc]
     private void InitializePlayerServerRpc()
     {
         if (!this.IsOwner)
-            this.InitializePlayer();
+            this.InitializePlayer(); 
     }
 
     private void InitializePlayer()
@@ -53,7 +82,7 @@ public sealed class Player : NetworkBehaviour
         this.Balance = GameManager.Instance.StartingBalance;
         this.playerVisuals.PlayerPanel.UpdateBalance(this);
 
-        this.nodes = new List<MonopolyNode>();
+        this.OwnedNodes = new List<MonopolyNode>();
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
 
         GameObject.Instantiate(this.playerVisuals.PlayerToken, this.transform);
@@ -65,6 +94,17 @@ public sealed class Player : NetworkBehaviour
         this.playerVisuals.PlayerPanel.SetUpPlayerInfo(new FixedString32Bytes(this.playerVisuals.PlayerNickname), this.playerVisuals.PlayerColor);
     }
 
+    [ServerRpc]
+    public void MoveServerRpc()
+    {
+        this.transform.position = Vector2.zero;
+    }
+
+    [ClientRpc]
+    public void MoveClientRpc()
+    {
+        this.transform.position = Vector2.zero;
+    }
 
     //public void Pay(int amount)
     //{

@@ -310,12 +310,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startingBalance: 15000
-  circleBonus: 2000
-  exactCircleBonus: 3000
   maxTurnsInJail: 3
   maxDoublesInRow: 2
+  circleBonus: 2000
+  exactCircleBonus: 3000
   playerMovementSpeed: 25
-  chances: []
+  players: []
+  chanceCards: []
 --- !u!114 &163544183
 MonoBehaviour:
   m_ObjectHideFlags: 0

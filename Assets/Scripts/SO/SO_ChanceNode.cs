@@ -1,9 +1,8 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Chance card", menuName = "Monopoly/Cards/Chance", order = 1)]
-public sealed class ChanceNodeSO : MonoBehaviour
+public sealed class SO_ChanceNode : ScriptableObject
 {
-    [System.Serializable]
     public enum ChanceNodeType
     {
         Reward,
