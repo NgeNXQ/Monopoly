@@ -3,7 +3,6 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 public sealed class GameManager : NetworkBehaviour
 {
@@ -15,15 +14,17 @@ public sealed class GameManager : NetworkBehaviour
 
     [SerializeField] [Range(0, 100_000)] private int startingBalance = 15_000;
 
-    [SerializeField] [Range(0, 100)] private int maxTurnsInJail = 3;
+    [SerializeField] [Range(0, 10)] private int maxTurnsInJail = 3;
 
-    [SerializeField] [Range(0, 100)] private int maxDoublesInRow = 2;
+    [SerializeField] [Range(0, 10)] private int maxDoublesInRow = 2;
 
-    [SerializeField][Range(0, 100_000)] private int circleBonus = 2_000;
+    [SerializeField] [Range(0, 100_000)] private int circleBonus = 2_000;
 
-    [SerializeField][Range(0, 100_000)] private int exactCircleBonus = 3_000;
+    [SerializeField] [Range(0, 100_000)] private int exactCircleBonus = 3_000;
 
     [SerializeField] [Range(0.0f, 100.0f)] private float playerMovementSpeed = 25.0f;
+
+    [SerializeField] [Range(0.0f, 10.0f)] private float delayBetweenTurns = 0.5f;
 
     #endregion
 
@@ -33,19 +34,17 @@ public sealed class GameManager : NetworkBehaviour
     [Header("Chance cards")]
     [Space]
 
-    [SerializeField] private List<Player> players = new List<Player>();
-
     [SerializeField] private List<SO_ChanceNode> chanceCards = new List<SO_ChanceNode>();
 
     #endregion
 
     public static GameManager Instance { get; private set; }
 
-    //private ulong currentPlayerId;
+    private ulong[] targetTurnId;
+
+    private List<Player> players;
 
     private int currentPlayerIndex;
-
-    private int currentPlayerRolledDoubles;
 
     public int FirstCubeValue { get; private set; }
 
@@ -63,79 +62,86 @@ public sealed class GameManager : NetworkBehaviour
 
     public float PlayerMovementSpeed { get => this.playerMovementSpeed; }
 
-    private int totalRollResult { get => this.FirstCubeValue + this.SecondCubeValue; }
-
-    private bool hasRolledDouble { get => this.FirstCubeValue == this.SecondCubeValue; }
-
     private Player currentPlayer { get => this.players[this.currentPlayerIndex]; }
 
-    private void Awake()
+    public int TotalRollResult { get => this.FirstCubeValue + this.SecondCubeValue; }
+
+    public bool HasRolledDouble { get => this.FirstCubeValue == this.SecondCubeValue; }
+
+    private ulong currentPlayerId { get => NetworkManager.Singleton.ConnectedClientsList[this.currentPlayerIndex].ClientId; }
+
+    private void Awake() => Instance = this;
+
+    [Space]
+    [Header("DEBUG ONLY")]
+    [Space]
+
+    [SerializeField] private bool runGame;
+
+    private bool gameHasStarted;
+
+    // Only for debug purposes
+    private void Update()
     {
-        Instance = this;
-
-        foreach (Player player in this.players)
-            player.OnNetworkSpawn();
-
-        if (this.IsServer)
-            Debug.Log("I am host");
-    }
-
-    // private void Start() => StartCoroutine(GameLoop());
-
-    private float gameLoopInterval = 5f;
-
-    private IEnumerator GameLoop()
-    {
-        while (true) 
+        if (runGame && !gameHasStarted)
         {
-            yield return new WaitForSeconds(gameLoopInterval);
-            SwitchPlayer();
+            this.targetTurnId = new ulong[1];
+            this.players = new List<Player>();
+
+            foreach (NetworkClient connectedClient in NetworkManager.Singleton.ConnectedClientsList)
+            {
+                //connectedClient.PlayerObject.GetComponent<NetworkObject>().Spawn();
+
+                connectedClient.PlayerObject.GetComponent<Player>().InitializePlayerClientRpc();
+                this.players.Add(connectedClient.PlayerObject.GetComponent<Player>());
+            }
+
+            gameHasStarted = true;
+
+            StartCoroutine(GameLoop());
         }
     }
 
-    private void SwitchPlayer()
+    IEnumerator GameLoop()
     {
-        this.currentPlayerIndex %= this.players.Count;
-
-        // Show ui to roll dices
-        this.RollDices();
-
-        if (this.hasRolledDouble)
+        while (true)
         {
-            ++this.currentPlayerRolledDoubles;
-
-            if (this.currentPlayerRolledDoubles >= this.MaxDoublesInRow)
-            {
-                // show ui
-                // Send to jail
-                return;
-            }
-
-            if (this.currentPlayer.IsInJail)
-            {
-                // show ui
-                // Release from jail
-            }
+            yield return StartCoroutine(StartPlayerTurn());
+            //yield return StartCoroutine(EndPlayerTurn());
         }
-
-        //this.MovePlayerClientRpc(this.totalRollResult);
-
-        //if (this.IsHost)
-            //this.MovePlayer(this.currentPlayer, this.totalRollResult);
-        //else if (this.IsClient)
-
-        this.MovePlayerClientRpc();
-        this.MovePlayerServerRpc();
-        this.currentPlayer.gameObject.transform.position = Vector3.zero;
-
-        // handle landing
-        // this.HandlePlayerLanding (ClientRpc) ???
-
-        if (!this.hasRolledDouble)
-            ++this.currentPlayerIndex;
     }
 
-    private void RollDices()
+    IEnumerator StartPlayerTurn()
+    {
+        this.targetTurnId[0] = this.currentPlayerId;
+
+        ClientRpcParams clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = this.targetTurnId }
+        };
+
+        NetworkManager.ConnectedClientsList[this.currentPlayerIndex].PlayerObject.GetComponent<Player>().TakeTurnClientRpc(clientRpcParams);
+
+        //this.players[this.currentPlayerIndex].TakeTurnClientRpc(clientRpcParams);
+        
+        yield return new WaitUntil(() => this.currentPlayer.HasCompletedTurn);
+
+        this.currentPlayerIndex = ++this.currentPlayerIndex % players.Count;
+    }
+
+    //IEnumerator EndPlayerTurn()
+    //{
+    //onEndTurn.Invoke();
+
+    //yield return new WaitUntil(() => this.players[this.currentPlayerIndex].TurnIsComplete.Value);
+
+    // only for debug purposes
+    //yield return new WaitForSeconds(this.delayBetweenTurns);
+    //}
+
+
+    [ServerRpc(RequireOwnership = false)]
+    public void RollDicesServerRpc()
     {
         const int MIN_CUBE_VALUE = 1;
         const int MAX_CUBE_VALUE = 6;
@@ -143,54 +149,126 @@ public sealed class GameManager : NetworkBehaviour
         this.FirstCubeValue = UnityEngine.Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
         this.SecondCubeValue = UnityEngine.Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
 
-        Debug.Log(this.FirstCubeValue + ", " + this.SecondCubeValue);
-
-        // show ui
-    }
-
-    [ServerRpc]
-    private void MovePlayerServerRpc()
-    {
-        Debug.Log("Somehow moving on host");
-        this.currentPlayer.gameObject.transform.position = Vector3.zero;
+        //this.SyncCubesValuesClientRpc(cubeValue1, cubeValue2);
     }
 
     [ClientRpc]
-    private void MovePlayerClientRpc()
+    private void SyncCubesValuesClientRpc(int value1, int value2, ClientRpcParams clientRpcParams = default)
     {
-        Debug.Log("Somehow moving on client");
-        this.currentPlayer.gameObject.transform.position = Vector3.zero;
+        this.FirstCubeValue = value1;
+        this.SecondCubeValue = value2;
     }
 
-    ///
-    public void MovePlayer(int steps, ClientRpcParams clientRpcParams = default)
-    {
-        Debug.Log("Moving");
-        StartCoroutine(MovePlayerCoroutine(steps));
-    }
 
-    private IEnumerator MovePlayerCoroutine(int steps)
-    {
-        float delayBetweenMoves = 0.1f;
-        int currentNodeIndex = this.currentPlayer.CurrentNodeIndex;
 
-        while (steps != 0)
-        {
-            --steps;
 
-            currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
 
-            Vector3 targetPosition = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position;
 
-            Debug.Log(targetPosition);
 
-            this.currentPlayer.transform.Translate(targetPosition - this.currentPlayer.transform.position);
 
-            yield return new WaitForSeconds(delayBetweenMoves);
-        }
+    //private float gameLoopInterval = 5f;
 
-        this.currentPlayer.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
-    }
+    //private IEnumerator GameLoop()
+    //{
+    //    while (true) 
+    //    {
+    //        yield return new WaitForSeconds(gameLoopInterval);
+    //        SwitchPlayer();
+    //    }
+    //}
+
+    //private void SwitchPlayer()
+    //{
+    //    this.currentPlayerIndex %= this.players.Count;
+
+    //    // Show ui to roll dices
+    //    this.RollDices();
+
+    //    if (this.hasRolledDouble)
+    //    {
+    //        ++this.currentPlayerRolledDoubles;
+
+    //        if (this.currentPlayerRolledDoubles >= this.MaxDoublesInRow)
+    //        {
+    //            // show ui
+    //            // Send to jail
+    //            return;
+    //        }
+
+    //        if (this.currentPlayer.IsInJail)
+    //        {
+    //            // show ui
+    //            // Release from jail
+    //        }
+    //    }
+
+    //    //this.MovePlayerClientRpc(this.totalRollResult);
+
+    //    //if (this.IsHost)
+    //        //this.MovePlayer(this.currentPlayer, this.totalRollResult);
+    //    //else if (this.IsClient)
+
+    //    this.MovePlayerClientRpc();
+    //    this.MovePlayerServerRpc();
+    //    this.currentPlayer.gameObject.transform.position = Vector3.zero;
+
+    //    // handle landing
+    //    // this.HandlePlayerLanding (ClientRpc) ???
+
+    //    if (!this.hasRolledDouble)
+    //        ++this.currentPlayerIndex;
+    //}
+
+    //private void RollDices()
+    //{
+
+
+    //    // show ui
+    //}
+
+    //[ServerRpc]
+    //private void MovePlayerServerRpc()
+    //{
+    //    Debug.Log("Somehow moving on host");
+    //    this.currentPlayer.gameObject.transform.position = Vector3.zero;
+    //}
+
+    //[ClientRpc]
+    //private void MovePlayerClientRpc()
+    //{
+    //    Debug.Log("Somehow moving on client");
+    //    this.currentPlayer.gameObject.transform.position = Vector3.zero;
+    //}
+
+    /////
+    //public void MovePlayer(int steps, ClientRpcParams clientRpcParams = default)
+    //{
+    //    Debug.Log("Moving");
+    //    StartCoroutine(MovePlayerCoroutine(steps));
+    //}
+
+    //private IEnumerator MovePlayerCoroutine(int steps)
+    //{
+    //    float delayBetweenMoves = 0.1f;
+    //    int currentNodeIndex = this.currentPlayer.CurrentNodeIndex;
+
+    //    while (steps != 0)
+    //    {
+    //        --steps;
+
+    //        currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
+
+    //        Vector3 targetPosition = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position;
+
+    //        Debug.Log(targetPosition);
+
+    //        this.currentPlayer.transform.Translate(targetPosition - this.currentPlayer.transform.position);
+
+    //        yield return new WaitForSeconds(delayBetweenMoves);
+    //    }
+
+    //    this.currentPlayer.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
+    //}
 
     //bool hasFinishedCircle = false;
     //int currentNodeIndex = this.currentPlayer.CurrentNodeIndex;

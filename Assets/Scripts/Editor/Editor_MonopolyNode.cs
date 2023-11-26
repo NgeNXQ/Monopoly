@@ -3,7 +3,7 @@
 using UnityEditor;
 
 [CustomEditor(typeof(MonopolyNode))]
-public sealed class MonopolyNodeEditor : Editor
+public sealed class Editor_MonopolyNode : Editor
 {
     public override void OnInspectorGUI()
     {

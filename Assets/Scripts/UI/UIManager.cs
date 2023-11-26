@@ -1,8 +1,10 @@
 using TMPro;
 using UnityEngine;
+using Unity.Netcode;
 using UnityEngine.UI;
+//using UnityEngine.Events;
 
-public sealed class UIManager : MonoBehaviour
+public sealed class UIManager : NetworkBehaviour
 {
     [Space]
     [Header("Button roll dices")]
@@ -14,91 +16,124 @@ public sealed class UIManager : MonoBehaviour
     [Header("Panel OK")]
     [Space]
 
-    [SerializeField] private RectTransform panelOk;
+    [SerializeField] private RectTransform panelInformation;
 
-    [SerializeField] private Image imagePanelOk;
+    [SerializeField] private Image imagePanelInformation;
 
-    [SerializeField] private TMP_Text textPanelOk;
+    [SerializeField] private TMP_Text textPanelInformation;
 
-    [SerializeField] private Button buttonOkPanelOk;
+    [SerializeField] private Button buttonPanelInformation;
 
-    [Space]
-    [Header("Panel Fee")]
-    [Space]
+    //[Space]
+    //[Header("Panel Fee")]
+    //[Space]
 
-    [SerializeField] private RectTransform panelFee;
+    //[SerializeField] private RectTransform panelFee;
 
-    [SerializeField] private Image imagePanelFee;
+    //[SerializeField] private Image imagePanelFee;
 
-    [SerializeField] private TMP_Text textPanelFee;
+    //[SerializeField] private TMP_Text textPanelFee;
 
-    [SerializeField] private Button buttonPayPanelFee;
+    //[SerializeField] private Button buttonPayPanelFee;
 
-    [Space]
-    [Header("Panel Offer")]
-    [Space]
+    //[Space]
+    //[Header("Panel Offer")]
+    //[Space]
 
-    [SerializeField] private RectTransform panelOffer;
+    //[SerializeField] private RectTransform panelOffer;
 
-    [SerializeField] private Image imagepanelOffer;
+    //[SerializeField] private Image imagepanelOffer;
 
-    [SerializeField] private TMP_Text textpanelOffer;
+    //[SerializeField] private TMP_Text textpanelOffer;
 
-    [SerializeField] private Button buttonBuyPanelOffer;
+    //[SerializeField] private Button buttonBuyPanelOffer;
 
-    [SerializeField] private Button buttonCancelPanelOffer;
+    //[SerializeField] private Button buttonCancelPanelOffer;
 
-    //[SerializeField] private Canvas panelTradeOffer;
+    //public UnityAction OnButtonRollDicesPressed { get; set; }
 
-    //[SerializeField] private Transform panelPlayers;
-
-    //[SerializeField] private Transform panelPlayer;
+    public Button ButtonRollDices { get => this.buttonRoll; }
 
     public static UIManager Instance { get; private set; }
+
+    public enum UIControl : byte
+    {
+        ButtonRollDices,
+        PanelInformation,
+    }
 
     private void Awake()
     {
         Instance = this;
 
-        //this.buttonRoll.onClick.AddListener(GameManager.Instance.RollDices);
+        this.buttonRoll.onClick.AddListener(GameManager.Instance.RollDicesServerRpc);
+
         //this.buttonOkPanelOk.onClick.AddListener(GameManager.Instance.SwitchPlayer);
         //this.buttonPayPanelFee.onClick.AddListener(GameManager.Instance.CollectFee);
     }
 
-    public void ShowPanelOk(Sprite sprite, string description)
+    public void ShowControl(UIControl control)
     {
-        this.panelOk.gameObject.SetActive(true);
-        this.textPanelOk.text = description;
-        this.imagePanelOk.sprite = sprite;
+        switch (control)
+        {
+            case UIControl.ButtonRollDices:
+                this.buttonRoll?.gameObject.SetActive(true);
+                break;
+            case UIControl.PanelInformation:
+                this.panelInformation?.gameObject.SetActive(true);
+                break;
+        }
     }
 
-    public void HidePanelOk() => this.panelOk.gameObject.SetActive(false);
-
-    public void ShowPanelFee(Sprite sprite, string description)
+    public void HideControl(UIControl control)
     {
-        this.panelFee.gameObject.SetActive(true);
-        this.textPanelFee.text = description;
-        this.imagePanelFee.sprite = sprite;
+        switch (control)
+        {
+            case UIControl.ButtonRollDices:
+                this.buttonRoll?.gameObject.SetActive(false);
+                break;
+            case UIControl.PanelInformation:
+                this.panelInformation?.gameObject.SetActive(false);
+                break;
+        }
     }
 
-    public void HidePanelFee() => this.panelFee.gameObject.SetActive(false);
+    //public void ButtonRollDicesPressed() => OnButtonRollDicesPressed?.Invoke();
 
-    public void ShowPanelOffer(Sprite sprite, string description)
-    {
-        this.panelOffer.gameObject.SetActive(true);
-        this.textpanelOffer.text = description;
-        this.imagepanelOffer.sprite = sprite;
-    }
+    //public void ShowPanelOk(Sprite sprite, string description)
+    //{
+    //    this.panelOk.gameObject.SetActive(true);
+    //    this.textPanelOk.text = description;
+    //    this.imagePanelOk.sprite = sprite;
+    //}
 
-    public void HidePanelOffer() => this.panelOffer.gameObject.SetActive(false);
+    //public void HidePanelOk() => this.panelOk.gameObject.SetActive(false);
 
-    public void ShowButtonRoll() => this.buttonRoll.gameObject.SetActive(true);
+    //public void ShowPanelFee(Sprite sprite, string description)
+    //{
+    //    this.panelFee.gameObject.SetActive(true);
+    //    this.textPanelFee.text = description;
+    //    this.imagePanelFee.sprite = sprite;
+    //}
 
-    public void HideButtonRolls() => this.buttonRoll.gameObject.SetActive(false);
+    //public void HidePanelFee() => this.panelFee.gameObject.SetActive(false);
+
+    //public void ShowPanelOffer(Sprite sprite, string description)
+    //{
+    //    this.panelOffer.gameObject.SetActive(true);
+    //    this.textpanelOffer.text = description;
+    //    this.imagepanelOffer.sprite = sprite;
+    //}
+
+    //public void HidePanelOffer() => this.panelOffer.gameObject.SetActive(false);
+
+    //public void ShowButtonRoll() => this.buttonRoll.gameObject.SetActive(true);
+
+    //public void HideButtonRolls() => this.buttonRoll.gameObject.SetActive(false);
 
     private void OnDestroy()
     {
-        //this.buttonRoll.onClick.RemoveListener(GameManager.Instance.RollDices);
+        this.buttonRoll.onClick.RemoveListener(GameManager.Instance.RollDicesServerRpc);
         //this.buttonOkPanelOk.onClick.RemoveListener(GameManager.Instance.SwitchPlayer);
         //this.buttonPayPanelFee.onClick.RemoveListener(GameManager.Instance.CollectFee);
     }
