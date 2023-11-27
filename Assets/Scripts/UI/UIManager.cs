@@ -21,7 +21,7 @@ public sealed class UIManager : NetworkBehaviour
     [SerializeField] private Button buttonRoll;
 
     [Space]
-    [Header("Panel OK")]
+    [Header("Panel Information")]
     [Space]
 
     [SerializeField] private RectTransform panelInformation;
@@ -31,6 +31,20 @@ public sealed class UIManager : NetworkBehaviour
     [SerializeField] private TMP_Text textPanelInformation;
 
     [SerializeField] private Button buttonPanelInformation;
+
+    [Space]
+    [Header("Panel Offer")]
+    [Space]
+
+    [SerializeField] private RectTransform panelOffer;
+
+    [SerializeField] private Image imagePanelOffer;
+
+    [SerializeField] private TMP_Text textPanelOffer;
+
+    [SerializeField] private Button buttonAcceptPanelOffer;
+
+    [SerializeField] private Button buttonDeclinePanelOffer;
 
     //[Space]
     //[Header("Panel Fee")]
@@ -64,10 +78,16 @@ public sealed class UIManager : NetworkBehaviour
 
     public event ButtonClickHandler OnButtonRollDicesClicked;
 
+    public event ButtonClickHandler OnButtonAcceptPanelOffer;
+
+    public event ButtonClickHandler OnButtonDeclinePanelOffer;
+
     public static UIManager Instance { get; private set; }
 
     public enum UIControl : byte
     {
+        PanelPay,
+        PanelOffer,
         ButtonRollDices,
         PanelInformation,
     }
@@ -76,13 +96,18 @@ public sealed class UIManager : NetworkBehaviour
     {
         Instance = this;
 
-        this.buttonRoll.onClick.AddListener(this.HandleButtonRollDicesClicked);
+        //this.buttonRoll.onClick.AddListener(this.HandleButtonRollDicesClicked);
+        //this.buttonAcceptPanelOffer.onClick.AddListener(this.HandleButtonAcceptPanelOfferClicked);
+        //this.buttonDeclinePanelOffer.onClick.AddListener(this.HandleButtonDeclinePanelOfferClicked);
     }
 
     public void ShowControl(UIControl control)
     {
         switch (control)
         {
+            case UIControl.PanelOffer:
+                this.panelOffer?.gameObject.SetActive(true);
+                break;
             case UIControl.ButtonRollDices:
                 this.buttonRoll?.gameObject.SetActive(true);
                 break;
@@ -96,6 +121,9 @@ public sealed class UIManager : NetworkBehaviour
     {
         switch (control)
         {
+            case UIControl.PanelOffer:
+                this.panelOffer?.gameObject.SetActive(false);
+                break;
             case UIControl.ButtonRollDices:
                 this.buttonRoll?.gameObject.SetActive(false);
                 break;
@@ -111,43 +139,20 @@ public sealed class UIManager : NetworkBehaviour
         info.SetUpPlayerInfo(nickname, color);
     }
 
+    public void SetUpPanelOffer(Sprite sprite, string description)
+    {
+        this.imagePanelOffer.sprite = sprite;
+        this.textPanelOffer.text = description;
+    }
+
     private void HandleButtonRollDicesClicked() => this.OnButtonRollDicesClicked?.Invoke();
 
-    //public void ButtonRollDicesPressed() => OnButtonRollDicesPressed?.Invoke();
+    private void HandleButtonAcceptPanelOfferClicked() => this.OnButtonAcceptPanelOffer?.Invoke();
 
-    //public void ShowPanelOk(Sprite sprite, string description)
-    //{
-    //    this.panelOk.gameObject.SetActive(true);
-    //    this.textPanelOk.text = description;
-    //    this.imagePanelOk.sprite = sprite;
-    //}
-
-    //public void HidePanelOk() => this.panelOk.gameObject.SetActive(false);
-
-    //public void ShowPanelFee(Sprite sprite, string description)
-    //{
-    //    this.panelFee.gameObject.SetActive(true);
-    //    this.textPanelFee.text = description;
-    //    this.imagePanelFee.sprite = sprite;
-    //}
-
-    //public void HidePanelFee() => this.panelFee.gameObject.SetActive(false);
-
-    //public void ShowPanelOffer(Sprite sprite, string description)
-    //{
-    //    this.panelOffer.gameObject.SetActive(true);
-    //    this.textpanelOffer.text = description;
-    //    this.imagepanelOffer.sprite = sprite;
-    //}
-
-    //public void HidePanelOffer() => this.panelOffer.gameObject.SetActive(false);
-
-    //public void ShowButtonRoll() => this.buttonRoll.gameObject.SetActive(true);
-
-    //public void HideButtonRolls() => this.buttonRoll.gameObject.SetActive(false);
+    private void HandleButtonDeclinePanelOfferClicked() => this.OnButtonDeclinePanelOffer?.Invoke();
 
     private void OnDestroy()
     {
-        this.buttonRoll.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
+        //this.buttonRoll.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
     }
 }

@@ -12,7 +12,7 @@ public sealed class Editor_MonopolyNode : Editor
         MonopolyNode monopolyNode = (MonopolyNode)target;
 
         EditorGUILayout.Space();
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("type"));
         EditorGUILayout.Space();
 
         EditorGUILayout.Space();
@@ -20,16 +20,46 @@ public sealed class Editor_MonopolyNode : Editor
         EditorGUILayout.Space();
 
         EditorGUILayout.Space();
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("ImageMonopolyNode"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("imageLogo"));
         EditorGUILayout.Space();
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("SpriteMonopolyNode"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("spriteLogo"));
         EditorGUILayout.Space();
+
+        if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Tax)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("taxAmount"));
+        }
 
         if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Property)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("ImageMonopolySetType"));
-            EditorGUILayout.Space(); 
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageOwner"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMonopolyType"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMortgageStatus"));
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("priceInitial"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("priceMortgage"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricesRent"));
+        }
+
+        if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Gambling)
+        {
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageOwner"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMonopolyType"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMortgageStatus"));
+            EditorGUILayout.Space();
             EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
             EditorGUILayout.Space();
 
@@ -41,7 +71,11 @@ public sealed class Editor_MonopolyNode : Editor
         if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Transport)
         {
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("ImageMonopolySetType"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageOwner"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMonopolyType"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMortgageStatus"));
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
             EditorGUILayout.Space();
@@ -49,28 +83,6 @@ public sealed class Editor_MonopolyNode : Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("priceInitial"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("priceMortgage"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("pricesRent"));
-        }
-
-        if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Gamble)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("ImageMonopolySetType"));
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
-            EditorGUILayout.Space();
-
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("priceInitial"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("priceMortgage"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricesRent"));
-        }
-        
-        if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Tax)
-        {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
-            EditorGUILayout.Space();
-
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("taxAmount"));
         }
 
         serializedObject.ApplyModifiedProperties();

@@ -175,6 +175,8 @@ public sealed class GameManager : NetworkBehaviour
 
         player.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
 
+        this.HandlePlayerLanding(player);
+
         IEnumerator MovePlayerCoroutine(Vector3 targetPosition)
         {
             float elapsedTime = 0f;
@@ -191,7 +193,40 @@ public sealed class GameManager : NetworkBehaviour
         }
     }
 
-
+    public void HandlePlayerLanding(Player player)
+    {
+        if (player.CurrentNode.Owner != player)
+        {
+            switch (player.CurrentNode.Type)
+            {
+                case MonopolyNode.MonopolyNodeType.Tax:
+                    //UIManager.Instance.ShowPanelFee(this.currentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    break;
+                case MonopolyNode.MonopolyNodeType.Jail:
+                    //UIManager.Instance.ShowPanelOk(this.currentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    break;
+                case MonopolyNode.MonopolyNodeType.Start:
+                    //this.SendBalance(player, EXACT_CIRCLE_BONUS);
+                    break;
+                case MonopolyNode.MonopolyNodeType.Chance:
+                    //this.HandleChanceLanding(Random.Range(0, this.chances.Count));
+                    break;
+                case MonopolyNode.MonopolyNodeType.SendJail:
+                    //UIManager.Instance.ShowPanelOk(this.CurrentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    //this.SendToJail(player);
+                    break;
+                case MonopolyNode.MonopolyNodeType.Property:
+                    player.HandlePropertyLanding();
+                    break;
+                case MonopolyNode.MonopolyNodeType.Gambling:
+                    //player.HandlePropertyLanding();
+                    break;
+                case MonopolyNode.MonopolyNodeType.Transport:
+                    //player.HandlePropertyLanding();
+                    break;
+            }
+        }
+    }
 }
 
 
@@ -200,41 +235,6 @@ public sealed class GameManager : NetworkBehaviour
 //{
 //    player.IsInJail = true;
 //    this.MovePlayer(player, MonopolyBoard.Instance.GetDistanceBetweenNodes(player.CurrentNode, MonopolyBoard.Instance.NodeJail));
-//}
-
-//public void HandlePlayerLanding(Player player)
-//{
-//    if (player.CurrentNode.Owner != player)
-//    {
-//        switch (player.CurrentNode.Type)
-//        {
-//            case MonopolyNode.MonopolyNodeType.Tax:
-//                UIManager.Instance.ShowPanelFee(this.currentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
-//                break;
-//            case MonopolyNode.MonopolyNodeType.Jail:
-//                UIManager.Instance.ShowPanelOk(this.currentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
-//                break;
-//            case MonopolyNode.MonopolyNodeType.Start:
-//                //this.SendBalance(player, EXACT_CIRCLE_BONUS);
-//                break;
-//            case MonopolyNode.MonopolyNodeType.Gamble:
-//                //player.HandlePropertyLanding();
-//                break;
-//            case MonopolyNode.MonopolyNodeType.Chance:
-//                //this.HandleChanceLanding(Random.Range(0, this.chances.Count));
-//                break;
-//            case MonopolyNode.MonopolyNodeType.SendJail:
-//                //UIManager.Instance.ShowPanelOk(this.CurrentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
-//                //this.SendToJail(player);
-//                break;
-//            case MonopolyNode.MonopolyNodeType.Property:
-//                //player.HandlePropertyLanding();
-//                break;
-//            case MonopolyNode.MonopolyNodeType.Transport:
-//                //player.HandlePropertyLanding();
-//                break;
-//        }
-//    }
 //}
 
 

@@ -3,33 +3,43 @@ using System.Collections.Generic;
 
 public sealed class MonopolyBoard : MonoBehaviour
 {
+    #region Editor setup
+
     [Space]
     [Header("Special nodes")]
     [Space]
 
-    [SerializeField] public MonopolyNode Casino;
+    [SerializeField] private MonopolyNode jail;
 
-    [SerializeField] public MonopolyNode NodeJail;
+    [SerializeField] private MonopolyNode start;
 
-    [SerializeField] public MonopolyNode NodeStart;
+    [SerializeField] private MonopolyNode sendJail;
 
-    [SerializeField] public MonopolyNode NodeSendToJail;
+    [SerializeField] private MonopolyNode freeParking;
 
     [Space]
     [Header("Monopolies")]
     [Space]
 
-    [SerializeField] private List<MonopolySet> monopolySets = new List<MonopolySet>();
+    [SerializeField] private List<MonopolySet> monopolies = new List<MonopolySet>();
 
-    public List<MonopolyNode> Nodes { get; private set; }
+    #endregion
 
     public static MonopolyBoard Instance { get; private set; }
 
-    public int NodeJailIndex { get => this.Nodes.IndexOf(this.NodeJail); }
+    public List<MonopolyNode> Nodes { get; private set; }
 
-    public int NodeStartIndex { get => this.Nodes.IndexOf(this.NodeStart); }
+    public MonopolyNode NodeJail { get => this.jail; }
 
-    public int NodeSendToJailIndex { get => this.Nodes.IndexOf(this.NodeSendToJail); }
+    public MonopolyNode NodeStart { get => this.start; }
+
+    public MonopolyNode NodeSendToJail { get => this.sendJail; }
+
+    public MonopolyNode NodeFreeParking { get => this.freeParking; }
+
+    public int NodeJailIndex { get => this.Nodes.IndexOf(this.jail); }
+
+    public int NodeStartIndex { get => this.Nodes.IndexOf(this.start); }
 
     private void Awake()
     {
@@ -40,10 +50,10 @@ public sealed class MonopolyBoard : MonoBehaviour
         foreach (Transform node in this.transform.GetComponentInChildren<Transform>())
             this.Nodes.Add(node.GetComponent<MonopolyNode>());
 
-        for (int i = 0; i < this.monopolySets.Count; ++i)
+        for (int i = 0; i < this.monopolies.Count; ++i)
         {
-            for (int j = 0; j < this.monopolySets[i].NodesInSet.Count; ++j)
-                this.monopolySets[i].NodesInSet[j].ImageMonopolySetType.color = this.monopolySets[i].ColorOfSet;
+            for (int j = 0; j < this.monopolies[i].NodesInSet.Count; ++j)
+                this.monopolies[i].NodesInSet[j].MonopolySetColor = this.monopolies[i].ColorOfSet;
         }
     }
 

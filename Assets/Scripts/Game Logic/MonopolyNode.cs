@@ -2,46 +2,50 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-[System.Serializable]
 public sealed class MonopolyNode : MonoBehaviour
 {
-    [System.Serializable]
     public enum MonopolyNodeType
     {
         Tax,
         Jail,
         Start,
-        Gamble,
         Chance,
-        Casino,
         SendJail,
         Property,
-        Transport, 
+        Gambling,
+        Transport,
+        FreeParking
     }
 
-    public MonopolyNodeType Type;
+    [SerializeField] private MonopolyNodeType type;
 
-    public Image ImageMonopolyNode;
+    #region Visuals
 
-    public Sprite SpriteMonopolyNode;
+    [SerializeField] private Image imageLogo;
 
-    public Image ImageMonopolySetType;
+    [SerializeField] private Sprite spriteLogo;
+
+    [SerializeField] private Image imageOwner;
+
+    [SerializeField] private Image imageMonopolyType;
+
+    [SerializeField] private Image imageMortgageStatus;
+
+    #endregion
 
     #region Pricing
 
-    [SerializeField] public int taxAmount;
+    [SerializeField] private int taxAmount;
 
-    [SerializeField] public int priceInitial;
+    [SerializeField] private int priceInitial;
 
-    [SerializeField] public int priceMortgage;
+    [SerializeField] private int priceMortgage;
 
-    [SerializeField] public List<int> pricesRent = new List<int>();
+    [SerializeField] private List<int> pricesRent = new List<int>();
 
     #endregion
 
     private int currentLevel;
-
-    public int CurrentRentingPrice { get; } // implement logic
 
     public Player Owner { get; set; }
 
@@ -49,46 +53,44 @@ public sealed class MonopolyNode : MonoBehaviour
 
     public int TaxAmount { get => this.taxAmount; }
 
-    private void Awake() => this.ImageMonopolyNode.sprite = this.SpriteMonopolyNode;
+    public MonopolyNodeType Type { get => this.type; }
 
-    public void OnPlayerLandedPropertyNode(Player player)
+    public Color OwnerColor { set => this.imageOwner.color = value; }
+
+    public Color MonopolySetColor { set => this.imageMonopolyType.color = value; }
+
+    public int Price
     {
-        if (this.Owner == player)
-            return;
-
-        if (this.Owner == null)
+        get
         {
-            // Offer user to buy a node
-            return;
-        }
-
-        if (this.Owner != null)
-        {
-            // Force player to pay a rent
-            return;
+            if (this.Owner == null)
+                return this.priceInitial;
+            else
+                return this.pricesRent[this.currentLevel];
         }
     }
 
-    public void OnPlayerLandedChanceNode(Player player)
-    {
-        // Handle chance node
-    }
+    private void Awake() => this.imageLogo.sprite = this.spriteLogo;
 
-    public void OnPlayerLandedTaxNode(Player player)
-    {
-        // Handle tax node
-    }
 
-    public void OnPlayerLandedGoToJailNode(Player player)
-    {
-        // Handle jail node
-    }
 
-    public void OnPlayerLandedStartNode(Player player)
-    {
-        // Handle start node
-        //GameManager.Instance.SendBalance(player, GameManager.Instance.EXACT_CIRCLE_BONUS);
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     //public delegate void DrawCommunityCard(Player player);

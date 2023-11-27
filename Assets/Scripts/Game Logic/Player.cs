@@ -8,7 +8,7 @@ public sealed class Player : NetworkBehaviour
 {
     [SerializeField] private SO_PlayerVisuals playerVisuals;
 
-    private bool isButtonRollDicesClicked;
+    private bool isTurnCompleted;
 
     public int Balance { get; set; }
 
@@ -41,11 +41,15 @@ public sealed class Player : NetworkBehaviour
     private void OnEnable()
     {
         UIManager.Instance.OnButtonRollDicesClicked += RollDices;
+        UIManager.Instance.OnButtonAcceptPanelOffer += AcceptPropertyOffer;
+        UIManager.Instance.OnButtonDeclinePanelOffer += DeclinePropertyOffer;
     }
 
     private void OnDisable()
     {
         UIManager.Instance.OnButtonRollDicesClicked -= RollDices;
+        UIManager.Instance.OnButtonAcceptPanelOffer -= AcceptPropertyOffer;
+        UIManager.Instance.OnButtonDeclinePanelOffer -= DeclinePropertyOffer;
     }
 
     public override void OnNetworkSpawn()
@@ -78,26 +82,26 @@ public sealed class Player : NetworkBehaviour
         UIManager.Instance.AddPlayer(this.playerVisuals.PlayerNickname, this.playerVisuals.PlayerColor);
     }
 
+    private IEnumerator WaitPlayerInput()
+    {
+        yield return new WaitUntil(() => this.isTurnCompleted);
+    }
+
     [ClientRpc]
     public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
     {
         this.HasCompletedTurn = false;
 
-        this.isButtonRollDicesClicked = false;
+        this.isTurnCompleted = false;
 
         UIManager.Instance.ShowControl(UIManager.UIControl.ButtonRollDices);
 
-        StartCoroutine(WaitForButtonPress());
-
-        IEnumerator WaitForButtonPress()
-        {
-            yield return new WaitUntil(() => this.isButtonRollDicesClicked);
-        }
+        StartCoroutine(WaitPlayerInput());
     }
 
     private void RollDices()
     {
-        this.isButtonRollDicesClicked = true;
+        this.isTurnCompleted = true;
 
         UIManager.Instance.HideControl(UIManager.UIControl.ButtonRollDices);
 
@@ -120,56 +124,45 @@ public sealed class Player : NetworkBehaviour
         this.HasCompletedTurn = true;
     }
 
-    
-    //public void Pay(int amount)
-    //{
-    //    if (this.Balance >= amount)
-    //    {
-    //        this.Balance -= amount;
-    //    }
-    //    else
-    //    {
-    //        // Handle insufficient balance
-    //    }
-    //}
+    public void HandlePropertyLanding()
+    {
+        UIManager.Instance.ShowControl(UIManager.UIControl.PanelOffer);
 
-    //public void BuyProperty(MonopolyNode node)
-    //{
-    //    if (this.Balance >= node.priceInitial)
-    //    {
-    //        this.nodes.Add(node);
-    //        node.Owner = this;
+        StartCoroutine(WaitPlayerInput());
+    }
 
-    //        //Update ui
-    //    }
-    //    else
-    //    {
-    //        // handle this case
-    //    }
-    //}
+    // Implement handling insufficient funds
+    private void AcceptPropertyOffer()
+    {
+        this.isTurnCompleted = true;
 
-    //public void PledgeProperty(MonopolyNode node)
-    //{
+        if (this.Balance >= this.CurrentNode.Price)
+        {
+            this.Balance -= this.CurrentNode.Price;
 
-    //}
+            Color c = new Color(this.playerVisuals.PlayerColor.r,
+                this.playerVisuals.PlayerColor.g,
+                this.playerVisuals.PlayerColor.b,
+                0.5f);
 
-    //public void UpgradeProperty(MonopolyNode node)
-    //{
+            this.CurrentNode.Owner = this;
+            this.CurrentNode.OwnerColor = c;
+        }
+        else
+        {
+            throw new System.NotImplementedException();
+        }
+        
+        UIManager.Instance.HideControl(UIManager.UIControl.PanelOffer);
+    }
 
-    //}
+    private void DeclinePropertyOffer()
+    {
+        this.isTurnCompleted = true;
 
-    //public void HandlePropertyLanding()
-    //{
-    //    switch (this.CurrentNode.Owner)
-    //    {
-    //        case null:
-    //            UIManager.Instance.ShowPanelOffer(null, "");
-    //            break;
-    //        case Player nodeOwner when nodeOwner != this:
-    //            UIManager.Instance.ShowPanelFee(null, "");
-    //            break;
-    //    }
-    //}
+        UIManager.Instance.HideControl(UIManager.UIControl.PanelOffer);
+    }
+
 
 
 
