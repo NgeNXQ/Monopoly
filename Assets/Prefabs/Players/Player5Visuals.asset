@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d3c8607f4497e14d992b271469d5d1a, type: 3}
   m_Name: Player5Visuals
   m_EditorClassIdentifier: 
-  PlayerColor: {r: 1, g: 0, b: 1, a: 0}
+  PlayerColor: {r: 1, g: 0, b: 1, a: 1}
   PlayerNickname: Player5
   PlayerToken: {fileID: -3888481672020999207, guid: 250f7c06ce499d2499f2d863cdda736b, type: 3}
-  PlayerPanel: {fileID: 4898906605269763668, guid: a5a879e782805cc40a58eb4c7357da22, type: 3}

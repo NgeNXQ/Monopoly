@@ -13,5 +13,5 @@ public sealed class SO_PlayerVisuals : ScriptableObject
 
     [SerializeField] public GameObject PlayerToken;
 
-    [SerializeField] public UIPlayerPanel PlayerPanel;
+    //[SerializeField] public UIPlayerPanel PlayerPanel;
 }

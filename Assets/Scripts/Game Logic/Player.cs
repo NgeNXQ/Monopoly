@@ -6,13 +6,9 @@ using System.Collections.Generic;
 
 public sealed class Player : NetworkBehaviour
 {
-    [SerializeField] private GameObject panelPlayersInfo;
-
     [SerializeField] private SO_PlayerVisuals playerVisuals;
 
-    public List<MonopolyNode> OwnedNodes { get; private set; }
-
-    private bool isButtonRollDicesPressed;
+    private bool isButtonRollDicesClicked;
 
     public int Balance { get; set; }
 
@@ -22,9 +18,11 @@ public sealed class Player : NetworkBehaviour
 
     public int TurnsInJail { get; set; }
 
-    public bool HasCompletedTurn { get; private set; }
+    public bool HasCompletedTurn { get; set; }
 
     public MonopolyNode CurrentNode { get; set; }
+
+    public List<MonopolyNode> OwnedNodes { get; private set; }
 
     public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
 
@@ -34,86 +32,28 @@ public sealed class Player : NetworkBehaviour
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
     }
 
+    // ONLY DEBUG PURPOSES
+    private void Update()
+    {
+        Debug.Log($"{GameManager.Instance.FirstCubeValue}:{GameManager.Instance.SecondCubeValue}:{GameManager.Instance.TotalRollResult}");
+    }
+
     private void OnEnable()
     {
-        UIManager.Instance.ButtonRollDices.onClick.AddListener(OnButtonRollDicesPressed);
+        UIManager.Instance.OnButtonRollDicesClicked += RollDices;
     }
 
     private void OnDisable()
     {
-        UIManager.Instance.ButtonRollDices.onClick.RemoveListener(OnButtonRollDicesPressed);
+        UIManager.Instance.OnButtonRollDicesClicked -= RollDices;
     }
-
-    [ClientRpc]
-    public void TakeTurnClientRpc(ClientRpcParams clientRpcParams)
-    {
-        this.StartTurnClientRpc();
-
-        this.isButtonRollDicesPressed = false;
-
-        UIManager.Instance.ShowControl(UIManager.UIControl.ButtonRollDices);
-
-        StartCoroutine(WaitForButtonPress());
-
-        IEnumerator WaitForButtonPress()
-        {
-            yield return new WaitUntil(() => this.isButtonRollDicesPressed);
-
-            UIManager.Instance.HideControl(UIManager.UIControl.ButtonRollDices);
-
-            StartCoroutine(MovePlayerCoroutine(GameManager.Instance.TotalRollResult));
-        }
-    }
-
-    [ClientRpc]
-    public void FinishTurnClientRpc(ClientRpcParams clientRpcParams = default) => this.HasCompletedTurn = true;
-
-    [ClientRpc]
-    public void StartTurnClientRpc(ClientRpcParams clientRpcParams = default) => this.HasCompletedTurn = false;
-
-    private void OnButtonRollDicesPressed() => this.isButtonRollDicesPressed = true;
-
-    // Maybe move onto gamemanager at some point
-    private IEnumerator MovePlayerCoroutine(int steps)
-    {
-        float delayBetweenMoves = 0.1f;
-        int currentNodeIndex = this.CurrentNodeIndex;
-
-        while (steps != 0)
-        {
-            --steps;
-
-            currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
-
-            Vector3 targetPosition = MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position;
-
-            this.transform.Translate(targetPosition - this.transform.position);
-
-            yield return new WaitForSeconds(delayBetweenMoves);
-        }
-
-        this.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
-
-        //this.TurnIsComplete.Value = true;
-
-        //this.HasCompletedTurn = true;
-
-        this.FinishTurnClientRpc();
-    }
-
-
-    //[ClientRpc]
-    //public void CompleteTurnClientRpc()
-    //{
-    //    this.HasCompletedTurn = true;
-    //    GameManager.Instance.SwitchPlayer();
-    //}
 
     public override void OnNetworkSpawn()
     {
         if (!this.IsOwner)
             return;
 
+        base.OnNetworkSpawn();
         this.InitializePlayer();
         this.InitializePlayerClientRpc();
     }
@@ -122,26 +62,65 @@ public sealed class Player : NetworkBehaviour
     public void InitializePlayerClientRpc()
     {
         if (!this.IsOwner)
-            this.InitializePlayer(); 
+            this.InitializePlayer();
     }
 
     private void InitializePlayer()
     {
-        this.Balance = GameManager.Instance.StartingBalance;
-        this.playerVisuals.PlayerPanel.UpdateBalance(this);
-
         this.OwnedNodes = new List<MonopolyNode>();
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
 
-        GameObject.Instantiate(this.playerVisuals.PlayerToken, this.transform);
+        this.Balance = GameManager.Instance.StartingBalance;
+
+        NetworkObject.Instantiate(this.playerVisuals.PlayerToken, this.transform);
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
 
-        // Add panel
-        // GameObject.Instantiate(this.playerVisuals.PlayerPanel.gameObject, this.panelPlayersInfo.transform);
-
-        this.playerVisuals.PlayerPanel.SetUpPlayerInfo(new FixedString32Bytes(this.playerVisuals.PlayerNickname), this.playerVisuals.PlayerColor);
+        UIManager.Instance.AddPlayer(this.playerVisuals.PlayerNickname, this.playerVisuals.PlayerColor);
     }
 
+    [ClientRpc]
+    public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
+    {
+        this.HasCompletedTurn = false;
+
+        this.isButtonRollDicesClicked = false;
+
+        UIManager.Instance.ShowControl(UIManager.UIControl.ButtonRollDices);
+
+        StartCoroutine(WaitForButtonPress());
+
+        IEnumerator WaitForButtonPress()
+        {
+            yield return new WaitUntil(() => this.isButtonRollDicesClicked);
+        }
+    }
+
+    private void RollDices()
+    {
+        this.isButtonRollDicesClicked = true;
+
+        UIManager.Instance.HideControl(UIManager.UIControl.ButtonRollDices);
+
+        this.RollDicesServerRpc();
+
+        GameManager.Instance.MovePlayer(this, GameManager.Instance.TotalRollResult);
+
+        this.FinishTurnServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RollDicesServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        GameManager.Instance.RollDices();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void FinishTurnServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        this.HasCompletedTurn = true;
+    }
+
+    
     //public void Pay(int amount)
     //{
     //    if (this.Balance >= amount)

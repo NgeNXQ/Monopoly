@@ -2,10 +2,18 @@ using TMPro;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
-//using UnityEngine.Events;
+using Unity.Collections;
 
 public sealed class UIManager : NetworkBehaviour
 {
+    [Space]
+    [Header("Panel Players Info")]
+    [Space]
+
+    [SerializeField] private NetworkObject panelPlayersInfo;
+
+    [SerializeField] private NetworkObject playerInfo;
+
     [Space]
     [Header("Button roll dices")]
     [Space]
@@ -52,7 +60,9 @@ public sealed class UIManager : NetworkBehaviour
 
     //public UnityAction OnButtonRollDicesPressed { get; set; }
 
-    public Button ButtonRollDices { get => this.buttonRoll; }
+    public delegate void ButtonClickHandler();
+
+    public event ButtonClickHandler OnButtonRollDicesClicked;
 
     public static UIManager Instance { get; private set; }
 
@@ -66,10 +76,7 @@ public sealed class UIManager : NetworkBehaviour
     {
         Instance = this;
 
-        this.buttonRoll.onClick.AddListener(GameManager.Instance.RollDicesServerRpc);
-
-        //this.buttonOkPanelOk.onClick.AddListener(GameManager.Instance.SwitchPlayer);
-        //this.buttonPayPanelFee.onClick.AddListener(GameManager.Instance.CollectFee);
+        this.buttonRoll.onClick.AddListener(this.HandleButtonRollDicesClicked);
     }
 
     public void ShowControl(UIControl control)
@@ -97,6 +104,14 @@ public sealed class UIManager : NetworkBehaviour
                 break;
         }
     }
+
+    public void AddPlayer(FixedString32Bytes nickname, Color color)
+    {
+        UIPlayerInfo info = NetworkObject.Instantiate(this.playerInfo, this.panelPlayersInfo.transform).GetComponent<UIPlayerInfo>();
+        info.SetUpPlayerInfo(nickname, color);
+    }
+
+    private void HandleButtonRollDicesClicked() => this.OnButtonRollDicesClicked?.Invoke();
 
     //public void ButtonRollDicesPressed() => OnButtonRollDicesPressed?.Invoke();
 
@@ -133,8 +148,6 @@ public sealed class UIManager : NetworkBehaviour
 
     private void OnDestroy()
     {
-        this.buttonRoll.onClick.RemoveListener(GameManager.Instance.RollDicesServerRpc);
-        //this.buttonOkPanelOk.onClick.RemoveListener(GameManager.Instance.SwitchPlayer);
-        //this.buttonPayPanelFee.onClick.RemoveListener(GameManager.Instance.CollectFee);
+        this.buttonRoll.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
     }
 }
