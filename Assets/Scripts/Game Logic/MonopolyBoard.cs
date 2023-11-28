@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -25,9 +26,11 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     #endregion
 
+    private List<MonopolyNode> nodes;
+
     public static MonopolyBoard Instance { get; private set; }
 
-    public List<MonopolyNode> Nodes { get; private set; }
+    public int NumberOfNodes { get => this.nodes.Count; }
 
     public MonopolyNode NodeJail { get => this.jail; }
 
@@ -37,18 +40,17 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     public MonopolyNode NodeFreeParking { get => this.freeParking; }
 
-    public int NodeJailIndex { get => this.Nodes.IndexOf(this.jail); }
-
-    public int NodeStartIndex { get => this.Nodes.IndexOf(this.start); }
-
     private void Awake()
     {
         Instance = this;
 
-        this.Nodes = new List<MonopolyNode>();
+        this.nodes = new List<MonopolyNode>();
 
-        foreach (Transform node in this.transform.GetComponentInChildren<Transform>())
-            this.Nodes.Add(node.GetComponent<MonopolyNode>());
+        foreach (Transform child in this.transform)
+        {
+            if (child.TryGetComponent<MonopolyNode>(out MonopolyNode monopolyNode))
+                this.nodes.Add(monopolyNode);
+        }
 
         for (int i = 0; i < this.monopolies.Count; ++i)
         {
@@ -57,12 +59,41 @@ public sealed class MonopolyBoard : MonoBehaviour
         }
     }
 
-    // Potential bugs!
+    public MonopolyNode this[int index]
+    {
+        get
+        {
+            if (index < 0 || index >= this.nodes.Count)
+                throw new System.IndexOutOfRangeException($"{nameof(index)} is out of range.");
+
+            return this.nodes[index];
+        }
+    }
+
+    public int this[MonopolyNode monopolyNode]
+    {
+        get
+        {
+            if (monopolyNode == null)
+                throw new System.NullReferenceException($"{nameof(monopolyNode)} is null.");
+
+            return this.nodes.IndexOf(monopolyNode);
+        }
+    }
+
     public int GetDistanceBetweenNodes(MonopolyNode fromNode, MonopolyNode toNode)
     {
-        int toNodeIndex = this.Nodes.IndexOf(toNode);
-        int fromNodeIndex = this.Nodes.IndexOf(fromNode);
+        int clockwiseDistance = (this[toNode] - this[fromNode] + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
+        int counterclockwiseDistance = (this[fromNode] - this[toNode] + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
 
-        return toNodeIndex - fromNodeIndex;
+        return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
+    }
+
+    public int GetDistanceBetweenNodes(int fromNodeIndex, int toNodeIndex)
+    {
+        int clockwiseDistance = (toNodeIndex - fromNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
+        int counterclockwiseDistance = (fromNodeIndex - toNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
+
+        return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
     }
 }

@@ -1,12 +1,27 @@
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.UI;
 using Unity.Collections;
 using System.Collections;
 using System.Collections.Generic;
 
 public sealed class Player : NetworkBehaviour
 {
-    [SerializeField] private SO_PlayerVisuals playerVisuals;
+    #region Visuals
+
+    [Space]
+    [Header("Visuals")]
+    [Space]
+
+    [SerializeField] private Color color;
+
+    [SerializeField] private string nickname;
+
+    [SerializeField] private Image imageToken;
+
+    [SerializeField] private Sprite spriteToken;
+
+    #endregion
 
     private bool isTurnCompleted;
 
@@ -24,7 +39,7 @@ public sealed class Player : NetworkBehaviour
 
     public List<MonopolyNode> OwnedNodes { get; private set; }
 
-    public int CurrentNodeIndex { get => MonopolyBoard.Instance.Nodes.IndexOf(this.CurrentNode); }
+    public int CurrentNodeIndex { get => MonopolyBoard.Instance[this.CurrentNode]; }
 
     private void Awake()
     {
@@ -76,10 +91,11 @@ public sealed class Player : NetworkBehaviour
 
         this.Balance = GameManager.Instance.StartingBalance;
 
-        NetworkObject.Instantiate(this.playerVisuals.PlayerToken, this.transform);
+        this.imageToken.sprite = spriteToken;
+        //NetworkObject.Instantiate(this.playerToken, this.transform);
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
 
-        UIManager.Instance.AddPlayer(this.playerVisuals.PlayerNickname, this.playerVisuals.PlayerColor);
+        UIManager.Instance.AddPlayer(this.nickname, this.color);
     }
 
     private IEnumerator WaitPlayerInput()
@@ -94,7 +110,7 @@ public sealed class Player : NetworkBehaviour
 
         this.isTurnCompleted = false;
 
-        UIManager.Instance.ShowControl(UIManager.UIControl.ButtonRollDices);
+        UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDices, true);
 
         StartCoroutine(WaitPlayerInput());
     }
@@ -103,7 +119,7 @@ public sealed class Player : NetworkBehaviour
     {
         this.isTurnCompleted = true;
 
-        UIManager.Instance.HideControl(UIManager.UIControl.ButtonRollDices);
+        UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDices, false);
 
         this.RollDicesServerRpc();
 
@@ -126,7 +142,7 @@ public sealed class Player : NetworkBehaviour
 
     public void HandlePropertyLanding()
     {
-        UIManager.Instance.ShowControl(UIManager.UIControl.PanelOffer);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, true);
 
         StartCoroutine(WaitPlayerInput());
     }
@@ -140,10 +156,7 @@ public sealed class Player : NetworkBehaviour
         {
             this.Balance -= this.CurrentNode.Price;
 
-            Color c = new Color(this.playerVisuals.PlayerColor.r,
-                this.playerVisuals.PlayerColor.g,
-                this.playerVisuals.PlayerColor.b,
-                0.5f);
+            Color c = new Color(this.color.r, this.color.g, this.color.b, 0.5f);
 
             this.CurrentNode.Owner = this;
             this.CurrentNode.OwnerColor = c;
@@ -153,17 +166,24 @@ public sealed class Player : NetworkBehaviour
             throw new System.NotImplementedException();
         }
         
-        UIManager.Instance.HideControl(UIManager.UIControl.PanelOffer);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, false);
     }
 
     private void DeclinePropertyOffer()
     {
         this.isTurnCompleted = true;
 
-        UIManager.Instance.HideControl(UIManager.UIControl.PanelOffer);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, false);
     }
 
+    public void GoToJail()
+    {
+        Debug.Log("Went to jail");
+        Debug.Log(MonopolyBoard.Instance.GetDistanceBetweenNodes(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
 
+        this.IsInJail = true;
+        GameManager.Instance.MovePlayer(this, MonopolyBoard.Instance.GetDistanceBetweenNodes(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
+    }
 
 
 

@@ -10,9 +10,9 @@ public sealed class UIManager : NetworkBehaviour
     [Header("Panel Players Info")]
     [Space]
 
-    [SerializeField] private NetworkObject panelPlayersInfo;
-
     [SerializeField] private NetworkObject playerInfo;
+
+    [SerializeField] private NetworkObject panelPlayersInfo;
 
     [Space]
     [Header("Button roll dices")]
@@ -92,43 +92,34 @@ public sealed class UIManager : NetworkBehaviour
         PanelInformation,
     }
 
-    private void Awake()
-    {
-        Instance = this;
+    private void Awake() => Instance = this;
 
-        //this.buttonRoll.onClick.AddListener(this.HandleButtonRollDicesClicked);
-        //this.buttonAcceptPanelOffer.onClick.AddListener(this.HandleButtonAcceptPanelOfferClicked);
-        //this.buttonDeclinePanelOffer.onClick.AddListener(this.HandleButtonDeclinePanelOfferClicked);
+    private void OnEnable()
+    {
+        this.buttonRoll.onClick.AddListener(this.HandleButtonRollDicesClicked);
+        this.buttonAcceptPanelOffer.onClick.AddListener(this.HandleButtonAcceptPanelOfferClicked);
+        this.buttonDeclinePanelOffer.onClick.AddListener(this.HandleButtonDeclinePanelOfferClicked);
     }
 
-    public void ShowControl(UIControl control)
+    private void OnDisable()
+    {
+        this.buttonRoll.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
+        this.buttonAcceptPanelOffer.onClick.RemoveListener(this.HandleButtonAcceptPanelOfferClicked);
+        this.buttonDeclinePanelOffer.onClick.RemoveListener(this.HandleButtonDeclinePanelOfferClicked);
+    }
+
+    public void SetControlState(UIControl control, bool state)
     {
         switch (control)
         {
             case UIControl.PanelOffer:
-                this.panelOffer?.gameObject.SetActive(true);
+                this.panelOffer?.gameObject.SetActive(state);
                 break;
             case UIControl.ButtonRollDices:
-                this.buttonRoll?.gameObject.SetActive(true);
+                this.buttonRoll?.gameObject.SetActive(state);
                 break;
             case UIControl.PanelInformation:
-                this.panelInformation?.gameObject.SetActive(true);
-                break;
-        }
-    }
-
-    public void HideControl(UIControl control)
-    {
-        switch (control)
-        {
-            case UIControl.PanelOffer:
-                this.panelOffer?.gameObject.SetActive(false);
-                break;
-            case UIControl.ButtonRollDices:
-                this.buttonRoll?.gameObject.SetActive(false);
-                break;
-            case UIControl.PanelInformation:
-                this.panelInformation?.gameObject.SetActive(false);
+                this.panelInformation?.gameObject.SetActive(state);
                 break;
         }
     }
@@ -150,9 +141,4 @@ public sealed class UIManager : NetworkBehaviour
     private void HandleButtonAcceptPanelOfferClicked() => this.OnButtonAcceptPanelOffer?.Invoke();
 
     private void HandleButtonDeclinePanelOfferClicked() => this.OnButtonDeclinePanelOffer?.Invoke();
-
-    private void OnDestroy()
-    {
-        //this.buttonRoll.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
-    }
 }

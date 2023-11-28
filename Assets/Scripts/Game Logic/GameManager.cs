@@ -12,19 +12,21 @@ public sealed class GameManager : NetworkBehaviour
     [Header("Values")]
     [Space]
 
-    [SerializeField][Range(0, 100_000)] private int startingBalance = 15_000;
+    [SerializeField] [Range(0, 100_000)] private int startingBalance = 15_000;
 
-    [SerializeField][Range(0, 10)] private int maxTurnsInJail = 3;
+    [SerializeField] [Range(0, 10)] private int maxTurnsInJail = 3;
 
-    [SerializeField][Range(0, 10)] private int maxDoublesInRow = 2;
+    [SerializeField] [Range(0, 10)] private int maxDoublesInRow = 2;
 
-    [SerializeField][Range(0, 100_000)] private int circleBonus = 2_000;
+    [SerializeField] [Range(0, 100_000)] private int circleBonus = 2_000;
 
-    [SerializeField][Range(0, 100_000)] private int exactCircleBonus = 3_000;
+    [SerializeField] [Range(0, 100_000)] private int exactCircleBonus = 3_000;
 
-    [SerializeField][Range(0.0f, 10.0f)] private float delayBetweenTurns = 0.5f;
+    [SerializeField] [Range(0.0f, 10.0f)] private float delayBetweenTurns = 0.5f;
 
-    [SerializeField][Range(0.0f, 10.0f)] private float delayBetweenNodes = 1.0f;
+    [SerializeField] [Range(0.0f, 10.0f)] private float delayBetweenNodes = 1.0f;
+
+    [SerializeField] [Range(0.0f, 100.0f)] private float playerMovementSpeed = 25.0f;
 
     #endregion
 
@@ -41,6 +43,8 @@ public sealed class GameManager : NetworkBehaviour
     public static GameManager Instance { get; private set; }
 
     private ulong[] targetTurnId;
+
+    private int doublesInRow;
 
     private List<Player> players;
 
@@ -139,7 +143,17 @@ public sealed class GameManager : NetworkBehaviour
     private void SyncSwitchPlayerClientRpc(int indexOfPlayer, ClientRpcParams clientRpcParams = default)
     {
         this.players[indexOfPlayer].HasCompletedTurn = true;
-        this.currentPlayerIndex = ++this.currentPlayerIndex % players.Count;
+
+        if (!this.HasRolledDouble)
+        {
+            this.doublesInRow = 0;
+            this.currentPlayerIndex = ++this.currentPlayerIndex % players.Count;
+        }
+        else
+        {
+            if (++this.doublesInRow >= this.MaxDoublesInRow)
+                this.currentPlayer.GoToJail();
+        }
     }
 
     public void RollDices()
@@ -156,36 +170,58 @@ public sealed class GameManager : NetworkBehaviour
     [ClientRpc]
     private void SyncRollDicesClientRpc(int firstCubeValue, int secondCubeValue, ClientRpcParams clientRpcParams = default)
     {
-        this.FirstCubeValue = firstCubeValue;
-        this.SecondCubeValue = secondCubeValue;
+        //this.FirstCubeValue = firstCubeValue;
+        //this.SecondCubeValue = secondCubeValue;
+
+        this.FirstCubeValue = -1;
+        this.SecondCubeValue = -1;
     }
 
     public void MovePlayer(Player player, int steps)
     {
+        Vector3 targetPosition;
         int currentNodeIndex = player.CurrentNodeIndex;
 
-        while (steps != 0)
+        StartCoroutine(steps > 0 ? MovePlayerForwardSequence() : MovePlayerBackwardSequence());
+
+        IEnumerator MovePlayerForwardSequence()
         {
-            --steps;
+            while (steps > 0)
+            {
+                --steps;
 
-            currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.Nodes.Count;
+                currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.NumberOfNodes;
+                targetPosition = MonopolyBoard.Instance[currentNodeIndex].transform.position;
 
-            StartCoroutine(MovePlayerCoroutine(MonopolyBoard.Instance.Nodes[currentNodeIndex].transform.position));
+                yield return StartCoroutine(MovePlayerCoroutine(targetPosition));
+            }
+
+            player.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
+            this.HandlePlayerLanding(player);
         }
 
-        player.CurrentNode = MonopolyBoard.Instance.Nodes[currentNodeIndex];
+        IEnumerator MovePlayerBackwardSequence()
+        {
+            while (steps < 0)
+            {
+                ++steps;
 
-        this.HandlePlayerLanding(player);
+                currentNodeIndex = (--currentNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
+
+                targetPosition = MonopolyBoard.Instance[currentNodeIndex].transform.position;
+
+                yield return StartCoroutine(MovePlayerCoroutine(targetPosition));
+            }
+
+            player.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
+            this.HandlePlayerLanding(player);
+        }
 
         IEnumerator MovePlayerCoroutine(Vector3 targetPosition)
         {
-            float elapsedTime = 0f;
-            Vector3 startingPosition = player.transform.position;
-
-            while (elapsedTime < this.delayBetweenNodes)
+            while (Vector3.Distance(player.transform.position, targetPosition) > 0.01f)
             {
-                player.transform.position = startingPosition + (targetPosition - startingPosition) * (elapsedTime / this.delayBetweenNodes);
-                elapsedTime += Time.deltaTime;
+                player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, this.playerMovementSpeed * Time.deltaTime);
                 yield return null;
             }
 
@@ -200,32 +236,53 @@ public sealed class GameManager : NetworkBehaviour
             switch (player.CurrentNode.Type)
             {
                 case MonopolyNode.MonopolyNodeType.Tax:
-                    //UIManager.Instance.ShowPanelFee(this.currentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    // show ui
                     break;
                 case MonopolyNode.MonopolyNodeType.Jail:
-                    //UIManager.Instance.ShowPanelOk(this.currentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
+                    // show ui
                     break;
                 case MonopolyNode.MonopolyNodeType.Start:
-                    //this.SendBalance(player, EXACT_CIRCLE_BONUS);
+                    this.SendFunds(player, this.exactCircleBonus);
                     break;
                 case MonopolyNode.MonopolyNodeType.Chance:
+                    // show ui
                     //this.HandleChanceLanding(Random.Range(0, this.chances.Count));
                     break;
                 case MonopolyNode.MonopolyNodeType.SendJail:
-                    //UIManager.Instance.ShowPanelOk(this.CurrentPlayer.CurrentNode.SpriteMonopolyNode, "Test text");
-                    //this.SendToJail(player);
+                    player.GoToJail();
                     break;
                 case MonopolyNode.MonopolyNodeType.Property:
                     player.HandlePropertyLanding();
                     break;
                 case MonopolyNode.MonopolyNodeType.Gambling:
-                    //player.HandlePropertyLanding();
+                    player.HandlePropertyLanding();
                     break;
                 case MonopolyNode.MonopolyNodeType.Transport:
-                    //player.HandlePropertyLanding();
+                    player.HandlePropertyLanding();
                     break;
             }
         }
+    }
+
+    private void SendFunds(Player player, int amount)
+    {
+        player.Balance += amount;
+
+        //Update ui
+    }
+
+    private void CollectFunds(Player player, int amount)
+    {
+        if (player.Balance < amount)
+        {
+            throw new NotImplementedException();
+        }
+        else
+        {
+            player.Balance -= amount;
+        }
+
+        //Update ui
     }
 }
 
