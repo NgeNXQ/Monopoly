@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3098589803498004716}
   - component: {fileID: 701335143704126107}
   m_Layer: 0
-  m_Name: ImageLogoSprite
+  m_Name: ImageBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -283,7 +283,7 @@ GameObject:
   - component: {fileID: 5485514003728202483}
   - component: {fileID: 4366344011182981692}
   m_Layer: 0
-  m_Name: ImageCardSprite
+  m_Name: ImageLogoSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

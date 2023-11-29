@@ -31,8 +31,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3679969385559060005}
   - {fileID: 3345175457386010141}
+  - {fileID: 3679969385559060005}
   - {fileID: 5309232468752399074}
   - {fileID: 1006680689109850229}
   m_Father: {fileID: 3953292161018051812}
@@ -457,6 +457,12 @@ MonoBehaviour:
   imageOwner: {fileID: 1598070537042327945}
   imageMonopolyType: {fileID: 5028140065738607375}
   imageMortgageStatus: {fileID: 1002229604294734779}
+  imageLevel1: {fileID: 0}
+  imageLevel2: {fileID: 0}
+  imageLevel3: {fileID: 0}
+  imageLevel4: {fileID: 0}
+  imageLevel5: {fileID: 0}
+  description: 
   taxAmount: 0
   priceInitial: 0
   priceMortgage: 0

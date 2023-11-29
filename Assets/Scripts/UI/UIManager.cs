@@ -13,78 +13,93 @@ public sealed class UIManager : NetworkBehaviour
     [Header("Panel Players Info")]
     [Space]
 
+    [Space]
     [SerializeField] private NetworkObject playerInfo;
 
+    [Space]
     [SerializeField] private NetworkObject panelPlayersInfo;
 
     [Space]
-    [Header("Button roll dices")]
+    [Header("Button roll dice")]
     [Space]
 
-    [SerializeField] private Button buttonRollDices;
+    [Space]
+    [SerializeField] private Button buttonRollDice;
 
     [Space]
     [Header("Images Dices")]
     [Space]
 
-    [SerializeField] private Image imageDicePlaceholder1;
+    [Space]
+    [SerializeField] private Image imageDiePlaceholder1;
 
-    [SerializeField] private Image imageDicePlaceholder2;
+    [Space]
+    [SerializeField] private Image imageDiePlaceholder2;
 
-    [SerializeField] private Image imageDice1;
+    [Space]
+    [SerializeField] private Sprite[] spriteDieFaces = new Sprite[6];
 
-    [SerializeField] private Image imageDice2;
+    [Header("Dice screen time")]
 
-    [SerializeField] private Image imageDice3;
-
-    [SerializeField] private Image imageDice4;
-
-    [SerializeField] private Image imageDice5;
-
-    [SerializeField] private Image imageDice6;
+    [Space]
+    [SerializeField][Range(0.0f, 10.0f)] private float diceScreenTime = 1.0f;
 
     [Space]
     [Header("Panel Information")]
     [Space]
 
+    [Space]
     [SerializeField] private RectTransform panelInformation;
 
+    [Space]
     [SerializeField] private Image imagePanelInformation;
 
+    [Space]
     [SerializeField] private TMP_Text textPanelInformation;
 
+    [Space]
     [SerializeField] private Button buttonPanelInformation;
 
     [Space]
     [Header("Panel Offer")]
     [Space]
 
+    [Space]
     [SerializeField] private RectTransform panelOffer;
 
+    [Space]
     [SerializeField] private Image imagePanelOffer;
 
+    [Space]
     [SerializeField] private TMP_Text textPanelOffer;
 
+    [Space]
     [SerializeField] private Button buttonAcceptPanelOffer;
 
+    [Space]
     [SerializeField] private Button buttonDeclinePanelOffer;
 
     [Space]
     [Header("Panel Payment")]
     [Space]
 
+    [Space]
     [SerializeField] private RectTransform panelPayment;
 
+    [Space]
     [SerializeField] private Image imagePanelPayment;
 
+    [Space]
     [SerializeField] private TMP_Text textPanelPayment;
 
+    [Space]
     [SerializeField] private Button buttonPanelPayment;
 
     [Space]
     [Header("Panel Monopoly Node")]
     [Space]
 
+    [Space]
     [SerializeField] private RectTransform panelMonopolyNode;
 
     //[SerializeField] private Image imagePanelPayment;
@@ -97,7 +112,7 @@ public sealed class UIManager : NetworkBehaviour
 
     public delegate void ButtonClickHandler();
 
-    public event ButtonClickHandler OnButtonRollDicesClicked;
+    public event ButtonClickHandler OnButtonRollDiceClicked;
 
     public event ButtonClickHandler OnButtonPanelPaymentClicked;
 
@@ -115,7 +130,7 @@ public sealed class UIManager : NetworkBehaviour
         PanelOffer,
         PanelWarning,
         PanelPayment,
-        ButtonRollDices,
+        ButtonRollDice,
         PanelInformation,
         PanelMonopolyNode
     }
@@ -124,7 +139,7 @@ public sealed class UIManager : NetworkBehaviour
 
     private void OnEnable()
     {
-        this.buttonRollDices.onClick.AddListener(this.HandleButtonRollDicesClicked);
+        this.buttonRollDice.onClick.AddListener(this.HandlebuttonRollDiceClicked);
         this.buttonPanelPayment.onClick.AddListener(this.HandleButtonPanelPaymentClicked);
         this.buttonPanelInformation.onClick.AddListener(this.HandleButtonPanelInformationClicked);
         this.buttonAcceptPanelOffer.onClick.AddListener(this.HandleButtonAcceptPanelOfferClicked);
@@ -133,14 +148,14 @@ public sealed class UIManager : NetworkBehaviour
 
     private void OnDisable()
     {
-        this.buttonRollDices.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
+        this.buttonRollDice.onClick.RemoveListener(this.HandlebuttonRollDiceClicked);
         this.buttonPanelPayment.onClick.RemoveListener(this.HandleButtonPanelPaymentClicked);
         this.buttonPanelInformation.onClick.RemoveListener(this.HandleButtonPanelInformationClicked);
         this.buttonAcceptPanelOffer.onClick.RemoveListener(this.HandleButtonAcceptPanelOfferClicked);
         this.buttonDeclinePanelOffer.onClick.RemoveListener(this.HandleButtonDeclinePanelOfferClicked);
     }
 
-    public void WaitForPlayerInput(bool condition)
+    public void WaitPlayerInput(bool condition)
     {
         this.StartCoroutine(WaitPlayerInputCoroutine());
 
@@ -160,8 +175,8 @@ public sealed class UIManager : NetworkBehaviour
             case UIControl.PanelPayment:
                 this.panelPayment?.gameObject.SetActive(state);
                 break;
-            case UIControl.ButtonRollDices:
-                this.buttonRollDices?.gameObject.SetActive(state);
+            case UIControl.ButtonRollDice:
+                this.buttonRollDice?.gameObject.SetActive(state);
                 break;
             case UIControl.PanelInformation:
                 this.panelInformation?.gameObject.SetActive(state);
@@ -196,7 +211,26 @@ public sealed class UIManager : NetworkBehaviour
         }
     }
 
-    private void HandleButtonRollDicesClicked() => this.OnButtonRollDicesClicked?.Invoke();
+    public void ShowDice()
+    {
+        this.imageDiePlaceholder1.gameObject.SetActive(true);
+        this.imageDiePlaceholder2.gameObject.SetActive(true);
+
+        this.imageDiePlaceholder1.sprite = this.spriteDieFaces[GameManager.Instance.FirstDieValue - 1];
+        this.imageDiePlaceholder2.sprite = this.spriteDieFaces[GameManager.Instance.SecondDieValue - 1];
+
+        this.StartCoroutine(ShowDiceCoroutine());
+
+        IEnumerator ShowDiceCoroutine()
+        {
+            yield return new WaitForSeconds(this.diceScreenTime);
+
+            this.imageDiePlaceholder1.gameObject.SetActive(false);
+            this.imageDiePlaceholder2.gameObject.SetActive(false);
+        }
+    }
+
+    private void HandlebuttonRollDiceClicked() => this.OnButtonRollDiceClicked?.Invoke();
 
     private void HandleButtonPanelPaymentClicked() => this.OnButtonPanelPaymentClicked?.Invoke();
 

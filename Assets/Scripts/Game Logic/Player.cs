@@ -54,7 +54,9 @@ public sealed class Player : NetworkBehaviour
 
     public bool HasCompletedTurn { get => this.hasMoved && this.hasRolled && this.hasActioned; }
 
-    private Color ownershipColor { get => new Color(this.playerColor.r, this.playerColor.g, this.playerColor.b, 0.5f); }
+    //private Color ownershipColor { get => new Color(this.playerColor.r, this.playerColor.g, this.playerColor.b, 0.5f); }
+
+    private Color ownershipColor { get => this.playerColor; }
 
     private void Awake()
     {
@@ -62,18 +64,12 @@ public sealed class Player : NetworkBehaviour
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
     }
 
-    // ONLY DEBUG PURPOSES
-    private void Update()
-    {
-        Debug.Log($"{GameManager.Instance.FirstCubeValue}:{GameManager.Instance.SecondCubeValue}:{GameManager.Instance.TotalRollResult}");
-    }
-
     private void OnEnable()
     {
 
         // FIX BUG WITH PayTax & PayRent INVOKING WITH THE SAME EVENT
 
-        UIManager.Instance.OnButtonRollDicesClicked += RollDices;
+        UIManager.Instance.OnButtonRollDiceClicked += RollDice;
         UIManager.Instance.OnButtonPanelPaymentClicked += PayTax;
         UIManager.Instance.OnButtonPanelPaymentClicked += PayRent;
         UIManager.Instance.OnButtonAcceptPanelOfferClicked += AcceptPropertyOffer;
@@ -83,7 +79,7 @@ public sealed class Player : NetworkBehaviour
 
     private void OnDisable()
     {
-        UIManager.Instance.OnButtonRollDicesClicked -= RollDices;
+        UIManager.Instance.OnButtonRollDiceClicked -= RollDice;
         UIManager.Instance.OnButtonPanelPaymentClicked -= PayTax;
         UIManager.Instance.OnButtonPanelPaymentClicked -= PayRent;
         UIManager.Instance.OnButtonAcceptPanelOfferClicked -= AcceptPropertyOffer;
@@ -127,8 +123,8 @@ public sealed class Player : NetworkBehaviour
         this.hasRolled = false;
         this.hasActioned = false;
 
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDices, true);
-        UIManager.Instance.WaitForPlayerInput(this.hasRolled);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, true);
+        UIManager.Instance.WaitPlayerInput(this.hasRolled);
 
         //StartCoroutine(WaitPlayerInput(this.hasRolled));
     }
@@ -140,24 +136,26 @@ public sealed class Player : NetworkBehaviour
 
     //    this.isTurnCompleted = false;
 
-    //    UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDices, true);
+    //    UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDice, true);
 
     //    StartCoroutine(WaitPlayerInput());
     //}
 
-    private void RollDices()
+    private void RollDice()
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDices, false);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, false);
 
         this.hasRolled = true;
 
-        GameManager.Instance.RollDices();
+        GameManager.Instance.RollDice();
 
-        //this.RollDicesServerRpc();
+        //this.RollDiceServerRpc();
+
+        UIManager.Instance.ShowDice();
 
         this.Move(GameManager.Instance.TotalRollResult);
 
-        UIManager.Instance.WaitForPlayerInput(this.hasMoved);
+        UIManager.Instance.WaitPlayerInput(this.hasMoved);
 
         //this.FinishTurnServerRpc();
     }
@@ -212,9 +210,9 @@ public sealed class Player : NetworkBehaviour
     }
 
     //[ServerRpc(RequireOwnership = false)]
-    //private void RollDicesServerRpc(ServerRpcParams serverRpcParams = default)
+    //private void RollDiceServerRpc(ServerRpcParams serverRpcParams = default)
     //{
-    //    GameManager.Instance.RollDices();
+    //    GameManager.Instance.RollDice();
     //}
 
     //[ServerRpc(RequireOwnership = false)]
@@ -236,7 +234,7 @@ public sealed class Player : NetworkBehaviour
 
         UIManager.Instance.SetUpPanel(UIManager.UIControl.PanelOffer, this.CurrentNode);
         UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, true);
-        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+        UIManager.Instance.WaitPlayerInput(this.hasActioned);
     }
 
     private void AcceptPropertyOffer()
@@ -254,7 +252,7 @@ public sealed class Player : NetworkBehaviour
         else
         {
             this.HandleInsufficientFunds();
-            UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
+            UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
         }
     }
 
@@ -272,13 +270,13 @@ public sealed class Player : NetworkBehaviour
     {
         UIManager.Instance.SetUpPanel(UIManager.UIControl.PanelPayment, this.CurrentNode);
         UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, true);
-        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+        UIManager.Instance.WaitPlayerInput(this.hasActioned);
     }
 
     public void HandleFreeParkingLanding()
     {
         UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
-        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+        UIManager.Instance.WaitPlayerInput(this.hasActioned);
     }
 
     public void HandleJailLanding()
@@ -286,7 +284,7 @@ public sealed class Player : NetworkBehaviour
         if (!this.IsInJail)
         {
             UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
-            UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+            UIManager.Instance.WaitPlayerInput(this.hasActioned);
         }
         else
         {
@@ -298,7 +296,7 @@ public sealed class Player : NetworkBehaviour
     {
         this.Balance += GameManager.Instance.ExactCircleBonus;
         UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
-        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+        UIManager.Instance.WaitPlayerInput(this.hasActioned);
     }
 
     public void HandleSendJailLanding()
@@ -308,7 +306,7 @@ public sealed class Player : NetworkBehaviour
         this.IsInJail = true;
         this.Move(MonopolyBoard.Instance.GetDistance(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
 
-        UIManager.Instance.WaitForPlayerInput(true);
+        UIManager.Instance.WaitPlayerInput(true);
     }
 
     public void HandleChanceLanding()
@@ -316,9 +314,10 @@ public sealed class Player : NetworkBehaviour
         bool hasInteracted = false;
         SO_ChanceNode chance = GameManager.Instance.GetChance();
 
+        this.hasActioned = true;
         //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, this.CurrentNode);
         //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
-        //UIManager.Instance.WaitForPlayerInput(hasInteracted);
+        //UIManager.Instance.WaitPlayerInput(hasInteracted);
 
         switch (chance.Type)
         {
@@ -370,7 +369,7 @@ public sealed class Player : NetworkBehaviour
         else
         {
             this.HandleInsufficientFunds();
-            UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
+            UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
         }
     }
 
@@ -395,14 +394,14 @@ public sealed class Player : NetworkBehaviour
         else
         {
             this.HandleInsufficientFunds();
-            UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
+            UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
         }
     }
 
     private void HandleInsufficientFunds()
     {
         this.hasActioned = true;
-        UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
+        UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
     }
 
 

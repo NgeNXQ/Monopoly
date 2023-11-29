@@ -12,30 +12,35 @@ public sealed class GameManager : NetworkBehaviour
     [Header("Values")]
     [Space]
 
+    [Space]
     [SerializeField] [Range(0, 100_000)] private int startingBalance = 15_000;
 
+    [Space]
     [SerializeField] [Range(0, 10)] private int maxTurnsInJail = 3;
 
+    [Space]
     [SerializeField] [Range(0, 10)] private int maxDoublesInRow = 2;
 
+    [Space]
     [SerializeField] [Range(0, 100_000)] private int circleBonus = 2_000;
 
+    [Space]
     [SerializeField] [Range(0, 100_000)] private int exactCircleBonus = 3_000;
 
+    [Space]
     [SerializeField] [Range(0.0f, 10.0f)] private float delayBetweenTurns = 0.5f;
 
+    [Space]
     [SerializeField] [Range(0.0f, 10.0f)] private float delayBetweenNodes = 1.0f;
 
+    [Space]
     [SerializeField] [Range(0.0f, 100.0f)] private float playerMovementSpeed = 25.0f;
 
-    #endregion
-
-    #region Chance Cards
-
     [Space]
-    [Header("Chance cards")]
+    [Header("Chance nodes")]
     [Space]
 
+    [Space]
     [SerializeField] private List<SO_ChanceNode> chanceCards = new List<SO_ChanceNode>();
 
     #endregion
@@ -50,9 +55,9 @@ public sealed class GameManager : NetworkBehaviour
 
     private int currentPlayerIndex;
 
-    public int FirstCubeValue { get; private set; }
+    public int FirstDieValue { get; private set; }
 
-    public int SecondCubeValue { get; private set; }
+    public int SecondDieValue { get; private set; }
 
     public int CircleBonus { get => this.circleBonus; }
 
@@ -68,9 +73,9 @@ public sealed class GameManager : NetworkBehaviour
 
     private Player currentPlayer { get => this.players[this.currentPlayerIndex]; }
 
-    public int TotalRollResult { get => this.FirstCubeValue + this.SecondCubeValue; }
+    public int TotalRollResult { get => this.FirstDieValue + this.SecondDieValue; }
 
-    public bool HasRolledDouble { get => this.FirstCubeValue == this.SecondCubeValue; }
+    public bool HasRolledDouble { get => this.FirstDieValue == this.SecondDieValue; }
 
     private void Awake() => Instance = this;
 
@@ -136,10 +141,6 @@ public sealed class GameManager : NetworkBehaviour
         this.players[this.currentPlayerIndex].PerformTurn();
 
         yield return new WaitUntil(() => this.currentPlayer.HasCompletedTurn);
-
-        //this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex);
-
-        yield return new WaitForSeconds(this.delayBetweenTurns);
     }
 
     //[ClientRpc]
@@ -159,30 +160,30 @@ public sealed class GameManager : NetworkBehaviour
     //    }
     //}
 
-    public void RollDices()
+    public void RollDice()
     {
-        const int MIN_CUBE_VALUE = 1;
-        const int MAX_CUBE_VALUE = 6;
+        const int MIN_DIE_VALUE = 1;
+        const int MAX_DIE_VALUE = 6;
 
-        int firstCubeValue = UnityEngine.Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
-        int secondCubeValue = UnityEngine.Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
+        int FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
+        int SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
 
-        //this.SyncRollDicesClientRpc(firstCubeValue, secondCubeValue);
+        //this.SyncRollDicesClientRpc(FirstDieValue, SecondDieValue);
 
-        this.FirstCubeValue = firstCubeValue;
-        this.SecondCubeValue = secondCubeValue;
+        this.FirstDieValue = FirstDieValue;
+        this.SecondDieValue = SecondDieValue;
     }
 
     public SO_ChanceNode GetChance() => this.chanceCards[UnityEngine.Random.Range(0, this.chanceCards.Count)];
 
     //[ClientRpc]
-    //private void SyncRollDicesClientRpc(int firstCubeValue, int secondCubeValue, ClientRpcParams clientRpcParams = default)
+    //private void SyncRollDicesClientRpc(int FirstDieValue, int SecondDieValue, ClientRpcParams clientRpcParams = default)
     //{
-    //    this.FirstCubeValue = firstCubeValue;
-    //    this.SecondCubeValue = secondCubeValue;
+    //    this.FirstDieValue = FirstDieValue;
+    //    this.SecondDieValue = SecondDieValue;
 
-    //    //this.FirstCubeValue = -1;
-    //    //this.SecondCubeValue = -1;
+    //    //this.FirstDieValue = -1;
+    //    //this.SecondDieValue = -1;
     //}
 
     public void HandlePlayerLanding(Player player)
