@@ -24,6 +24,8 @@ public sealed class Editor_MonopolyNode : Editor
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(serializedObject.FindProperty("spriteLogo"));
         EditorGUILayout.Space();
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
+        EditorGUILayout.Space();
 
         if (monopolyNode.Type == MonopolyNode.MonopolyNodeType.Tax)
         {
@@ -42,6 +44,16 @@ public sealed class Editor_MonopolyNode : Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMonopolyType"));
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(serializedObject.FindProperty("imageMortgageStatus"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageLevel1"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageLevel2"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageLevel3"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageLevel4"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("imageLevel5"));
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Values", EditorStyles.boldLabel);
             EditorGUILayout.Space();

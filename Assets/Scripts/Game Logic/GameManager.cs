@@ -64,6 +64,8 @@ public sealed class GameManager : NetworkBehaviour
 
     public int ExactCircleBonus { get => this.exactCircleBonus; }
 
+    public float PlayerMovementSpeed { get => this.playerMovementSpeed; }
+
     private Player currentPlayer { get => this.players[this.currentPlayerIndex]; }
 
     public int TotalRollResult { get => this.FirstCubeValue + this.SecondCubeValue; }
@@ -108,7 +110,7 @@ public sealed class GameManager : NetworkBehaviour
             player.InitializePlayerClientRpc();
         }
 
-        StartCoroutine(this.GameLoop());
+        this.StartCoroutine(this.GameLoop());
     }
 
     #endregion
@@ -130,31 +132,32 @@ public sealed class GameManager : NetworkBehaviour
             Send = new ClientRpcSendParams { TargetClientIds = this.targetTurnId }
         };
 
-        this.players[this.currentPlayerIndex].PerformTurnClientRpc(clientRpcParams);
+        //this.players[this.currentPlayerIndex].PerformTurnClientRpc(clientRpcParams);
+        this.players[this.currentPlayerIndex].PerformTurn();
 
         yield return new WaitUntil(() => this.currentPlayer.HasCompletedTurn);
 
-        this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex);
+        //this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex);
 
         yield return new WaitForSeconds(this.delayBetweenTurns);
     }
 
-    [ClientRpc]
-    private void SyncSwitchPlayerClientRpc(int indexOfPlayer, ClientRpcParams clientRpcParams = default)
-    {
-        this.players[indexOfPlayer].HasCompletedTurn = true;
+    //[ClientRpc]
+    //private void SyncSwitchPlayerClientRpc(int indexOfPlayer, ClientRpcParams clientRpcParams = default)
+    //{
+    //    this.players[indexOfPlayer].HasCompletedTurn = true;
 
-        if (!this.HasRolledDouble)
-        {
-            this.doublesInRow = 0;
-            this.currentPlayerIndex = ++this.currentPlayerIndex % players.Count;
-        }
-        else
-        {
-            if (++this.doublesInRow >= this.MaxDoublesInRow)
-                this.currentPlayer.GoToJail();
-        }
-    }
+    //    if (!this.HasRolledDouble)
+    //    {
+    //        this.doublesInRow = 0;
+    //        this.currentPlayerIndex = ++this.currentPlayerIndex % players.Count;
+    //    }
+    //    else
+    //    {
+    //        if (++this.doublesInRow >= this.MaxDoublesInRow)
+    //            this.currentPlayer.GoToJail();
+    //    }
+    //}
 
     public void RollDices()
     {
@@ -164,103 +167,55 @@ public sealed class GameManager : NetworkBehaviour
         int firstCubeValue = UnityEngine.Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
         int secondCubeValue = UnityEngine.Random.Range(MIN_CUBE_VALUE, MAX_CUBE_VALUE + 1);
 
-        this.SyncRollDicesClientRpc(firstCubeValue, secondCubeValue);
+        //this.SyncRollDicesClientRpc(firstCubeValue, secondCubeValue);
+
+        this.FirstCubeValue = firstCubeValue;
+        this.SecondCubeValue = secondCubeValue;
     }
 
-    [ClientRpc]
-    private void SyncRollDicesClientRpc(int firstCubeValue, int secondCubeValue, ClientRpcParams clientRpcParams = default)
-    {
-        //this.FirstCubeValue = firstCubeValue;
-        //this.SecondCubeValue = secondCubeValue;
+    public SO_ChanceNode GetChance() => this.chanceCards[UnityEngine.Random.Range(0, this.chanceCards.Count)];
 
-        this.FirstCubeValue = -1;
-        this.SecondCubeValue = -1;
-    }
+    //[ClientRpc]
+    //private void SyncRollDicesClientRpc(int firstCubeValue, int secondCubeValue, ClientRpcParams clientRpcParams = default)
+    //{
+    //    this.FirstCubeValue = firstCubeValue;
+    //    this.SecondCubeValue = secondCubeValue;
 
-    public void MovePlayer(Player player, int steps)
-    {
-        Vector3 targetPosition;
-        int currentNodeIndex = player.CurrentNodeIndex;
-
-        StartCoroutine(steps > 0 ? MovePlayerForwardSequence() : MovePlayerBackwardSequence());
-
-        IEnumerator MovePlayerForwardSequence()
-        {
-            while (steps > 0)
-            {
-                --steps;
-
-                currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.NumberOfNodes;
-                targetPosition = MonopolyBoard.Instance[currentNodeIndex].transform.position;
-
-                yield return StartCoroutine(MovePlayerCoroutine(targetPosition));
-            }
-
-            player.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
-            this.HandlePlayerLanding(player);
-        }
-
-        IEnumerator MovePlayerBackwardSequence()
-        {
-            while (steps < 0)
-            {
-                ++steps;
-
-                currentNodeIndex = (--currentNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
-
-                targetPosition = MonopolyBoard.Instance[currentNodeIndex].transform.position;
-
-                yield return StartCoroutine(MovePlayerCoroutine(targetPosition));
-            }
-
-            player.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
-            this.HandlePlayerLanding(player);
-        }
-
-        IEnumerator MovePlayerCoroutine(Vector3 targetPosition)
-        {
-            while (Vector3.Distance(player.transform.position, targetPosition) > 0.01f)
-            {
-                player.transform.position = Vector3.MoveTowards(player.transform.position, targetPosition, this.playerMovementSpeed * Time.deltaTime);
-                yield return null;
-            }
-
-            player.transform.position = targetPosition;
-        }
-    }
+    //    //this.FirstCubeValue = -1;
+    //    //this.SecondCubeValue = -1;
+    //}
 
     public void HandlePlayerLanding(Player player)
     {
-        if (player.CurrentNode.Owner != player)
+        switch (player.CurrentNode.Type)
         {
-            switch (player.CurrentNode.Type)
-            {
-                case MonopolyNode.MonopolyNodeType.Tax:
-                    // show ui
-                    break;
-                case MonopolyNode.MonopolyNodeType.Jail:
-                    // show ui
-                    break;
-                case MonopolyNode.MonopolyNodeType.Start:
-                    this.SendFunds(player, this.exactCircleBonus);
-                    break;
-                case MonopolyNode.MonopolyNodeType.Chance:
-                    // show ui
-                    //this.HandleChanceLanding(Random.Range(0, this.chances.Count));
-                    break;
-                case MonopolyNode.MonopolyNodeType.SendJail:
-                    player.GoToJail();
-                    break;
-                case MonopolyNode.MonopolyNodeType.Property:
-                    player.HandlePropertyLanding();
-                    break;
-                case MonopolyNode.MonopolyNodeType.Gambling:
-                    player.HandlePropertyLanding();
-                    break;
-                case MonopolyNode.MonopolyNodeType.Transport:
-                    player.HandlePropertyLanding();
-                    break;
-            }
+            case MonopolyNode.MonopolyNodeType.Tax:
+                player.HandleTaxLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.Jail:
+                player.HandleJailLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.Start:
+                player.HandleStartLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.Chance:
+                player.HandleChanceLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.SendJail:
+                player.HandleSendJailLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.Property:
+                player.HandlePropertyLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.Gambling:
+                player.HandlePropertyLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.Transport:
+                player.HandlePropertyLanding();
+                break;
+            case MonopolyNode.MonopolyNodeType.FreeParking:
+                player.HandleFreeParkingLanding();
+                break;
         }
     }
 
@@ -285,6 +240,45 @@ public sealed class GameManager : NetworkBehaviour
         //Update ui
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //[ClientRpc]

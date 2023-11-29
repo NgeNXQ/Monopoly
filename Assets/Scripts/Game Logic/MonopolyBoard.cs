@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -55,7 +54,7 @@ public sealed class MonopolyBoard : MonoBehaviour
         for (int i = 0; i < this.monopolies.Count; ++i)
         {
             for (int j = 0; j < this.monopolies[i].NodesInSet.Count; ++j)
-                this.monopolies[i].NodesInSet[j].MonopolySetColor = this.monopolies[i].ColorOfSet;
+                this.monopolies[i].NodesInSet[j].MonopolyColor = this.monopolies[i].ColorOfSet;
         }
     }
 
@@ -81,7 +80,7 @@ public sealed class MonopolyBoard : MonoBehaviour
         }
     }
 
-    public int GetDistanceBetweenNodes(MonopolyNode fromNode, MonopolyNode toNode)
+    public int GetDistance(MonopolyNode fromNode, MonopolyNode toNode)
     {
         int clockwiseDistance = (this[toNode] - this[fromNode] + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
         int counterclockwiseDistance = (this[fromNode] - this[toNode] + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
@@ -89,7 +88,7 @@ public sealed class MonopolyBoard : MonoBehaviour
         return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
     }
 
-    public int GetDistanceBetweenNodes(int fromNodeIndex, int toNodeIndex)
+    public int GetDistance(int fromNodeIndex, int toNodeIndex)
     {
         int clockwiseDistance = (toNodeIndex - fromNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
         int counterclockwiseDistance = (fromNodeIndex - toNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;

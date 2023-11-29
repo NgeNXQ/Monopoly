@@ -9,14 +9,23 @@ public sealed class SO_ChanceNode : ScriptableObject
         Penalty,
         SkipTurn,
         SendJail,
+        MoveBackwards,
         RandomMovement
     }
 
-    [SerializeField] public ChanceNodeType Type;
+    [SerializeField] private ChanceNodeType type;
 
-    [SerializeField] public string Description;
+    [SerializeField] private string description;
 
-    [SerializeField] public int Penalty;
+    [SerializeField] private int penalty;
 
-    [SerializeField] public int Reward;
+    [SerializeField] private int reward;
+
+    public ChanceNodeType Type { get => this.type; }
+
+    public string Description { get => this.description; }
+
+    public int Penalty { get => this.penalty; }
+
+    public int Reward { get => this.reward; }
 }

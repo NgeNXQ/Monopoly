@@ -1,8 +1,9 @@
 ﻿using UnityEngine;
+using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public sealed class MonopolyNode : MonoBehaviour
+public sealed class MonopolyNode : NetworkBehaviour
 {
     public enum MonopolyNodeType
     {
@@ -31,6 +32,18 @@ public sealed class MonopolyNode : MonoBehaviour
 
     [SerializeField] private Image imageMortgageStatus;
 
+    [SerializeField] private Image imageLevel1;
+
+    [SerializeField] private Image imageLevel2;
+
+    [SerializeField] private Image imageLevel3;
+
+    [SerializeField] private Image imageLevel4;
+
+    [SerializeField] private Image imageLevel5;
+
+    [SerializeField] private string description;
+
     #endregion
 
     #region Pricing
@@ -55,9 +68,11 @@ public sealed class MonopolyNode : MonoBehaviour
 
     public MonopolyNodeType Type { get => this.type; }
 
+    public Sprite NodeSprite { get => this.spriteLogo; }
+
     public Color OwnerColor { set => this.imageOwner.color = value; }
 
-    public Color MonopolySetColor { set => this.imageMonopolyType.color = value; }
+    public Color MonopolyColor { set => this.imageMonopolyType.color = value; }
 
     public int Price
     {
@@ -72,7 +87,25 @@ public sealed class MonopolyNode : MonoBehaviour
 
     private void Awake() => this.imageLogo.sprite = this.spriteLogo;
 
+    public void Mortgage()
+    {
+        Debug.Log("Mortgaged");
+    }
 
+    public void UnMortgage()
+    {
+        Debug.Log("UnMortgaged");
+    }
+
+    public void Upgrade()
+    {
+        Debug.Log("Upgraded");
+    }
+
+    public void Downgrade()
+    {
+        Debug.Log("Downgraded");
+    }
 
 
 

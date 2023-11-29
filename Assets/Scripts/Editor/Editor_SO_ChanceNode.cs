@@ -12,15 +12,14 @@ public sealed class Editor_SO_ChanceNode : Editor
         SO_ChanceNode chanceNode = (SO_ChanceNode)target;
 
         EditorGUILayout.Space();
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("Type"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("type"));
         EditorGUILayout.Space();
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Visuals", EditorStyles.boldLabel);
         EditorGUILayout.Space();
 
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("Description"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("MonopolyNodeImage"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
 
         if (chanceNode.Type == SO_ChanceNode.ChanceNodeType.Reward || chanceNode.Type == SO_ChanceNode.ChanceNodeType.Penalty)
         {
@@ -32,10 +31,10 @@ public sealed class Editor_SO_ChanceNode : Editor
         switch (chanceNode.Type)
         {
             case SO_ChanceNode.ChanceNodeType.Reward:
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("Reward"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("reward"));
                 break;
             case SO_ChanceNode.ChanceNodeType.Penalty:
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("Penalty"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("penalty"));
                 break;
         }
 

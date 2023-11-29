@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 634786274097642949}
   - component: {fileID: 60028967720746633}
   m_Layer: 0
-  m_Name: Level2
+  m_Name: ImageLevel2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 196490996399988316}
   - component: {fileID: 3531002776111831584}
   m_Layer: 0
-  m_Name: Level5
+  m_Name: ImageLevel5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -272,7 +272,7 @@ GameObject:
   - component: {fileID: 3606475512865761347}
   - component: {fileID: 7958125145294744178}
   m_Layer: 0
-  m_Name: Level1
+  m_Name: ImageLevel1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -347,7 +347,7 @@ GameObject:
   - component: {fileID: 1099483578825817421}
   - component: {fileID: 6455511569602826088}
   m_Layer: 0
-  m_Name: Level3
+  m_Name: ImageLevel3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -422,7 +422,7 @@ GameObject:
   - component: {fileID: 6357764428359914348}
   - component: {fileID: 923918583967032545}
   m_Layer: 0
-  m_Name: Level4
+  m_Name: ImageLevel4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -795,6 +795,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3953292161018051812}
   - component: {fileID: -5928487063108403412}
+  - component: {fileID: 7982305199546684485}
   m_Layer: 0
   m_Name: PropertyDefault
   m_TagString: Untagged
@@ -837,10 +838,27 @@ MonoBehaviour:
   imageOwner: {fileID: 1598070537042327945}
   imageMonopolyType: {fileID: 5028140065738607375}
   imageMortgageStatus: {fileID: 1002229604294734779}
+  imageLevel1: {fileID: 7958125145294744178}
+  imageLevel2: {fileID: 60028967720746633}
+  imageLevel3: {fileID: 6455511569602826088}
+  imageLevel4: {fileID: 923918583967032545}
+  imageLevel5: {fileID: 3531002776111831584}
   taxAmount: 0
   priceInitial: 0
   priceMortgage: 0
   pricesRent: 
+--- !u!114 &7982305199546684485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7321330447909478865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44f5b343ce1da9747b26db645b37a29e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &9190442215652073806
 GameObject:
   m_ObjectHideFlags: 0

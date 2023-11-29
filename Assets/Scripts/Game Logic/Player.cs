@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
@@ -13,17 +14,29 @@ public sealed class Player : NetworkBehaviour
     [Header("Visuals")]
     [Space]
 
-    [SerializeField] private Color color;
+    [SerializeField] private Color playerColor;
 
-    [SerializeField] private string nickname;
+    [SerializeField] private string playerNickname;
 
-    [SerializeField] private Image imageToken;
+    [SerializeField] private Image playerImageToken;
 
-    [SerializeField] private Sprite spriteToken;
+    [SerializeField] private Sprite playerSpriteToken;
 
     #endregion
 
-    private bool isTurnCompleted;
+    private bool hasMoved;
+
+    private bool hasBuilt;
+
+    private bool hasRolled;
+
+    private bool hasActioned;
+
+    private bool hasHandledInsufficientFunds;
+
+    private WaitUntil waitUntilCondition;
+
+    private Func<bool> conditionPredicate;
 
     public int Balance { get; set; }
 
@@ -33,13 +46,15 @@ public sealed class Player : NetworkBehaviour
 
     public int TurnsInJail { get; set; }
 
-    public bool HasCompletedTurn { get; set; }
-
     public MonopolyNode CurrentNode { get; set; }
 
     public List<MonopolyNode> OwnedNodes { get; private set; }
 
     public int CurrentNodeIndex { get => MonopolyBoard.Instance[this.CurrentNode]; }
+
+    public bool HasCompletedTurn { get => this.hasMoved && this.hasRolled && this.hasActioned; }
+
+    private Color ownershipColor { get => new Color(this.playerColor.r, this.playerColor.g, this.playerColor.b, 0.5f); }
 
     private void Awake()
     {
@@ -55,16 +70,25 @@ public sealed class Player : NetworkBehaviour
 
     private void OnEnable()
     {
+
+        // FIX BUG WITH PayTax & PayRent INVOKING WITH THE SAME EVENT
+
         UIManager.Instance.OnButtonRollDicesClicked += RollDices;
-        UIManager.Instance.OnButtonAcceptPanelOffer += AcceptPropertyOffer;
-        UIManager.Instance.OnButtonDeclinePanelOffer += DeclinePropertyOffer;
+        UIManager.Instance.OnButtonPanelPaymentClicked += PayTax;
+        UIManager.Instance.OnButtonPanelPaymentClicked += PayRent;
+        UIManager.Instance.OnButtonAcceptPanelOfferClicked += AcceptPropertyOffer;
+        UIManager.Instance.OnButtonDeclinePanelOfferClicked += DeclinePropertyOffer;
+        UIManager.Instance.OnButtonPanelInformationClicked += CloseUtilityInformation;
     }
 
     private void OnDisable()
     {
         UIManager.Instance.OnButtonRollDicesClicked -= RollDices;
-        UIManager.Instance.OnButtonAcceptPanelOffer -= AcceptPropertyOffer;
-        UIManager.Instance.OnButtonDeclinePanelOffer -= DeclinePropertyOffer;
+        UIManager.Instance.OnButtonPanelPaymentClicked -= PayTax;
+        UIManager.Instance.OnButtonPanelPaymentClicked -= PayRent;
+        UIManager.Instance.OnButtonAcceptPanelOfferClicked -= AcceptPropertyOffer;
+        UIManager.Instance.OnButtonDeclinePanelOfferClicked -= DeclinePropertyOffer;
+        UIManager.Instance.OnButtonPanelInformationClicked -= CloseUtilityInformation;
     }
 
     public override void OnNetworkSpawn()
@@ -89,110 +113,297 @@ public sealed class Player : NetworkBehaviour
         this.OwnedNodes = new List<MonopolyNode>();
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
 
+        this.playerImageToken.sprite = playerSpriteToken;
         this.Balance = GameManager.Instance.StartingBalance;
-
-        this.imageToken.sprite = spriteToken;
-        //NetworkObject.Instantiate(this.playerToken, this.transform);
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
 
-        UIManager.Instance.AddPlayer(this.nickname, this.color);
+        UIManager.Instance.AddPlayer(this.playerNickname, this.playerColor);
     }
 
-    private IEnumerator WaitPlayerInput()
+    public void PerformTurn()
     {
-        yield return new WaitUntil(() => this.isTurnCompleted);
+        this.hasMoved = false;
+        this.hasBuilt = false;
+        this.hasRolled = false;
+        this.hasActioned = false;
+
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDices, true);
+        UIManager.Instance.WaitForPlayerInput(this.hasRolled);
+
+        //StartCoroutine(WaitPlayerInput(this.hasRolled));
     }
 
-    [ClientRpc]
-    public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
-    {
-        this.HasCompletedTurn = false;
+    //[ClientRpc]
+    //public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
+    //{
+    //    this.HasCompletedTurn = false;
 
-        this.isTurnCompleted = false;
+    //    this.isTurnCompleted = false;
 
-        UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDices, true);
+    //    UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDices, true);
 
-        StartCoroutine(WaitPlayerInput());
-    }
+    //    StartCoroutine(WaitPlayerInput());
+    //}
 
     private void RollDices()
     {
-        this.isTurnCompleted = true;
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDices, false);
 
-        UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDices, false);
+        this.hasRolled = true;
 
-        this.RollDicesServerRpc();
-
-        GameManager.Instance.MovePlayer(this, GameManager.Instance.TotalRollResult);
-
-        this.FinishTurnServerRpc();
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void RollDicesServerRpc(ServerRpcParams serverRpcParams = default)
-    {
         GameManager.Instance.RollDices();
+
+        //this.RollDicesServerRpc();
+
+        this.Move(GameManager.Instance.TotalRollResult);
+
+        UIManager.Instance.WaitForPlayerInput(this.hasMoved);
+
+        //this.FinishTurnServerRpc();
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    public void FinishTurnServerRpc(ServerRpcParams serverRpcParams = default)
+    public void Move(int steps)
     {
-        this.HasCompletedTurn = true;
+        this.hasMoved = false;
+
+        const float POSITION_THRESHOLD = 0.01f;
+
+        Vector3 targetPosition;
+        int currentNodeIndex = this.CurrentNodeIndex;
+
+        this.StartCoroutine(MovePlayerSequence());
+
+        IEnumerator MovePlayerSequence()
+        {
+            while (steps != 0)
+            {
+                if (steps < 0)
+                {
+                    ++steps;
+                    currentNodeIndex = Mathf.Abs(--currentNodeIndex + MonopolyBoard.Instance.NumberOfNodes);
+                    currentNodeIndex = currentNodeIndex % MonopolyBoard.Instance.NumberOfNodes;
+                }
+                else
+                {
+                    --steps;
+                    currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.NumberOfNodes;
+                }
+
+                targetPosition = MonopolyBoard.Instance[currentNodeIndex].transform.position;
+
+                yield return StartCoroutine(MovePlayerCoroutine(targetPosition));
+            }
+
+            this.hasMoved = true;
+            this.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
+            GameManager.Instance.HandlePlayerLanding(this);
+        }
+
+        IEnumerator MovePlayerCoroutine(Vector3 targetPosition)
+        {
+            while (Vector3.Distance(this.transform.position, targetPosition) > POSITION_THRESHOLD)
+            {
+                this.transform.position = Vector3.MoveTowards(this.transform.position, targetPosition, GameManager.Instance.PlayerMovementSpeed * Time.deltaTime);
+                yield return null;
+            }
+
+            this.transform.position = targetPosition;
+        }
     }
+
+    //[ServerRpc(RequireOwnership = false)]
+    //private void RollDicesServerRpc(ServerRpcParams serverRpcParams = default)
+    //{
+    //    GameManager.Instance.RollDices();
+    //}
+
+    //[ServerRpc(RequireOwnership = false)]
+    //public void FinishTurnServerRpc(ServerRpcParams serverRpcParams = default)
+    //{
+    //    this.isTurnCompleted = true;
+    //    this.HasCompletedTurn = true;
+    //}
+
+    #region Property
 
     public void HandlePropertyLanding()
     {
-        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, true);
+        if (this.CurrentNode.Owner == this)
+        {
+            this.hasActioned = true;
+            return;
+        }
 
-        StartCoroutine(WaitPlayerInput());
+        UIManager.Instance.SetUpPanel(UIManager.UIControl.PanelOffer, this.CurrentNode);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, true);
+        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
     }
 
-    // Implement handling insufficient funds
     private void AcceptPropertyOffer()
     {
-        this.isTurnCompleted = true;
-
         if (this.Balance >= this.CurrentNode.Price)
         {
-            this.Balance -= this.CurrentNode.Price;
-
-            Color c = new Color(this.color.r, this.color.g, this.color.b, 0.5f);
+            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
+            this.hasActioned = true;
 
             this.CurrentNode.Owner = this;
-            this.CurrentNode.OwnerColor = c;
+            this.OwnedNodes.Add(this.CurrentNode);
+            //this.Balance -= this.CurrentNode.Price;
+            this.CurrentNode.OwnerColor = this.ownershipColor;
         }
         else
         {
-            throw new System.NotImplementedException();
+            this.HandleInsufficientFunds();
+            UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
         }
-        
-        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, false);
     }
 
     private void DeclinePropertyOffer()
     {
-        this.isTurnCompleted = true;
-
-        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, false);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
+        this.hasActioned = true;
     }
 
-    public void GoToJail()
+    #endregion
+
+    #region Utility
+
+    public void HandleTaxLanding()
     {
-        Debug.Log("Went to jail");
-        Debug.Log(MonopolyBoard.Instance.GetDistanceBetweenNodes(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
+        UIManager.Instance.SetUpPanel(UIManager.UIControl.PanelPayment, this.CurrentNode);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, true);
+        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+    }
+
+    public void HandleFreeParkingLanding()
+    {
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+    }
+
+    public void HandleJailLanding()
+    {
+        if (!this.IsInJail)
+        {
+            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+            UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+        }
+        else
+        {
+            this.hasActioned = true;
+        }
+    }
+
+    public void HandleStartLanding()
+    {
+        this.Balance += GameManager.Instance.ExactCircleBonus;
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+        UIManager.Instance.WaitForPlayerInput(this.hasActioned);
+    }
+
+    public void HandleSendJailLanding()
+    {
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
 
         this.IsInJail = true;
-        GameManager.Instance.MovePlayer(this, MonopolyBoard.Instance.GetDistanceBetweenNodes(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
+        this.Move(MonopolyBoard.Instance.GetDistance(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
+
+        UIManager.Instance.WaitForPlayerInput(true);
     }
 
+    public void HandleChanceLanding()
+    {
+        bool hasInteracted = false;
+        SO_ChanceNode chance = GameManager.Instance.GetChance();
 
+        //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, this.CurrentNode);
+        //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+        //UIManager.Instance.WaitForPlayerInput(hasInteracted);
 
+        switch (chance.Type)
+        {
+            case SO_ChanceNode.ChanceNodeType.Reward:
+                {
 
+                }
+                break;
+            case SO_ChanceNode.ChanceNodeType.Penalty:
+                {
 
+                }
+                break;
+            case SO_ChanceNode.ChanceNodeType.SkipTurn:
+                {
 
+                }
+                break;
+            case SO_ChanceNode.ChanceNodeType.SendJail:
+                {
 
+                }
+                break;
+            case SO_ChanceNode.ChanceNodeType.MoveBackwards:
+                {
 
+                }
+                break;
+            case SO_ChanceNode.ChanceNodeType.RandomMovement:
+                {
 
+                }
+                break;
+
+        }
+    }
+
+    private void PayTax()
+    {
+        Debug.Log("Paying tax");
+
+        if (this.Balance >= this.CurrentNode.TaxAmount)
+        {
+            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
+            this.hasActioned = true;
+
+            this.Balance -= this.CurrentNode.TaxAmount;
+        }
+        else
+        {
+            this.HandleInsufficientFunds();
+            UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
+        }
+    }
+
+    #endregion
+
+    private void CloseUtilityInformation()
+    {
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, false);
+        this.hasActioned = true;
+    }
+
+    private void PayRent()
+    {
+        Debug.Log("Paying rent");
+
+        if (this.Balance >= this.CurrentNode.Price)
+        {
+            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
+            this.Balance -= this.CurrentNode.Price;
+            this.hasActioned = true;
+        }
+        else
+        {
+            this.HandleInsufficientFunds();
+            UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
+        }
+    }
+
+    private void HandleInsufficientFunds()
+    {
+        this.hasActioned = true;
+        UIManager.Instance.WaitForPlayerInput(this.hasHandledInsufficientFunds);
+    }
 
 
 

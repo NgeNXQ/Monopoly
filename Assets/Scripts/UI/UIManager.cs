@@ -3,9 +3,12 @@ using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
 using Unity.Collections;
+using System.Collections;
 
 public sealed class UIManager : NetworkBehaviour
 {
+    #region Visuals
+
     [Space]
     [Header("Panel Players Info")]
     [Space]
@@ -18,7 +21,27 @@ public sealed class UIManager : NetworkBehaviour
     [Header("Button roll dices")]
     [Space]
 
-    [SerializeField] private Button buttonRoll;
+    [SerializeField] private Button buttonRollDices;
+
+    [Space]
+    [Header("Images Dices")]
+    [Space]
+
+    [SerializeField] private Image imageDicePlaceholder1;
+
+    [SerializeField] private Image imageDicePlaceholder2;
+
+    [SerializeField] private Image imageDice1;
+
+    [SerializeField] private Image imageDice2;
+
+    [SerializeField] private Image imageDice3;
+
+    [SerializeField] private Image imageDice4;
+
+    [SerializeField] private Image imageDice5;
+
+    [SerializeField] private Image imageDice6;
 
     [Space]
     [Header("Panel Information")]
@@ -46,80 +69,105 @@ public sealed class UIManager : NetworkBehaviour
 
     [SerializeField] private Button buttonDeclinePanelOffer;
 
-    //[Space]
-    //[Header("Panel Fee")]
-    //[Space]
+    [Space]
+    [Header("Panel Payment")]
+    [Space]
 
-    //[SerializeField] private RectTransform panelFee;
+    [SerializeField] private RectTransform panelPayment;
 
-    //[SerializeField] private Image imagePanelFee;
+    [SerializeField] private Image imagePanelPayment;
 
-    //[SerializeField] private TMP_Text textPanelFee;
+    [SerializeField] private TMP_Text textPanelPayment;
 
-    //[SerializeField] private Button buttonPayPanelFee;
+    [SerializeField] private Button buttonPanelPayment;
 
-    //[Space]
-    //[Header("Panel Offer")]
-    //[Space]
+    [Space]
+    [Header("Panel Monopoly Node")]
+    [Space]
 
-    //[SerializeField] private RectTransform panelOffer;
+    [SerializeField] private RectTransform panelMonopolyNode;
 
-    //[SerializeField] private Image imagepanelOffer;
+    //[SerializeField] private Image imagePanelPayment;
 
-    //[SerializeField] private TMP_Text textpanelOffer;
+    //[SerializeField] private TMP_Text textPanelPayment;
 
-    //[SerializeField] private Button buttonBuyPanelOffer;
+    //[SerializeField] private Button buttonPanelPayment;
 
-    //[SerializeField] private Button buttonCancelPanelOffer;
-
-    //public UnityAction OnButtonRollDicesPressed { get; set; }
+    #endregion
 
     public delegate void ButtonClickHandler();
 
     public event ButtonClickHandler OnButtonRollDicesClicked;
 
-    public event ButtonClickHandler OnButtonAcceptPanelOffer;
+    public event ButtonClickHandler OnButtonPanelPaymentClicked;
 
-    public event ButtonClickHandler OnButtonDeclinePanelOffer;
+    public event ButtonClickHandler OnButtonPanelInformationClicked;
+
+    public event ButtonClickHandler OnButtonAcceptPanelOfferClicked;
+
+    public event ButtonClickHandler OnButtonDeclinePanelOfferClicked;
 
     public static UIManager Instance { get; private set; }
 
     public enum UIControl : byte
     {
-        PanelPay,
+        PanelTrade,
         PanelOffer,
+        PanelWarning,
+        PanelPayment,
         ButtonRollDices,
         PanelInformation,
+        PanelMonopolyNode
     }
 
     private void Awake() => Instance = this;
 
     private void OnEnable()
     {
-        this.buttonRoll.onClick.AddListener(this.HandleButtonRollDicesClicked);
+        this.buttonRollDices.onClick.AddListener(this.HandleButtonRollDicesClicked);
+        this.buttonPanelPayment.onClick.AddListener(this.HandleButtonPanelPaymentClicked);
+        this.buttonPanelInformation.onClick.AddListener(this.HandleButtonPanelInformationClicked);
         this.buttonAcceptPanelOffer.onClick.AddListener(this.HandleButtonAcceptPanelOfferClicked);
         this.buttonDeclinePanelOffer.onClick.AddListener(this.HandleButtonDeclinePanelOfferClicked);
     }
 
     private void OnDisable()
     {
-        this.buttonRoll.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
+        this.buttonRollDices.onClick.RemoveListener(this.HandleButtonRollDicesClicked);
+        this.buttonPanelPayment.onClick.RemoveListener(this.HandleButtonPanelPaymentClicked);
+        this.buttonPanelInformation.onClick.RemoveListener(this.HandleButtonPanelInformationClicked);
         this.buttonAcceptPanelOffer.onClick.RemoveListener(this.HandleButtonAcceptPanelOfferClicked);
         this.buttonDeclinePanelOffer.onClick.RemoveListener(this.HandleButtonDeclinePanelOfferClicked);
     }
 
-    public void SetControlState(UIControl control, bool state)
+    public void WaitForPlayerInput(bool condition)
+    {
+        this.StartCoroutine(WaitPlayerInputCoroutine());
+
+        IEnumerator WaitPlayerInputCoroutine()
+        {
+            yield return new WaitUntil(() => condition);
+        }
+    }
+
+    public void SetControlVisibility(UIControl control, bool state)
     {
         switch (control)
         {
             case UIControl.PanelOffer:
                 this.panelOffer?.gameObject.SetActive(state);
                 break;
+            case UIControl.PanelPayment:
+                this.panelPayment?.gameObject.SetActive(state);
+                break;
             case UIControl.ButtonRollDices:
-                this.buttonRoll?.gameObject.SetActive(state);
+                this.buttonRollDices?.gameObject.SetActive(state);
                 break;
             case UIControl.PanelInformation:
                 this.panelInformation?.gameObject.SetActive(state);
+                break;
+            case UIControl.PanelMonopolyNode:
+                this.panelMonopolyNode?.gameObject.SetActive(state);
                 break;
         }
     }
@@ -130,15 +178,31 @@ public sealed class UIManager : NetworkBehaviour
         info.SetUpPlayerInfo(nickname, color);
     }
 
-    public void SetUpPanelOffer(Sprite sprite, string description)
+    public void SetUpPanel(UIControl control, MonopolyNode node)
     {
-        this.imagePanelOffer.sprite = sprite;
-        this.textPanelOffer.text = description;
+        switch (control)
+        {
+            case UIControl.PanelOffer:
+                this.imagePanelOffer.sprite = node.NodeSprite;
+                break;
+            case UIControl.PanelPayment:
+                this.imagePanelPayment.sprite = node.NodeSprite;
+                break;
+            case UIControl.PanelInformation:
+                this.imagePanelInformation.sprite = node.NodeSprite;
+                break;
+            default:
+                throw new System.ArgumentException($"{nameof(control)} is not a Panel.");
+        }
     }
 
     private void HandleButtonRollDicesClicked() => this.OnButtonRollDicesClicked?.Invoke();
 
-    private void HandleButtonAcceptPanelOfferClicked() => this.OnButtonAcceptPanelOffer?.Invoke();
+    private void HandleButtonPanelPaymentClicked() => this.OnButtonPanelPaymentClicked?.Invoke();
 
-    private void HandleButtonDeclinePanelOfferClicked() => this.OnButtonDeclinePanelOffer?.Invoke();
+    private void HandleButtonPanelInformationClicked() => this.OnButtonPanelInformationClicked?.Invoke();
+
+    private void HandleButtonAcceptPanelOfferClicked() => this.OnButtonAcceptPanelOfferClicked?.Invoke();
+
+    private void HandleButtonDeclinePanelOfferClicked() => this.OnButtonDeclinePanelOfferClicked?.Invoke();
 }
