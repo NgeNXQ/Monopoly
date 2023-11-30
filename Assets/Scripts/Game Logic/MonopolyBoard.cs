@@ -3,24 +3,29 @@ using System.Collections.Generic;
 
 public sealed class MonopolyBoard : MonoBehaviour
 {
-    #region Editor setup
+    #region In-editor Setup (Logic)
 
     [Space]
     [Header("Special nodes")]
     [Space]
 
+    [Space]
     [SerializeField] private MonopolyNode jail;
 
+    [Space]
     [SerializeField] private MonopolyNode start;
 
+    [Space]
     [SerializeField] private MonopolyNode sendJail;
 
+    [Space]
     [SerializeField] private MonopolyNode freeParking;
 
     [Space]
     [Header("Monopolies")]
     [Space]
 
+    [Space]
     [SerializeField] private List<MonopolySet> monopolies = new List<MonopolySet>();
 
     #endregion
@@ -30,6 +35,8 @@ public sealed class MonopolyBoard : MonoBehaviour
     public static MonopolyBoard Instance { get; private set; }
 
     public int NumberOfNodes { get => this.nodes.Count; }
+
+    public List<MonopolySet> Monopolies { get => this.monopolies; }
 
     public MonopolyNode NodeJail { get => this.jail; }
 
@@ -47,7 +54,7 @@ public sealed class MonopolyBoard : MonoBehaviour
 
         foreach (Transform child in this.transform)
         {
-            if (child.TryGetComponent<MonopolyNode>(out MonopolyNode monopolyNode))
+            if (child.TryGetComponent(out MonopolyNode monopolyNode))
                 this.nodes.Add(monopolyNode);
         }
 
@@ -82,17 +89,31 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     public int GetDistance(MonopolyNode fromNode, MonopolyNode toNode)
     {
-        int clockwiseDistance = (this[toNode] - this[fromNode] + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
-        int counterclockwiseDistance = (this[fromNode] - this[toNode] + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
+        int clockwiseDistance = (this[toNode] - this[fromNode] + this.NumberOfNodes) % this.NumberOfNodes;
+        int counterclockwiseDistance = (this[fromNode] - this[toNode] + this.NumberOfNodes) % this.NumberOfNodes;
 
         return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
     }
 
     public int GetDistance(int fromNodeIndex, int toNodeIndex)
     {
-        int clockwiseDistance = (toNodeIndex - fromNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
-        int counterclockwiseDistance = (fromNodeIndex - toNodeIndex + MonopolyBoard.Instance.NumberOfNodes) % MonopolyBoard.Instance.NumberOfNodes;
+        int clockwiseDistance = (toNodeIndex - fromNodeIndex + this.NumberOfNodes) % this.NumberOfNodes;
+        int counterclockwiseDistance = (fromNodeIndex - toNodeIndex + this.NumberOfNodes) % this.NumberOfNodes;
 
         return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
+    }
+
+    public MonopolySet GetMonopolySetOfNode(MonopolyNode monopolyNode)
+    {
+        if (monopolyNode == null)
+            throw new System.ArgumentNullException($"{nameof(monopolyNode)} is null.");
+
+        foreach (MonopolySet monopolySet in this.monopolies)
+        {
+            if (monopolySet.Contains(monopolyNode))
+                return monopolySet;
+        }
+
+        return null;
     }
 }

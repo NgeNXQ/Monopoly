@@ -408,7 +408,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u0412\u0456\u0434\u043C\u043E\u0432\u0438\u0442\u0438\u0441\u044F"
+  m_text: "\u041F\u0440\u043E\u0434\u0430\u0442\u0438"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -489,7 +489,7 @@ GameObject:
   - component: {fileID: 3323426598008953843}
   - component: {fileID: 3277086832984726995}
   m_Layer: 0
-  m_Name: ImageButtonDeclineBorder
+  m_Name: ImageButtonDowngradeBorder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -564,7 +564,7 @@ GameObject:
   - component: {fileID: 7869986824710234153}
   - component: {fileID: 1819188189489008361}
   m_Layer: 0
-  m_Name: ImageButtonAcceptBorder
+  m_Name: ImageButtonUpgradeBorder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -640,7 +640,7 @@ GameObject:
   - component: {fileID: 4122242185021099619}
   - component: {fileID: 6514546505582888183}
   m_Layer: 0
-  m_Name: ButtonAccept
+  m_Name: ButtonUpgrade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -758,7 +758,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8630827708651273910}
   m_Layer: 0
-  m_Name: PanelOffer
+  m_Name: PanelMonopolyNode
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -879,7 +879,7 @@ GameObject:
   - component: {fileID: 3803436398383415236}
   - component: {fileID: 7541814422630003231}
   m_Layer: 0
-  m_Name: ButtonDecline
+  m_Name: ButtonDowngrade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

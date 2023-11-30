@@ -1,14 +1,12 @@
-using System;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
-using Unity.Collections;
 using System.Collections;
 using System.Collections.Generic;
 
 public sealed class Player : NetworkBehaviour
 {
-    #region Visuals
+    #region In-editor Setup (Visuals)
 
     [Space]
     [Header("Visuals")]
@@ -24,19 +22,17 @@ public sealed class Player : NetworkBehaviour
 
     #endregion
 
-    private bool hasMoved;
+    private bool hasRead;
 
     private bool hasBuilt;
+
+    private bool hasMoved;
 
     private bool hasRolled;
 
     private bool hasActioned;
 
     private bool hasHandledInsufficientFunds;
-
-    private WaitUntil waitUntilCondition;
-
-    private Func<bool> conditionPredicate;
 
     public int Balance { get; set; }
 
@@ -48,15 +44,15 @@ public sealed class Player : NetworkBehaviour
 
     public MonopolyNode CurrentNode { get; set; }
 
+    public Color PlayerColor { get => this.playerColor; }
+
     public List<MonopolyNode> OwnedNodes { get; private set; }
 
     public int CurrentNodeIndex { get => MonopolyBoard.Instance[this.CurrentNode]; }
 
     public bool HasCompletedTurn { get => this.hasMoved && this.hasRolled && this.hasActioned; }
 
-    //private Color ownershipColor { get => new Color(this.playerColor.r, this.playerColor.g, this.playerColor.b, 0.5f); }
-
-    private Color ownershipColor { get => this.playerColor; }
+    public bool HasBuilt { get => this.hasBuilt; }
 
     private void Awake()
     {
@@ -66,25 +62,26 @@ public sealed class Player : NetworkBehaviour
 
     private void OnEnable()
     {
-
-        // FIX BUG WITH PayTax & PayRent INVOKING WITH THE SAME EVENT
-
-        UIManager.Instance.OnButtonRollDiceClicked += RollDice;
-        UIManager.Instance.OnButtonPanelPaymentClicked += PayTax;
-        UIManager.Instance.OnButtonPanelPaymentClicked += PayRent;
-        UIManager.Instance.OnButtonAcceptPanelOfferClicked += AcceptPropertyOffer;
-        UIManager.Instance.OnButtonDeclinePanelOfferClicked += DeclinePropertyOffer;
-        UIManager.Instance.OnButtonPanelInformationClicked += CloseUtilityInformation;
+        UIManager.Instance.OnButtonRollDiceClicked += this.RollDice;
+        UIManager.Instance.OnButtonPayPanelPaymentClicked += this.Pay;
+        UIManager.Instance.OnButtonConfirmPanelInfoClicked += this.ClosePanelInfo;
+        UIManager.Instance.OnButtonAcceptPanelOfferClicked += this.AcceptPropertyOffer;
+        UIManager.Instance.OnButtonDeclinePanelOfferClicked += this.DeclinePropertyOffer;
+        UIManager.Instance.OnButtonConfirmPanelMessageClicked += this.ClosePanelMessage;
+        UIManager.Instance.OnButtonUpgradePanelMonopolyNodeClicked += this.UpgradeNode;
+        UIManager.Instance.OnButtonDowngradePanelMonopolyNodeClicked += this.DowngradeNode;
     }
 
     private void OnDisable()
     {
-        UIManager.Instance.OnButtonRollDiceClicked -= RollDice;
-        UIManager.Instance.OnButtonPanelPaymentClicked -= PayTax;
-        UIManager.Instance.OnButtonPanelPaymentClicked -= PayRent;
-        UIManager.Instance.OnButtonAcceptPanelOfferClicked -= AcceptPropertyOffer;
-        UIManager.Instance.OnButtonDeclinePanelOfferClicked -= DeclinePropertyOffer;
-        UIManager.Instance.OnButtonPanelInformationClicked -= CloseUtilityInformation;
+        UIManager.Instance.OnButtonRollDiceClicked -= this.RollDice;
+        UIManager.Instance.OnButtonPayPanelPaymentClicked -= this.Pay;
+        UIManager.Instance.OnButtonConfirmPanelInfoClicked -= this.ClosePanelInfo;
+        UIManager.Instance.OnButtonAcceptPanelOfferClicked -= this.AcceptPropertyOffer;
+        UIManager.Instance.OnButtonDeclinePanelOfferClicked -= this.DeclinePropertyOffer;
+        UIManager.Instance.OnButtonConfirmPanelMessageClicked -= this.ClosePanelMessage;
+        UIManager.Instance.OnButtonUpgradePanelMonopolyNodeClicked -= this.UpgradeNode;
+        UIManager.Instance.OnButtonDowngradePanelMonopolyNodeClicked -= this.DowngradeNode;
     }
 
     public override void OnNetworkSpawn()
@@ -125,8 +122,6 @@ public sealed class Player : NetworkBehaviour
 
         UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, true);
         UIManager.Instance.WaitPlayerInput(this.hasRolled);
-
-        //StartCoroutine(WaitPlayerInput(this.hasRolled));
     }
 
     //[ClientRpc]
@@ -241,13 +236,12 @@ public sealed class Player : NetworkBehaviour
     {
         if (this.Balance >= this.CurrentNode.Price)
         {
-            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
-            this.hasActioned = true;
-
             this.CurrentNode.Owner = this;
             this.OwnedNodes.Add(this.CurrentNode);
-            //this.Balance -= this.CurrentNode.Price;
-            this.CurrentNode.OwnerColor = this.ownershipColor;
+            this.Balance -= this.CurrentNode.Price;
+
+            this.hasActioned = true;
+            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
         }
         else
         {
@@ -258,8 +252,8 @@ public sealed class Player : NetworkBehaviour
 
     private void DeclinePropertyOffer()
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
         this.hasActioned = true;
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
     }
 
     #endregion
@@ -275,7 +269,7 @@ public sealed class Player : NetworkBehaviour
 
     public void HandleFreeParkingLanding()
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
         UIManager.Instance.WaitPlayerInput(this.hasActioned);
     }
 
@@ -283,7 +277,7 @@ public sealed class Player : NetworkBehaviour
     {
         if (!this.IsInJail)
         {
-            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
             UIManager.Instance.WaitPlayerInput(this.hasActioned);
         }
         else
@@ -295,13 +289,13 @@ public sealed class Player : NetworkBehaviour
     public void HandleStartLanding()
     {
         this.Balance += GameManager.Instance.ExactCircleBonus;
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
         UIManager.Instance.WaitPlayerInput(this.hasActioned);
     }
 
     public void HandleSendJailLanding()
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
 
         this.IsInJail = true;
         this.Move(MonopolyBoard.Instance.GetDistance(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
@@ -355,47 +349,88 @@ public sealed class Player : NetworkBehaviour
         }
     }
 
-    private void PayTax()
+    private void Pay()
     {
         Debug.Log("Paying tax");
 
-        if (this.Balance >= this.CurrentNode.TaxAmount)
+        switch (this.CurrentNode.Type)
         {
-            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
-            this.hasActioned = true;
+            case MonopolyNode.MonopolyNodeType.Tax:
+                {
 
-            this.Balance -= this.CurrentNode.TaxAmount;
+                }
+                break;
+            case MonopolyNode.MonopolyNodeType.Chance:
+                {
+
+                }
+                break;
+            case MonopolyNode.MonopolyNodeType.Property:
+            case MonopolyNode.MonopolyNodeType.Gambling:
+            case MonopolyNode.MonopolyNodeType.Transport:
+                {
+
+                }
+                break;
         }
-        else
-        {
-            this.HandleInsufficientFunds();
-            UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
-        }
+
+        //if (this.Balance >= this.CurrentNode.TaxAmount)
+        //{
+        //    UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
+        //    this.hasActioned = true;
+
+        //    this.Balance -= this.CurrentNode.TaxAmount;
+        //}
+        //else
+        //{
+        //    this.HandleInsufficientFunds();
+        //    UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
+        //}
+
+
+        //Debug.Log("Paying rent");
+
+        //if (this.Balance >= this.CurrentNode.Price)
+        //{
+        //    UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
+        //    this.hasActioned = true;
+
+        //    this.Balance -= this.CurrentNode.Price;
+        //}
+        //else
+        //{
+        //    this.HandleInsufficientFunds();
+        //    UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
+        //}
     }
+
+    public void UpgradeNode()
+    {
+        if (this.hasBuilt) 
+        {
+            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMessage, true);
+            UIManager.Instance.WaitPlayerInput(this.hasRead);
+        }
+
+        this.hasBuilt = true;
+        this.CurrentNode.Upgrade();
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMonopolyNode, false);
+    }
+
+    public void DowngradeNode() => this.CurrentNode.Downgrade();
 
     #endregion
 
-    private void CloseUtilityInformation()
+    private void ClosePanelInfo()
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, false);
         this.hasActioned = true;
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, false);
     }
 
-    private void PayRent()
+    private void ClosePanelMessage()
     {
-        Debug.Log("Paying rent");
-
-        if (this.Balance >= this.CurrentNode.Price)
-        {
-            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
-            this.Balance -= this.CurrentNode.Price;
-            this.hasActioned = true;
-        }
-        else
-        {
-            this.HandleInsufficientFunds();
-            UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
-        }
+        this.hasRead = true;
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMessage, false);
     }
 
     private void HandleInsufficientFunds()
@@ -404,7 +439,7 @@ public sealed class Player : NetworkBehaviour
         UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
     }
 
-
+    public bool HasFullMonopoly(MonopolyNode monopolyNode) => MonopolyBoard.Instance.GetMonopolySetOfNode(monopolyNode) == null ? false : true;
 
 
 

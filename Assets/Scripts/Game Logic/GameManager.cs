@@ -71,7 +71,7 @@ public sealed class GameManager : NetworkBehaviour
 
     public float PlayerMovementSpeed { get => this.playerMovementSpeed; }
 
-    private Player currentPlayer { get => this.players[this.currentPlayerIndex]; }
+    public Player CurrentPlayer { get => this.players[this.currentPlayerIndex]; }
 
     public int TotalRollResult { get => this.FirstDieValue + this.SecondDieValue; }
 
@@ -130,17 +130,17 @@ public sealed class GameManager : NetworkBehaviour
 
     private IEnumerator StartPlayerTurn()
     {
-        this.targetTurnId[0] = this.currentPlayer.OwnerClientId;
+        this.targetTurnId[0] = this.CurrentPlayer.OwnerClientId;
 
         ClientRpcParams clientRpcParams = new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = this.targetTurnId }
         };
 
-        //this.players[this.currentPlayerIndex].PerformTurnClientRpc(clientRpcParams);
-        this.players[this.currentPlayerIndex].PerformTurn();
+        //this.players[this.CurrentPlayerIndex].PerformTurnClientRpc(clientRpcParams);
+        this.CurrentPlayer.PerformTurn();
 
-        yield return new WaitUntil(() => this.currentPlayer.HasCompletedTurn);
+        yield return new WaitUntil(() => this.CurrentPlayer.HasCompletedTurn);
     }
 
     //[ClientRpc]
@@ -151,12 +151,12 @@ public sealed class GameManager : NetworkBehaviour
     //    if (!this.HasRolledDouble)
     //    {
     //        this.doublesInRow = 0;
-    //        this.currentPlayerIndex = ++this.currentPlayerIndex % players.Count;
+    //        this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % players.Count;
     //    }
     //    else
     //    {
     //        if (++this.doublesInRow >= this.MaxDoublesInRow)
-    //            this.currentPlayer.GoToJail();
+    //            this.CurrentPlayer.GoToJail();
     //    }
     //}
 
@@ -295,7 +295,7 @@ public sealed class GameManager : NetworkBehaviour
 //    {
 //        player.TurnsInJail = 0;
 //        player.IsInJail = false;
-//        this.currentPlayerDoubles = 0;
+//        this.CurrentPlayerDoubles = 0;
 //        this.MovePlayer(player, this.TotalRollResult);
 //    }
 
@@ -477,18 +477,18 @@ public sealed class GameManager : NetworkBehaviour
 
 //    isDoubleRolled = rolledDice[0] == rolledDice[1];
 
-//    if (players[currentPlayer].IsInJail)
+//    if (players[CurrentPlayer].IsInJail)
 //    {
-//        players[currentPlayer].IncreaseNumberOfTurnsInJail();
+//        players[CurrentPlayer].IncreaseNumberOfTurnsInJail();
 
 //        if (isDoubleRolled)
 //        {
-//            players[currentPlayer].SetOutOfJail();
+//            players[CurrentPlayer].SetOutOfJail();
 //            doubleRollCount++;
 //        }
-//        else if (players[currentPlayer].NumberTurnsInJail >= maxTurnsInJail)
+//        else if (players[CurrentPlayer].NumberTurnsInJail >= maxTurnsInJail)
 //        {
-//            players[currentPlayer].SetOutOfJail();
+//            players[CurrentPlayer].SetOutOfJail();
 //        }
 //        else
 //        {
@@ -507,8 +507,8 @@ public sealed class GameManager : NetworkBehaviour
 
 //            if (doubleRollCount >= 3)
 //            {
-//                int indexOnBoard = MonopolyBoard.instance.route.IndexOf(players[currentPlayer].CurrentPosition);
-//                players[currentPlayer].GoToJail(indexOnBoard);
+//                int indexOnBoard = MonopolyBoard.instance.route.IndexOf(players[CurrentPlayer].CurrentPosition);
+//                players[CurrentPlayer].GoToJail(indexOnBoard);
 //                RolledADounle = false;
 //                return;
 //            }
@@ -530,7 +530,7 @@ public sealed class GameManager : NetworkBehaviour
 //IEnumerator DelayBeforeMove(int rolledDice)
 //{
 //    yield return new WaitForSeconds(SecondsBetweenTurns);
-//    monopolyBoard.MovePlayerToken(players[currentPlayer], rolledDice);
+//    monopolyBoard.MovePlayerToken(players[CurrentPlayer], rolledDice);
 //}
 
 //IEnumerator DelayBetweenSwitchPlayer()
@@ -541,13 +541,13 @@ public sealed class GameManager : NetworkBehaviour
 
 //public void SwitchPlayer()
 //{
-//    currentPlayer++;
+//    CurrentPlayer++;
 
 //    doubleRollCount = 0;
 
-//    if (currentPlayer >= players.Count)
+//    if (CurrentPlayer >= players.Count)
 //    {
-//        currentPlayer = 0;
+//        CurrentPlayer = 0;
 //    }
 
 //    OnShowInputPanel.Invoke(true, true, true);

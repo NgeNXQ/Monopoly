@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public sealed class MonopolyNode : NetworkBehaviour
 {
-    public enum MonopolyNodeType
+    public enum MonopolyNodeType : byte
     {
         Tax,
         Jail,
@@ -18,11 +18,11 @@ public sealed class MonopolyNode : NetworkBehaviour
         FreeParking
     }
 
+    #region In-editor setup (Visuals & Logic)
+
     [SerializeField] private MonopolyNodeType type;
 
-    #region Visuals
-
-    [SerializeField] private Image imageLogo;
+    [SerializeField] private Image imageLogo; 
 
     [SerializeField] private Sprite spriteLogo;
 
@@ -42,31 +42,35 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     [SerializeField] private Image imageLevel5;
 
-    [SerializeField] private string description;
+    [SerializeField] private List<int> pricing = new List<int>();
 
     #endregion
 
-    #region Pricing
+    private int level;
 
-    [SerializeField] private int taxAmount;
-
-    [SerializeField] private int priceInitial;
-
-    [SerializeField] private int priceMortgage;
-
-    [SerializeField] private List<int> pricesRent = new List<int>();
-
-    #endregion
-
-    private int currentLevel;
-
-    public Player Owner { get; set; }
-
-    public bool IsMortgaged { get; set; }
-
-    public int TaxAmount { get => this.taxAmount; }
+    private Player player;
 
     public MonopolyNodeType Type { get => this.type; }
+
+    public Player Owner 
+    { 
+        get => this.player; 
+        set
+        {
+            this.level = 1;
+            this.player = value; 
+            this.imageOwner.gameObject.SetActive(true);
+            this.imageOwner.color = this.player.PlayerColor;
+        } 
+    }
+
+    public int Level { get => this.level; }
+
+    //public int Price { get => this.pricing[this.level]; }
+
+    public int Price { get => 0; }
+
+    public bool IsMortgaged { get => this.level == 0; }
 
     public Sprite NodeSprite { get => this.spriteLogo; }
 
@@ -74,39 +78,71 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public Color MonopolyColor { set => this.imageMonopolyType.color = value; }
 
-    public int Price
-    {
-        get
-        {
-            if (this.Owner == null)
-                return this.priceInitial;
-            else
-                return this.pricesRent[this.currentLevel];
-        }
-    }
-
     private void Awake() => this.imageLogo.sprite = this.spriteLogo;
-
-    public void Mortgage()
-    {
-        Debug.Log("Mortgaged");
-    }
-
-    public void UnMortgage()
-    {
-        Debug.Log("UnMortgaged");
-    }
 
     public void Upgrade()
     {
-        Debug.Log("Upgraded");
+        ++this.level;
+        this.UpdateVisuals();
     }
 
     public void Downgrade()
     {
-        Debug.Log("Downgraded");
+        --this.level;
+        this.UpdateVisuals();
     }
 
+    private void UpdateVisuals()
+    {
+        switch (this.level)
+        {
+            case 0:
+                {
+                    this.imageLevel1.gameObject.SetActive(false);
+                    this.imageMortgageStatus.gameObject.SetActive(true);
+                }
+                break;
+            case 1:
+                {
+                    this.imageLevel1.gameObject.SetActive(true);
+                    this.imageMortgageStatus.gameObject.SetActive(false);
+                }
+                break;
+            case 2:
+                {
+                    this.imageLevel1.gameObject.SetActive(true);
+                    this.imageLevel2.gameObject.SetActive(false);
+                }
+                break;
+            case 3:
+                {
+                    this.imageLevel2.gameObject.SetActive(true);
+                    this.imageLevel3.gameObject.SetActive(false);
+                }
+                break;
+            case 4:
+                {
+                    this.imageLevel3.gameObject.SetActive(true);
+                    this.imageLevel4.gameObject.SetActive(false);
+                }
+                break;
+            case 5:
+                {
+                    this.imageLevel4.gameObject.SetActive(true);
+                    this.imageLevel5.gameObject.SetActive(false);
+                }
+                break;
+            case 6:
+                {
+                    this.imageLevel5.gameObject.SetActive(true);
+                    this.imageLevel1.gameObject.SetActive(false);
+                    this.imageLevel2.gameObject.SetActive(false);
+                    this.imageLevel3.gameObject.SetActive(false);
+                    this.imageLevel4.gameObject.SetActive(false);
+                }
+                break;
+        }
+    }
 
 
 

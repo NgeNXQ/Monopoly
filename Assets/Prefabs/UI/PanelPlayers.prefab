@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 158395126887924475}
   - component: {fileID: -1829848067713105665}
   m_Layer: 0
-  m_Name: UIPanelPlayersInfo
+  m_Name: PanelPlayers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
