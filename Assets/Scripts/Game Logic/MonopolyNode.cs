@@ -82,13 +82,15 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public void Upgrade()
     {
-        ++this.level;
+        //this.level = ++this.level % this.pricing.Count;
+        this.level = ++this.level % 7;
         this.UpdateVisuals();
     }
 
     public void Downgrade()
     {
-        --this.level;
+        //this.level = --this.level % this.pricing.Count;
+        this.level = --this.level % 7;
         this.UpdateVisuals();
     }
 

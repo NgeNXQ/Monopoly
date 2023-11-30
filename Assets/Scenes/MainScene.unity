@@ -3904,8 +3904,8 @@ MonoBehaviour:
   sendJail: {fileID: 1700790340}
   freeParking: {fileID: 1152999967}
   monopolies:
-  - colorOfSet: {r: 1, g: 0, b: 0, a: 1}
-    nodesInSet:
+  - ColorOfSet: {r: 1, g: 0, b: 0, a: 1}
+    NodesInSet:
     - {fileID: 1993974516}
     - {fileID: 283178912}
 --- !u!1001 &1589430797

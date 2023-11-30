@@ -3,6 +3,7 @@ using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public sealed class Player : NetworkBehaviour
 {
@@ -439,7 +440,11 @@ public sealed class Player : NetworkBehaviour
         UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
     }
 
-    public bool HasFullMonopoly(MonopolyNode monopolyNode) => MonopolyBoard.Instance.GetMonopolySetOfNode(monopolyNode) == null ? false : true;
+    public bool HasFullMonopoly(MonopolyNode monopolyNode)
+    {
+        MonopolySet monopolySet = MonopolyBoard.Instance.GetMonopolySetOfNode(monopolyNode);
+        return monopolySet.NodesInSet.Intersect(this.OwnedNodes).Count() == monopolySet.NodesInSet.Count;
+    }
 
 
 
