@@ -9,7 +9,7 @@ public sealed class UIManager : NetworkBehaviour
 {
     #region In-editor Setup (Visuals & Logic)
 
-    #region Dices
+    #region Dice
 
     [Space]
     [Header("Button  \"Roll Dice\"")]
@@ -229,6 +229,12 @@ public sealed class UIManager : NetworkBehaviour
         }
     }
 
+    public void AddPlayer(FixedString32Bytes nickname, Color color)
+    {
+        UIPlayerInfo info = NetworkObject.Instantiate(this.playerInfo, this.panelPlayers.transform).GetComponent<UIPlayerInfo>();
+        info.SetUpPlayerInfo(nickname, color);
+    }
+
     public void SetControlVisibility(UIControl control, bool state)
     {
         switch (control)
@@ -250,12 +256,6 @@ public sealed class UIManager : NetworkBehaviour
                 this.panelMonopolyNode?.gameObject.SetActive(state);
                 break;
         }
-    }
-
-    public void AddPlayer(FixedString32Bytes nickname, Color color)
-    {
-        UIPlayerInfo info = NetworkObject.Instantiate(this.playerInfo, this.panelPlayers.transform).GetComponent<UIPlayerInfo>();
-        info.SetUpPlayerInfo(nickname, color);
     }
 
     public void SetUpPanel(UIControl control, MonopolyNode node)
@@ -297,6 +297,12 @@ public sealed class UIManager : NetworkBehaviour
             this.imageDiePlaceholder2.gameObject.SetActive(false);
         }
     }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ShowDiceServerRpc() => this.ShowDiceClientRpc(GameManager.Instance.ClientParamsAllPlayers);
+
+    [ClientRpc]
+    private void ShowDiceClientRpc(ClientRpcParams clientRpcParams) => this.ShowDice();
 
     private void HandleButtonRollDiceClicked() => this.OnButtonRollDiceClicked?.Invoke();
 

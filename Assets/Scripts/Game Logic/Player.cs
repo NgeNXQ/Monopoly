@@ -1,9 +1,9 @@
 using UnityEngine;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 public sealed class Player : NetworkBehaviour
 {
@@ -35,14 +35,6 @@ public sealed class Player : NetworkBehaviour
 
     private bool hasHandledInsufficientFunds;
 
-    public int Balance { get; set; }
-
-    public bool IsInJail { get; set; }
-
-    public bool IsSkipTurn { get; set; }
-
-    public int TurnsInJail { get; set; }
-
     public MonopolyNode CurrentNode { get; set; }
 
     public Color PlayerColor { get => this.playerColor; }
@@ -51,9 +43,29 @@ public sealed class Player : NetworkBehaviour
 
     public int CurrentNodeIndex { get => MonopolyBoard.Instance[this.CurrentNode]; }
 
-    public bool HasCompletedTurn { get => this.hasMoved && this.hasRolled && this.hasActioned; }
+    public int Balance { get; set; }
+
+    public bool IsInJail { get; set; }
+
+    public int TurnsInJail { get; set; }
+
+    //public NetworkVariable<int> Balance = new NetworkVariable<int>(writePerm: NetworkVariableWritePermission.Owner, readPerm: NetworkVariableReadPermission.Everyone);
+
+    //public NetworkVariable<bool> IsInJail = new NetworkVariable<bool>(writePerm: NetworkVariableWritePermission.Owner, readPerm: NetworkVariableReadPermission.Everyone);
+
+    //public NetworkVariable<int> TurnsInJail = new NetworkVariable<int>(writePerm: NetworkVariableWritePermission.Owner, readPerm: NetworkVariableReadPermission.Everyone);
 
     public bool HasBuilt { get => this.hasBuilt; }
+
+    public bool HasCompletedTurn
+    {
+        get => this.hasRolled && this.hasMoved && this.hasActioned;
+        set => this.hasRolled = this.hasMoved = this.hasActioned = value;
+    }
+
+    //public NetworkVariable<bool> HasCompletedTurn = new NetworkVariable<bool>(readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Owner);
+
+   // private void UpdateHasCompletedTurn() => this.HasCompletedTurn.Value = this.hasRolled && this.hasMoved && this.hasActioned;
 
     private void Awake()
     {
@@ -96,7 +108,7 @@ public sealed class Player : NetworkBehaviour
     }
 
     [ClientRpc]
-    public void InitializePlayerClientRpc()
+    public void InitializePlayerClientRpc(ClientRpcParams clientRpcParams = default)
     {
         if (!this.IsOwner)
             this.InitializePlayer();
@@ -111,55 +123,58 @@ public sealed class Player : NetworkBehaviour
         this.Balance = GameManager.Instance.StartingBalance;
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
 
-        UIManager.Instance.AddPlayer(this.playerNickname, this.playerColor);
+        //UIManager.Instance.AddPlayer(this.playerNickname, this.playerColor);
     }
 
-    public void PerformTurn()
-    {
-        this.hasMoved = false;
-        this.hasBuilt = false;
-        this.hasRolled = false;
-        this.hasActioned = false;
-
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, true);
-        UIManager.Instance.WaitPlayerInput(this.hasRolled);
-    }
-
-    //[ClientRpc]
-    //public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
+    //public void ResetState()
     //{
-    //    this.HasCompletedTurn = false;
-
-    //    this.isTurnCompleted = false;
-
-    //    UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDice, true);
-
-    //    StartCoroutine(WaitPlayerInput());
+    //    this.hasMoved = false;
+    //    this.hasRolled = false;
+    //    this.hasActioned = false;
+    //    this.HasCompletedTurn.Value = false;
     //}
 
-    private void RollDice()
-    {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, false);
+    //[ServerRpc(RequireOwnership = false)]
+    //public void ResetStateServerRpc(ServerRpcParams serverRpcParams = default) => this.ResetStateClientRpc(GameManager.Instance.ClientParamsAllPlayers);
 
+    //[ClientRpc]
+    //public void ResetStateClientRpc(ClientRpcParams clientRpcParams) => this.ResetState();
+
+    //public void ResetState() => this.HasCompletedTurn = false;
+
+    [ClientRpc]
+    public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
+    {
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, true);
+        UIManager.Instance.WaitPlayerInput(this.hasRolled);
+
+        //Debug.Log("Performing");
+        //this.StartCoroutine(IntroduceDelay());
+
+        //IEnumerator IntroduceDelay()
+        //{
+        //    yield return new WaitForSeconds(10.0f);
+        //    this.HasCompletedTurn = true;
+        //}
+    }
+
+    private void RollDice()
+    { 
         this.hasRolled = true;
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, false);
 
         GameManager.Instance.RollDice();
 
-        //this.RollDiceServerRpc();
-
         UIManager.Instance.ShowDice();
+        UIManager.Instance.ShowDiceServerRpc();
 
         this.Move(GameManager.Instance.TotalRollResult);
 
         UIManager.Instance.WaitPlayerInput(this.hasMoved);
-
-        //this.FinishTurnServerRpc();
     }
 
     public void Move(int steps)
     {
-        this.hasMoved = false;
-
         const float POSITION_THRESHOLD = 0.01f;
 
         Vector3 targetPosition;
@@ -204,19 +219,6 @@ public sealed class Player : NetworkBehaviour
             this.transform.position = targetPosition;
         }
     }
-
-    //[ServerRpc(RequireOwnership = false)]
-    //private void RollDiceServerRpc(ServerRpcParams serverRpcParams = default)
-    //{
-    //    GameManager.Instance.RollDice();
-    //}
-
-    //[ServerRpc(RequireOwnership = false)]
-    //public void FinishTurnServerRpc(ServerRpcParams serverRpcParams = default)
-    //{
-    //    this.isTurnCompleted = true;
-    //    this.HasCompletedTurn = true;
-    //}
 
     #region Property
 
@@ -299,6 +301,7 @@ public sealed class Player : NetworkBehaviour
         UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
 
         this.IsInJail = true;
+        this.TurnsInJail = 0;
         this.Move(MonopolyBoard.Instance.GetDistance(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
 
         UIManager.Instance.WaitPlayerInput(true);
@@ -310,6 +313,7 @@ public sealed class Player : NetworkBehaviour
         SO_ChanceNode chance = GameManager.Instance.GetChance();
 
         this.hasActioned = true;
+        //this.UpdateHasCompletedTurn();
         //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, this.CurrentNode);
         //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
         //UIManager.Instance.WaitPlayerInput(hasInteracted);
@@ -354,26 +358,32 @@ public sealed class Player : NetworkBehaviour
     {
         Debug.Log("Paying tax");
 
-        switch (this.CurrentNode.Type)
-        {
-            case MonopolyNode.MonopolyNodeType.Tax:
-                {
+        this.hasActioned = true;
 
-                }
-                break;
-            case MonopolyNode.MonopolyNodeType.Chance:
-                {
+        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
 
-                }
-                break;
-            case MonopolyNode.MonopolyNodeType.Property:
-            case MonopolyNode.MonopolyNodeType.Gambling:
-            case MonopolyNode.MonopolyNodeType.Transport:
-                {
+        //this.UpdateHasCompletedTurn();
 
-                }
-                break;
-        }
+        //switch (this.CurrentNode.Type)
+        //{
+        //    case MonopolyNode.MonopolyNodeType.Tax:
+        //        {
+
+        //        }
+        //        break;
+        //    case MonopolyNode.MonopolyNodeType.Chance:
+        //        {
+
+        //        }
+        //        break;
+        //    case MonopolyNode.MonopolyNodeType.Property:
+        //    case MonopolyNode.MonopolyNodeType.Gambling:
+        //    case MonopolyNode.MonopolyNodeType.Transport:
+        //        {
+
+        //        }
+        //        break;
+        //}
 
         //if (this.Balance >= this.CurrentNode.TaxAmount)
         //{
@@ -443,7 +453,7 @@ public sealed class Player : NetworkBehaviour
     public bool HasFullMonopoly(MonopolyNode monopolyNode)
     {
         MonopolySet monopolySet = MonopolyBoard.Instance.GetMonopolySetOfNode(monopolyNode);
-        return monopolySet.NodesInSet.Intersect(this.OwnedNodes).Count() == monopolySet.NodesInSet.Count;
+        return monopolySet?.NodesInSet.Intersect(this.OwnedNodes).Count() == monopolySet.NodesInSet.Count;
     }
 
 

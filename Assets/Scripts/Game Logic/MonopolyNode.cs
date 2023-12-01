@@ -66,8 +66,6 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public int Level { get => this.level; }
 
-    //public int Price { get => this.pricing[this.level]; }
-
     public int Price { get => 0; }
 
     public bool IsMortgaged { get => this.level == 0; }

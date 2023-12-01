@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 public sealed class GameManager : NetworkBehaviour
 {
-    #region Values
+    #region In-editor Setup (Logic)
 
     [Space]
     [Header("Values")]
@@ -47,9 +47,13 @@ public sealed class GameManager : NetworkBehaviour
 
     public static GameManager Instance { get; private set; }
 
-    private ulong[] targetTurnId;
+    private ulong[] targetAllPlayers;
 
-    private int doublesInRow;
+    private ulong[] targetTradePlayers;
+
+    private ulong[] targetCurrentPlayer;
+
+    private int rolledDoubles;
 
     private List<Player> players;
 
@@ -77,12 +81,68 @@ public sealed class GameManager : NetworkBehaviour
 
     public bool HasRolledDouble { get => this.FirstDieValue == this.SecondDieValue; }
 
+    public ulong[] TargetAllPlayers
+    {
+        get
+        {
+            for (int i = 0; i < this.players.Count; ++i)
+                this.targetAllPlayers[i] = this.players[i].OwnerClientId;
+
+            return this.targetAllPlayers;
+        }
+    }
+
+    public ulong[] TargetOtherPlayers
+    {
+        get
+        {
+            for (int i = 0; i < this.players.Count; ++i)
+            {
+                if (this.CurrentPlayer.OwnerClientId != this.players[i].OwnerClientId)
+                    this.targetAllPlayers[i] = this.players[i].OwnerClientId;
+            }
+
+            return this.targetAllPlayers;
+        }
+    }
+
+    public ulong[] TargetCurrentPlayer
+    { 
+        get
+        {
+            this.targetCurrentPlayer[0] = this.CurrentPlayer.OwnerClientId;
+            return this.targetCurrentPlayer;
+        }
+    }
+
+    public ClientRpcParams ClientParamsAllPlayers
+    {
+        get
+        {
+            return new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams { TargetClientIds = this.TargetAllPlayers }
+            };
+        }
+    }
+
+    public ClientRpcParams ClientParamsCurrentPlayer
+    {
+        get
+        {
+            return new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams { TargetClientIds = this.TargetCurrentPlayer }
+            };
+        }
+    }
+
     private void Awake() => Instance = this;
 
     private void Start()
     {
-        this.targetTurnId = new ulong[1];
         this.players = new List<Player>();
+        this.targetCurrentPlayer = new ulong[1];
     }
 
     #region DEBUG
@@ -102,6 +162,10 @@ public sealed class GameManager : NetworkBehaviour
             debugBeenInitialized = true;
             this.DebugStartGameClientRpc();
         }
+        //else
+        //{
+        //    Debug.Log($"Current player: {this.currentPlayerIndex}");
+        //}
     }
 
     [ClientRpc]
@@ -115,76 +179,112 @@ public sealed class GameManager : NetworkBehaviour
             player.InitializePlayerClientRpc();
         }
 
-        this.StartCoroutine(this.GameLoop());
+        this.targetAllPlayers = new ulong[this.players.Count];
+
+        this.StartCoroutine(this.StartPlayerTurn());
     }
 
     #endregion
 
-    private IEnumerator GameLoop()
-    {
-        while (true)
-        {
-            yield return StartCoroutine(this.StartPlayerTurn());
-        }
-    }
+    #region Turn-based Game Logic
+
+    //private void GameLoop()
+    //{
+    //    while (true)
+    //    {
+    //        this.StartCoroutine(Loop());
+    //    }
+
+    //    IEnumerator Loop()
+    //    {
+    //        yield return this.StartCoroutine(this.StartPlayerTurn());
+    //    }
+    //}
+
+    //[ServerRpc(RequireOwnership = false)]
+    //private void StartPlayerTurnServerRpc(ServerRpcParams serverRpcParams = default) => this.StartPlayerTurnClientRpc(this.ClientParamsCurrentPlayer);
+
+    //[ClientRpc]
+    //private void StartPlayerTurnClientRpc(ClientRpcParams clientRpcParams) => this.StartCoroutine(this.StartPlayerTurn());
 
     private IEnumerator StartPlayerTurn()
     {
-        this.targetTurnId[0] = this.CurrentPlayer.OwnerClientId;
+        Debug.Log("In StartPlayerTurn");
 
-        ClientRpcParams clientRpcParams = new ClientRpcParams
-        {
-            Send = new ClientRpcSendParams { TargetClientIds = this.targetTurnId }
-        };
-
-        //this.players[this.CurrentPlayerIndex].PerformTurnClientRpc(clientRpcParams);
-        this.CurrentPlayer.PerformTurn();
-
+        this.CurrentPlayer.HasCompletedTurn = false;
+        this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentPlayer);
         yield return new WaitUntil(() => this.CurrentPlayer.HasCompletedTurn);
+        
+        this.SyncSwitchPlayerServerRpc();
     }
 
-    //[ClientRpc]
-    //private void SyncSwitchPlayerClientRpc(int indexOfPlayer, ClientRpcParams clientRpcParams = default)
-    //{
-    //    this.players[indexOfPlayer].HasCompletedTurn = true;
+    [ServerRpc(RequireOwnership = false)]
+    private void SyncSwitchPlayerServerRpc()
+    {
+        Debug.Log("In SyncSwitchPlayerServerRpc");
 
-    //    if (!this.HasRolledDouble)
-    //    {
-    //        this.doublesInRow = 0;
-    //        this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % players.Count;
-    //    }
-    //    else
-    //    {
-    //        if (++this.doublesInRow >= this.MaxDoublesInRow)
-    //            this.CurrentPlayer.GoToJail();
-    //    }
-    //}
+        //if (!this.HasRolledDouble)
+        //{
+        //    this.rolledDoubles = 0;
+        //    this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
+        //}
+        //else
+        //{
+        //    ++this.rolledDoubles;
+
+        //    if (this.rolledDoubles >= this.MaxDoublesInRow)
+        //    {
+        //        this.rolledDoubles = 0;
+        //        this.CurrentPlayer.HandleSendJailLanding();
+        //    }
+        //}
+
+        this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
+
+        this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex, this.ClientParamsAllPlayers);
+
+        this.StartCoroutine(this.StartPlayerTurn());
+    }
+
+    [ClientRpc]
+    private void SyncSwitchPlayerClientRpc(int currentPlayerIndex, ClientRpcParams clientRpcParams)
+    {
+        Debug.Log("In SyncSwitchPlayerClientRpc");
+        this.currentPlayerIndex = currentPlayerIndex;
+    }
+
+    #endregion
+
+    #region Dice (Logic & Sync)
 
     public void RollDice()
     {
         const int MIN_DIE_VALUE = 1;
         const int MAX_DIE_VALUE = 6;
 
-        int FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
-        int SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
+        this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
+        this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
 
-        //this.SyncRollDicesClientRpc(FirstDieValue, SecondDieValue);
-
-        this.FirstDieValue = FirstDieValue;
-        this.SecondDieValue = SecondDieValue;
+        this.SyncRollDiceServerRpc(this.FirstDieValue, this.SecondDieValue);
     }
 
-    public SO_ChanceNode GetChance() => this.chanceCards[UnityEngine.Random.Range(0, this.chanceCards.Count)];
+    [ServerRpc(RequireOwnership = false)]
+    private void SyncRollDiceServerRpc(int firstDieValue, int secondDieValue)
+    {
+        this.FirstDieValue = firstDieValue;
+        this.SecondDieValue = secondDieValue;
 
-    //[ClientRpc]
-    //private void SyncRollDicesClientRpc(int FirstDieValue, int SecondDieValue, ClientRpcParams clientRpcParams = default)
-    //{
-    //    this.FirstDieValue = FirstDieValue;
-    //    this.SecondDieValue = SecondDieValue;
+        this.SyncRollDiceClientRpc(firstDieValue, secondDieValue, this.ClientParamsAllPlayers);
+    }
 
-    //    //this.FirstDieValue = -1;
-    //    //this.SecondDieValue = -1;
-    //}
+    [ClientRpc]
+    private void SyncRollDiceClientRpc(int firstDieValue, int secondDieValue, ClientRpcParams clientRpcParams)
+    {
+        this.FirstDieValue = firstDieValue;
+        this.SecondDieValue = secondDieValue;
+    }
+
+    #endregion
 
     public void HandlePlayerLanding(Player player)
     {
@@ -219,6 +319,8 @@ public sealed class GameManager : NetworkBehaviour
                 break;
         }
     }
+
+    public SO_ChanceNode GetChance() => this.chanceCards[UnityEngine.Random.Range(0, this.chanceCards.Count)];
 
     private void SendFunds(Player player, int amount)
     {
