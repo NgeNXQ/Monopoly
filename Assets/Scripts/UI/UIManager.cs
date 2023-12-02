@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
@@ -235,49 +235,60 @@ public sealed class UIManager : NetworkBehaviour
         info.SetUpPlayerInfo(nickname, color);
     }
 
-    public void SetControlVisibility(UIControl control, bool state)
+    public void SetControlState(UIControl control, bool visability, MonopolyNode node = null)
     {
         switch (control)
         {
             case UIControl.PanelInfo:
-                this.panelInfo?.gameObject.SetActive(state);
-                break;
+                {
+                    this.panelInfo.gameObject.SetActive(visability);
 
+                    if (node != null)
+                    {
+                        this.imagePanelInfo.sprite = node.NodeSprite;
+                    }
+                }
+                break;
             case UIControl.PanelOffer:
-                this.panelOffer?.gameObject.SetActive(state);
+                {
+                    this.panelOffer.gameObject.SetActive(visability);
+
+                    if (node != null)
+                    {
+                        this.imagePanelOffer.sprite = node.NodeSprite;
+                        this.textPanelOffer.text = $"₴ {node?.Price}";
+                    }
+                }
                 break;
             case UIControl.PanelPayment:
-                this.panelPayment?.gameObject.SetActive(state);
+                {
+                    this.panelPayment.gameObject.SetActive(visability);
+                    
+                    if (node != null)
+                    {
+                        this.imagePanelPayment.sprite = node.NodeSprite;
+                    }
+                }
                 break;
             case UIControl.ButtonRollDice:
-                this.buttonRollDice?.gameObject.SetActive(state);
+                this.buttonRollDice.gameObject.SetActive(visability);
                 break;
             case UIControl.PanelMonopolyNode:
-                this.panelMonopolyNode?.gameObject.SetActive(state);
-                break;
-        }
-    }
+                {
+                    this.panelMonopolyNode.gameObject.SetActive(visability);
 
-    public void SetUpPanel(UIControl control, MonopolyNode node)
-    {
-        switch (control)
-        {
-            case UIControl.PanelInfo:
-                this.imagePanelInfo.sprite = node.NodeSprite;
-                break;
-            case UIControl.PanelOffer:
-                this.imagePanelOffer.sprite = node.NodeSprite;
-                break;
-            case UIControl.PanelPayment:
-                this.imagePanelPayment.sprite = node.NodeSprite;
-                break;
-            case UIControl.PanelMonopolyNode:
-                this.imagePanelMonopolyNode.sprite = node.NodeSprite;
+                    if (node != null)
+                    {
+                        this.imagePanelMonopolyNode.sprite = node.NodeSprite;
+                    }
+                }
                 break;
             default:
                 throw new System.ArgumentException($"{nameof(control)} is not a Panel.");
         }
     }
+
+    #region Dice
 
     public void ShowDice()
     {
@@ -299,10 +310,12 @@ public sealed class UIManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void ShowDiceServerRpc() => this.ShowDiceClientRpc(GameManager.Instance.ClientParamsAllPlayers);
+    public void SyncShowDiceServerRpc() => this.SyncShowDiceClientRpc(GameManager.Instance.ClientParamsAllPlayers);
 
     [ClientRpc]
-    private void ShowDiceClientRpc(ClientRpcParams clientRpcParams) => this.ShowDice();
+    private void SyncShowDiceClientRpc(ClientRpcParams clientRpcParams) => this.ShowDice();
+
+    #endregion
 
     private void HandleButtonRollDiceClicked() => this.OnButtonRollDiceClicked?.Invoke();
 

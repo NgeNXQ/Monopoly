@@ -796,6 +796,7 @@ GameObject:
   - component: {fileID: 3953292161018051812}
   - component: {fileID: -5928487063108403412}
   - component: {fileID: 7982305199546684485}
+  - component: {fileID: -6942200863028920361}
   m_Layer: 0
   m_Name: PropertyDefault
   m_TagString: Untagged
@@ -843,11 +844,7 @@ MonoBehaviour:
   imageLevel3: {fileID: 6455511569602826088}
   imageLevel4: {fileID: 923918583967032545}
   imageLevel5: {fileID: 3531002776111831584}
-  description: 
-  taxAmount: 0
-  priceInitial: 0
-  priceMortgage: 0
-  pricesRent: 
+  pricing: 
 --- !u!114 &7982305199546684485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -860,6 +857,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44f5b343ce1da9747b26db645b37a29e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-6942200863028920361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7321330447909478865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 951099334
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!1 &9190442215652073806
 GameObject:
   m_ObjectHideFlags: 0

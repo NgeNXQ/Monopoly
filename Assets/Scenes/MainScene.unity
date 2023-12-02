@@ -135,6 +135,10 @@ PrefabInstance:
       propertyPath: spriteLogo
       value: 
       objectReference: {fileID: 21300000, guid: e9559f7d92ec1ee4daed5c5eeb1405dd, type: 3}
+    - target: {fileID: -2391534596120476792, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 895600660
+      objectReference: {fileID: 0}
     - target: {fileID: 3953292161018051812, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 14.72
@@ -197,6 +201,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3495223000
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -267,6 +275,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2362536327
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -337,6 +349,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1611526477
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -407,6 +423,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3032396674
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -555,6 +575,10 @@ PrefabInstance:
       propertyPath: spriteLogo
       value: 
       objectReference: {fileID: 21300000, guid: 4c5c5b01a449246479174b669b215451, type: 3}
+    - target: {fileID: -2391534596120476792, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3286763660
+      objectReference: {fileID: 0}
     - target: {fileID: 3953292161018051812, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 14.72
@@ -617,6 +641,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1940352216
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -920,6 +948,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2360935972
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -998,6 +1030,10 @@ PrefabInstance:
       propertyPath: spriteLogo
       value: 
       objectReference: {fileID: 21300000, guid: 4f97f19c06ec19148912f60040182e1a, type: 3}
+    - target: {fileID: -2391534596120476792, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 4257725240
+      objectReference: {fileID: 0}
     - target: {fileID: 3953292161018051812, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6.38
@@ -1357,6 +1393,10 @@ PrefabInstance:
       propertyPath: spriteLogo
       value: 
       objectReference: {fileID: 21300000, guid: 41c535dfad8a37c47b062439ccbb4e3e, type: 3}
+    - target: {fileID: -2391534596120476792, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1557448023
+      objectReference: {fileID: 0}
     - target: {fileID: 3953292161018051812, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 29.44
@@ -1512,6 +1552,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2918855451
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -1876,6 +1920,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 252738295
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -2003,6 +2051,7 @@ MonoBehaviour:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: b3bc48bc1189b05449030108eae348c1, type: 2}
       - {fileID: 11400000, guid: 9438bb64b2257654ca213151eab63044, type: 2}
+      - {fileID: 11400000, guid: 9718043a624f94b40a99946913a3ea0d, type: 2}
     TickRate: 30
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0
@@ -2044,6 +2093,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2505177234
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -2114,6 +2167,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 264815887
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -2184,6 +2241,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2405570759
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -2254,6 +2315,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2944320170
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -2324,6 +2389,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2017431392
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -2394,6 +2463,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3512700247
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: spriteLogo
       value: 
@@ -2460,6 +2533,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1847956903
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: spriteLogo
       value: 
@@ -2769,6 +2846,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1420788484
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -2933,6 +3014,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3734182241
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -3003,6 +3088,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2751465408
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -3154,6 +3243,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3538177768
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: spriteLogo
       value: 
@@ -3224,6 +3317,10 @@ PrefabInstance:
       propertyPath: spriteLogo
       value: 
       objectReference: {fileID: 21300000, guid: 1f9097af3977aa140978e01024e42378, type: 3}
+    - target: {fileID: -2391534596120476792, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1396420340
+      objectReference: {fileID: 0}
     - target: {fileID: 3953292161018051812, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -3442,6 +3539,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3380156610
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -3520,6 +3621,10 @@ PrefabInstance:
       propertyPath: spriteLogo
       value: 
       objectReference: {fileID: 21300000, guid: a866863cc2a135a41b67304bf36cdb61, type: 3}
+    - target: {fileID: -2391534596120476792, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1926236462
+      objectReference: {fileID: 0}
     - target: {fileID: 3953292161018051812, guid: 08c700dbb41aba649bc8f654bb9ed2e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 29.44
@@ -3582,6 +3687,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3660054217
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -3663,6 +3772,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1568083877}
     m_Modifications:
+    - target: {fileID: -6942200863028920361, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1262713472
+      objectReference: {fileID: 0}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: type
       value: 5
@@ -3751,6 +3864,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 92a9c664476b7764fbd6bec3766966f3, type: 2}
   - {fileID: 11400000, guid: ac61fd1c9ce6f4f46bb625fd770a284c, type: 2}
   - {fileID: 11400000, guid: a093d7409bf4f054f84fbe4e7228fe00, type: 2}
+  currentPlayerIndex: 0
   RUN: 0
 --- !u!4 &3742717886783825095
 Transform:

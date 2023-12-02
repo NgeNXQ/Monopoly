@@ -23,17 +23,17 @@ public sealed class Player : NetworkBehaviour
 
     #endregion
 
-    private bool hasRead;
-
     private bool hasBuilt;
 
-    private bool hasMoved;
+    public int Balance { get; set; }
 
-    private bool hasRolled;
+    public bool IsInJail { get; set; }
 
-    private bool hasActioned;
+    public int TurnsInJail { get; set; }
 
-    private bool hasHandledInsufficientFunds;
+    public bool HasBuilt { get => this.hasBuilt; }
+
+    public bool HasCompletedTurn { get; private set; }
 
     public MonopolyNode CurrentNode { get; set; }
 
@@ -42,30 +42,6 @@ public sealed class Player : NetworkBehaviour
     public List<MonopolyNode> OwnedNodes { get; private set; }
 
     public int CurrentNodeIndex { get => MonopolyBoard.Instance[this.CurrentNode]; }
-
-    public int Balance { get; set; }
-
-    public bool IsInJail { get; set; }
-
-    public int TurnsInJail { get; set; }
-
-    //public NetworkVariable<int> Balance = new NetworkVariable<int>(writePerm: NetworkVariableWritePermission.Owner, readPerm: NetworkVariableReadPermission.Everyone);
-
-    //public NetworkVariable<bool> IsInJail = new NetworkVariable<bool>(writePerm: NetworkVariableWritePermission.Owner, readPerm: NetworkVariableReadPermission.Everyone);
-
-    //public NetworkVariable<int> TurnsInJail = new NetworkVariable<int>(writePerm: NetworkVariableWritePermission.Owner, readPerm: NetworkVariableReadPermission.Everyone);
-
-    public bool HasBuilt { get => this.hasBuilt; }
-
-    public bool HasCompletedTurn
-    {
-        get => this.hasRolled && this.hasMoved && this.hasActioned;
-        set => this.hasRolled = this.hasMoved = this.hasActioned = value;
-    }
-
-    //public NetworkVariable<bool> HasCompletedTurn = new NetworkVariable<bool>(readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Owner);
-
-   // private void UpdateHasCompletedTurn() => this.HasCompletedTurn.Value = this.hasRolled && this.hasMoved && this.hasActioned;
 
     private void Awake()
     {
@@ -126,54 +102,54 @@ public sealed class Player : NetworkBehaviour
         //UIManager.Instance.AddPlayer(this.playerNickname, this.playerColor);
     }
 
-    //public void ResetState()
-    //{
-    //    this.hasMoved = false;
-    //    this.hasRolled = false;
-    //    this.hasActioned = false;
-    //    this.HasCompletedTurn.Value = false;
-    //}
-
-    //[ServerRpc(RequireOwnership = false)]
-    //public void ResetStateServerRpc(ServerRpcParams serverRpcParams = default) => this.ResetStateClientRpc(GameManager.Instance.ClientParamsAllPlayers);
-
-    //[ClientRpc]
-    //public void ResetStateClientRpc(ClientRpcParams clientRpcParams) => this.ResetState();
-
-    //public void ResetState() => this.HasCompletedTurn = false;
+    #region Movement
 
     [ClientRpc]
     public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, true);
-        UIManager.Instance.WaitPlayerInput(this.hasRolled);
+        this.HasCompletedTurn = false;
+        this.StartCoroutine(PerformTurnCoroutine());
 
-        //Debug.Log("Performing");
-        //this.StartCoroutine(IntroduceDelay());
-
-        //IEnumerator IntroduceDelay()
-        //{
-        //    yield return new WaitForSeconds(10.0f);
-        //    this.HasCompletedTurn = true;
-        //}
+        IEnumerator PerformTurnCoroutine()
+        {
+            UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDice, true);
+            yield return new WaitUntil(() => this.HasCompletedTurn);
+            GameManager.Instance.SyncSwitchPlayerServerRpc();
+        }
     }
 
     private void RollDice()
-    { 
-        this.hasRolled = true;
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.ButtonRollDice, false);
+    {
+        if (this.OwnerClientId == GameManager.Instance.CurrentPlayer.OwnerClientId)
+        {
+            UIManager.Instance.SetControlState(UIManager.UIControl.ButtonRollDice, false);
+            
+            GameManager.Instance.RollDice();
 
-        GameManager.Instance.RollDice();
+            UIManager.Instance.ShowDice();
+            UIManager.Instance.SyncShowDiceServerRpc();
 
-        UIManager.Instance.ShowDice();
-        UIManager.Instance.ShowDiceServerRpc();
-
-        this.Move(GameManager.Instance.TotalRollResult);
-
-        UIManager.Instance.WaitPlayerInput(this.hasMoved);
+            if (this.IsInJail)
+            {
+                if (GameManager.Instance.HasRolledDouble || ++this.TurnsInJail >= GameManager.Instance.MaxTurnsInJail)
+                {
+                    this.TurnsInJail = 0;
+                    this.IsInJail = false;
+                    this.Move(GameManager.Instance.TotalRollResult);
+                }
+                else
+                {
+                    this.HasCompletedTurn = true;
+                }
+            }
+            else
+            {
+                this.Move(GameManager.Instance.TotalRollResult);
+            }
+        }
     }
 
-    public void Move(int steps)
+    private void Move(int steps)
     {
         const float POSITION_THRESHOLD = 0.01f;
 
@@ -203,9 +179,9 @@ public sealed class Player : NetworkBehaviour
                 yield return StartCoroutine(MovePlayerCoroutine(targetPosition));
             }
 
-            this.hasMoved = true;
+            this.HasCompletedTurn = true;
             this.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
-            GameManager.Instance.HandlePlayerLanding(this);
+            //GameManager.Instance.HandlePlayerLanding(this);
         }
 
         IEnumerator MovePlayerCoroutine(Vector3 targetPosition)
@@ -220,19 +196,19 @@ public sealed class Player : NetworkBehaviour
         }
     }
 
+    #endregion
+
     #region Property
 
     public void HandlePropertyLanding()
     {
         if (this.CurrentNode.Owner == this)
         {
-            this.hasActioned = true;
+            this.HasCompletedTurn = true;
             return;
         }
 
-        UIManager.Instance.SetUpPanel(UIManager.UIControl.PanelOffer, this.CurrentNode);
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, true);
-        UIManager.Instance.WaitPlayerInput(this.hasActioned);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, true, this.CurrentNode);
     }
 
     private void AcceptPropertyOffer()
@@ -243,20 +219,19 @@ public sealed class Player : NetworkBehaviour
             this.OwnedNodes.Add(this.CurrentNode);
             this.Balance -= this.CurrentNode.Price;
 
-            this.hasActioned = true;
-            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
+            this.HasCompletedTurn = true;
+            UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, false);
         }
         else
         {
             this.HandleInsufficientFunds();
-            UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
         }
     }
 
     private void DeclinePropertyOffer()
     {
-        this.hasActioned = true;
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelOffer, false);
+        this.HasCompletedTurn = true;
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelOffer, false);
     }
 
     #endregion
@@ -265,46 +240,39 @@ public sealed class Player : NetworkBehaviour
 
     public void HandleTaxLanding()
     {
-        UIManager.Instance.SetUpPanel(UIManager.UIControl.PanelPayment, this.CurrentNode);
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, true);
-        UIManager.Instance.WaitPlayerInput(this.hasActioned);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelPayment, true, this.CurrentNode);
     }
 
     public void HandleFreeParkingLanding()
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
-        UIManager.Instance.WaitPlayerInput(this.hasActioned);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelInfo, true, this.CurrentNode);
     }
 
     public void HandleJailLanding()
     {
         if (!this.IsInJail)
         {
-            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
-            UIManager.Instance.WaitPlayerInput(this.hasActioned);
+            UIManager.Instance.SetControlState(UIManager.UIControl.PanelInfo, true, this.CurrentNode);
         }
         else
         {
-            this.hasActioned = true;
+            this.HasCompletedTurn = true;
         }
     }
 
     public void HandleStartLanding()
     {
         this.Balance += GameManager.Instance.ExactCircleBonus;
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
-        UIManager.Instance.WaitPlayerInput(this.hasActioned);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelInfo, true);
     }
 
     public void HandleSendJailLanding()
     {
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, true);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelInfo, true);
 
         this.IsInJail = true;
         this.TurnsInJail = 0;
         this.Move(MonopolyBoard.Instance.GetDistance(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
-
-        UIManager.Instance.WaitPlayerInput(true);
     }
 
     public void HandleChanceLanding()
@@ -312,7 +280,8 @@ public sealed class Player : NetworkBehaviour
         bool hasInteracted = false;
         SO_ChanceNode chance = GameManager.Instance.GetChance();
 
-        this.hasActioned = true;
+        this.HasCompletedTurn = true;
+
         //this.UpdateHasCompletedTurn();
         //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, this.CurrentNode);
         //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInformation, true);
@@ -358,9 +327,11 @@ public sealed class Player : NetworkBehaviour
     {
         Debug.Log("Paying tax");
 
-        this.hasActioned = true;
+        this.HasCompletedTurn = true;
 
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelPayment, false);
+        UIManager.Instance.SetControlState(UIManager.UIControl.PanelPayment, false);
+
+        //GameManager.Instance.SyncSwitchPlayerServerRpc();
 
         //this.UpdateHasCompletedTurn();
 
@@ -419,13 +390,13 @@ public sealed class Player : NetworkBehaviour
     {
         if (this.hasBuilt) 
         {
-            UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMessage, true);
-            UIManager.Instance.WaitPlayerInput(this.hasRead);
+            //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMessage, true);
+            //UIManager.Instance.WaitPlayerInput(this.hasRead);
         }
 
         this.hasBuilt = true;
         this.CurrentNode.Upgrade();
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMonopolyNode, false);
+        //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMonopolyNode, false);
     }
 
     public void DowngradeNode() => this.CurrentNode.Downgrade();
@@ -434,20 +405,20 @@ public sealed class Player : NetworkBehaviour
 
     private void ClosePanelInfo()
     {
-        this.hasActioned = true;
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, false);
+        this.HasCompletedTurn = true;
+        //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelInfo, false);
     }
 
     private void ClosePanelMessage()
     {
-        this.hasRead = true;
-        UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMessage, false);
+        this.HasCompletedTurn = true;
+        //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMessage, false);
     }
 
     private void HandleInsufficientFunds()
     {
-        this.hasActioned = true;
-        UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
+        this.HasCompletedTurn = true;
+        //UIManager.Instance.WaitPlayerInput(this.hasHandledInsufficientFunds);
     }
 
     public bool HasFullMonopoly(MonopolyNode monopolyNode)

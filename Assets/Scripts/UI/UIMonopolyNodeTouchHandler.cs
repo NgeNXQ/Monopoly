@@ -16,7 +16,7 @@ public sealed class UIMonopolyNodeTouchHandler : MonoBehaviour, IPointerClickHan
             if (!this.monopolyNode.Owner.HasBuilt && this.monopolyNode.Owner.HasFullMonopoly(this.monopolyNode))
             {
                 this.isShown = !this.isShown;
-                UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMonopolyNode, this.isShown);
+                //UIManager.Instance.SetControlVisibility(UIManager.UIControl.PanelMonopolyNode, this.isShown);
             }
         }
     }

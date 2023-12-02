@@ -44,6 +44,8 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     [SerializeField] private List<int> pricing = new List<int>();
 
+    [SerializeField] private string description;
+
     #endregion
 
     private int level;
@@ -82,17 +84,18 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         //this.level = ++this.level % this.pricing.Count;
         this.level = ++this.level % 7;
-        this.UpdateVisuals();
+        UpdateVisualsClientRpc(GameManager.Instance.ClientParamsAllPlayers);
     }
 
     public void Downgrade()
     {
         //this.level = --this.level % this.pricing.Count;
         this.level = --this.level % 7;
-        this.UpdateVisuals();
+        this.UpdateVisualsClientRpc(GameManager.Instance.ClientParamsAllPlayers);
     }
 
-    private void UpdateVisuals()
+    [ClientRpc]
+    private void UpdateVisualsClientRpc(ClientRpcParams clientRpcParams)
     {
         switch (this.level)
         {

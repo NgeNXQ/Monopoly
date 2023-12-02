@@ -57,11 +57,13 @@ public sealed class GameManager : NetworkBehaviour
 
     private List<Player> players;
 
-    private int currentPlayerIndex;
+    private bool synced;
 
-    public int FirstDieValue { get; private set; }
+    public int currentPlayerIndex;
 
-    public int SecondDieValue { get; private set; }
+    public int FirstDieValue { get; set; }
+
+    public int SecondDieValue { get; set; }
 
     public int CircleBonus { get => this.circleBonus; }
 
@@ -161,6 +163,7 @@ public sealed class GameManager : NetworkBehaviour
         {
             debugBeenInitialized = true;
             this.DebugStartGameClientRpc();
+            this.StartTurnServerRpc();
         }
         //else
         //{
@@ -180,76 +183,45 @@ public sealed class GameManager : NetworkBehaviour
         }
 
         this.targetAllPlayers = new ulong[this.players.Count];
-
-        this.StartCoroutine(this.StartPlayerTurn());
     }
 
     #endregion
 
     #region Turn-based Game Logic
 
-    //private void GameLoop()
-    //{
-    //    while (true)
-    //    {
-    //        this.StartCoroutine(Loop());
-    //    }
-
-    //    IEnumerator Loop()
-    //    {
-    //        yield return this.StartCoroutine(this.StartPlayerTurn());
-    //    }
-    //}
-
-    //[ServerRpc(RequireOwnership = false)]
-    //private void StartPlayerTurnServerRpc(ServerRpcParams serverRpcParams = default) => this.StartPlayerTurnClientRpc(this.ClientParamsCurrentPlayer);
-
-    //[ClientRpc]
-    //private void StartPlayerTurnClientRpc(ClientRpcParams clientRpcParams) => this.StartCoroutine(this.StartPlayerTurn());
-
-    private IEnumerator StartPlayerTurn()
+    [ServerRpc]
+    private void StartTurnServerRpc()
     {
-        Debug.Log("In StartPlayerTurn");
-
-        this.CurrentPlayer.HasCompletedTurn = false;
         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentPlayer);
-        yield return new WaitUntil(() => this.CurrentPlayer.HasCompletedTurn);
-        
-        this.SyncSwitchPlayerServerRpc();
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SyncSwitchPlayerServerRpc()
+    public void SyncSwitchPlayerServerRpc()
     {
-        Debug.Log("In SyncSwitchPlayerServerRpc");
+        if (this.HasRolledDouble)
+        {
+            ++this.rolledDoubles;
 
-        //if (!this.HasRolledDouble)
-        //{
-        //    this.rolledDoubles = 0;
-        //    this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
-        //}
-        //else
-        //{
-        //    ++this.rolledDoubles;
-
-        //    if (this.rolledDoubles >= this.MaxDoublesInRow)
-        //    {
-        //        this.rolledDoubles = 0;
-        //        this.CurrentPlayer.HandleSendJailLanding();
-        //    }
-        //}
-
-        this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
+            if (this.rolledDoubles >= this.MaxDoublesInRow)
+            {
+                this.rolledDoubles = 0;
+                this.CurrentPlayer.HandleSendJailLanding();
+            }
+        }
+        else
+        {
+            this.rolledDoubles = 0;
+            this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
+        }
 
         this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex, this.ClientParamsAllPlayers);
 
-        this.StartCoroutine(this.StartPlayerTurn());
+        this.StartTurnServerRpc();
     }
 
     [ClientRpc]
     private void SyncSwitchPlayerClientRpc(int currentPlayerIndex, ClientRpcParams clientRpcParams)
     {
-        Debug.Log("In SyncSwitchPlayerClientRpc");
         this.currentPlayerIndex = currentPlayerIndex;
     }
 
