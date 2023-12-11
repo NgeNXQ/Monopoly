@@ -1,12 +1,11 @@
-using System;
+﻿using System;
 using UnityEngine;
 using Unity.Netcode;
-using System.Collections;
 using System.Collections.Generic;
 
-public sealed class GameManager : NetworkBehaviour
+internal sealed class GameManager : NetworkBehaviour
 {
-    #region In-editor Setup (Logic)
+    #region #IN_EDITOR #VALUES #LOGIC
 
     [Space]
     [Header("Values")]
@@ -36,20 +35,13 @@ public sealed class GameManager : NetworkBehaviour
     [Space]
     [SerializeField] [Range(0.0f, 100.0f)] private float playerMovementSpeed = 25.0f;
 
-    [Space]
-    [Header("Chance nodes")]
-    [Space]
-
-    [Space]
-    [SerializeField] private List<SO_ChanceNode> chanceCards = new List<SO_ChanceNode>();
-
     #endregion
 
     public static GameManager Instance { get; private set; }
 
-    private ulong[] targetAllPlayers;
+    private ulong[] targetOtherPlayers;
 
-    private ulong[] targetTradePlayers;
+    //private ulong[] targetTradePlayers;
 
     private ulong[] targetCurrentPlayer;
 
@@ -57,9 +49,9 @@ public sealed class GameManager : NetworkBehaviour
 
     private List<Player> players;
 
-    private bool synced;
+    private int currentPlayerIndex;
 
-    public int currentPlayerIndex;
+    public IReadOnlyList<Player> Players { get => this.players; }
 
     public int FirstDieValue { get; set; }
 
@@ -83,32 +75,23 @@ public sealed class GameManager : NetworkBehaviour
 
     public bool HasRolledDouble { get => this.FirstDieValue == this.SecondDieValue; }
 
-    public ulong[] TargetAllPlayers
+    private ulong[] TargetOtherPlayers
     {
         get
         {
-            for (int i = 0; i < this.players.Count; ++i)
-                this.targetAllPlayers[i] = this.players[i].OwnerClientId;
+            int index = 0; ;
 
-            return this.targetAllPlayers;
-        }
-    }
-
-    public ulong[] TargetOtherPlayers
-    {
-        get
-        {
-            for (int i = 0; i < this.players.Count; ++i)
+            foreach (Player player in this.players)
             {
-                if (this.CurrentPlayer.OwnerClientId != this.players[i].OwnerClientId)
-                    this.targetAllPlayers[i] = this.players[i].OwnerClientId;
+                if (player.OwnerClientId != this.CurrentPlayer.OwnerClientId)
+                    this.targetOtherPlayers[index++] = player.OwnerClientId;
             }
 
-            return this.targetAllPlayers;
+            return this.targetOtherPlayers;
         }
     }
 
-    public ulong[] TargetCurrentPlayer
+    private ulong[] TargetCurrentPlayer
     { 
         get
         {
@@ -117,13 +100,13 @@ public sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams ClientParamsAllPlayers
+    public ClientRpcParams ClientParamsOtherPlayers
     {
         get
         {
             return new ClientRpcParams
             {
-                Send = new ClientRpcSendParams { TargetClientIds = this.TargetAllPlayers }
+                Send = new ClientRpcSendParams { TargetClientIds = this.TargetOtherPlayers }
             };
         }
     }
@@ -182,21 +165,22 @@ public sealed class GameManager : NetworkBehaviour
             player.InitializePlayerClientRpc();
         }
 
-        this.targetAllPlayers = new ulong[this.players.Count];
+        //this.targetAllPlayers = new ulong[this.players.Count];
+        this.targetOtherPlayers = new ulong[this.players.Count - 1];
     }
 
     #endregion
 
-    #region Turn-based Game Logic
+    #region Game Loop (Logic & Network Sync)
 
     [ServerRpc]
-    private void StartTurnServerRpc()
+    private void StartTurnServerRpc(ServerRpcParams serverRpcParams = default)
     {
         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentPlayer);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SyncSwitchPlayerServerRpc()
+    public void SyncSwitchPlayerServerRpc(ServerRpcParams serverRpcParams = default)
     {
         if (this.HasRolledDouble)
         {
@@ -214,20 +198,20 @@ public sealed class GameManager : NetworkBehaviour
             this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
         }
 
-        this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex, this.ClientParamsAllPlayers);
+        this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex);
 
         this.StartTurnServerRpc();
     }
 
     [ClientRpc]
-    private void SyncSwitchPlayerClientRpc(int currentPlayerIndex, ClientRpcParams clientRpcParams)
+    private void SyncSwitchPlayerClientRpc(int currentPlayerIndex, ClientRpcParams clientRpcParams = default)
     {
         this.currentPlayerIndex = currentPlayerIndex;
     }
 
     #endregion
 
-    #region Dice (Logic & Sync)
+    #region Rolling Dice (Logic & Network Sync)
 
     public void RollDice()
     {
@@ -241,419 +225,20 @@ public sealed class GameManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SyncRollDiceServerRpc(int firstDieValue, int secondDieValue)
+    private void SyncRollDiceServerRpc(int firstDieValue, int secondDieValue, ServerRpcParams serverRpcParams = default)
     {
         this.FirstDieValue = firstDieValue;
         this.SecondDieValue = secondDieValue;
 
-        this.SyncRollDiceClientRpc(firstDieValue, secondDieValue, this.ClientParamsAllPlayers);
+        this.SyncRollDiceClientRpc(firstDieValue, secondDieValue);
     }
 
     [ClientRpc]
-    private void SyncRollDiceClientRpc(int firstDieValue, int secondDieValue, ClientRpcParams clientRpcParams)
+    private void SyncRollDiceClientRpc(int firstDieValue, int secondDieValue, ClientRpcParams clientRpcParams = default)
     {
         this.FirstDieValue = firstDieValue;
         this.SecondDieValue = secondDieValue;
     }
 
     #endregion
-
-    public void HandlePlayerLanding(Player player)
-    {
-        switch (player.CurrentNode.Type)
-        {
-            case MonopolyNode.MonopolyNodeType.Tax:
-                player.HandleTaxLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.Jail:
-                player.HandleJailLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.Start:
-                player.HandleStartLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.Chance:
-                player.HandleChanceLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.SendJail:
-                player.HandleSendJailLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.Property:
-                player.HandlePropertyLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.Gambling:
-                player.HandlePropertyLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.Transport:
-                player.HandlePropertyLanding();
-                break;
-            case MonopolyNode.MonopolyNodeType.FreeParking:
-                player.HandleFreeParkingLanding();
-                break;
-        }
-    }
-
-    public SO_ChanceNode GetChance() => this.chanceCards[UnityEngine.Random.Range(0, this.chanceCards.Count)];
-
-    private void SendFunds(Player player, int amount)
-    {
-        player.Balance += amount;
-
-        //Update ui
-    }
-
-    private void CollectFunds(Player player, int amount)
-    {
-        if (player.Balance < amount)
-        {
-            throw new NotImplementedException();
-        }
-        else
-        {
-            player.Balance -= amount;
-        }
-
-        //Update ui
-    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//[ClientRpc]
-//private void SendToJail(Player player)
-//{
-//    player.IsInJail = true;
-//    this.MovePlayer(player, MonopolyBoard.Instance.GetDistanceBetweenNodes(player.CurrentNode, MonopolyBoard.Instance.NodeJail));
-//}
-
-
-
-//    private void ReleaseFromJail(Player player)
-//    {
-//        player.TurnsInJail = 0;
-//        player.IsInJail = false;
-//        this.CurrentPlayerDoubles = 0;
-//        this.MovePlayer(player, this.TotalRollResult);
-//    }
-
-//    private void SendBalance(Player player, int amount)
-//    {
-//        player.Balance += amount;
-
-//        // Update ui
-//    }
-
-//    public void CollectFee()
-//    {
-//        if (this.CurrentPlayer.CurrentNode.TaxAmount <= this.CurrentPlayer.Balance)
-//            this.CurrentPlayer.Balance -= this.CurrentPlayer.CurrentNode.TaxAmount;
-//        else
-//        {
-//            // handle insufficient funds
-//        }
-
-//        UIManager.Instance.HidePanelFee();
-//    }
-
-//    public void BuyProperty()
-//    {
-//        UIManager.Instance.HidePanelFee();
-//    }
-
-//    private void HandleChanceLanding(int index)
-//    {
-//        switch (this.chances[index].Type) 
-//        {
-//            case ChanceNodeSO.ChanceNodeType.Reward:
-//                UIManager.Instance.ShowPanelOk(null, null);
-//                break;
-//            case ChanceNodeSO.ChanceNodeType.Penalty:
-//                UIManager.Instance.ShowPanelFee(null, null);
-//                break;
-//            case ChanceNodeSO.ChanceNodeType.SkipTurn:
-//                UIManager.Instance.ShowPanelOk(null, null);
-//                //this.CurrentPlayer.SkipTurn = true;
-//                //this.SwitchPlayer();
-//                break;
-//            case ChanceNodeSO.ChanceNodeType.SendJail:
-//                UIManager.Instance.ShowPanelOk(null, null);
-//                this.SendToJail(this.CurrentPlayer);
-//                break;
-//            case ChanceNodeSO.ChanceNodeType.RandomMovement:
-//                UIManager.Instance.ShowPanelOk(null, null);
-//                //this.MovePlayer(this.CurrentPlayer, Random.Range())
-//                break;
-//        }
-//    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//[SerializeField]
-//private MonopolyBoard monopolyBoard;
-
-//[SerializeField]
-//public List<Player> players = new List<Player>();
-
-//[SerializeField]
-//private List<GameObject> tokens = new List<GameObject>();
-
-//[SerializeField]
-//private GameObject playerInfoPrefab;
-
-//[SerializeField]
-//private Transform playersPanel;
-
-//public int taxPool = 0;
-
-//[SerializeField]
-//public float SecondsBetweenTurns = 2.0f;
-
-//public static GameManager instance;
-
-//int[] rolledDice;
-//bool isDoubleRolled;
-//int doubleRollCount;
-
-
-//private void Start()
-//{
-//    // Add players to the game
-
-//    Initialize();
-//    RollDice();
-//}
-
-////private void Update()
-////{
-////    Invoke("RollDice", 1f);
-////    SwitchPlayer();
-////}
-
-//public void ResetRolledDouble()
-//{
-//    RolledADounle = false;
-//}
-
-//private void Initialize()
-//{
-//    for (int i = 0; i < players.Count; ++i)
-//    {
-//        GameObject infoObject = Instantiate(playerInfoPrefab, playersPanel, false);
-//        PlayerInfo info = infoObject.GetComponent<PlayerInfo>();
-
-//        int randomIndex = Random.Range(0, tokens.Count);
-
-//        GameObject playerToken = Instantiate(tokens[randomIndex], monopolyBoard.route[0].transform.position, Quaternion.identity);
-
-//        players[i].Initialize(monopolyBoard.route[0], this.startBalance, info, playerToken);
-//    }
-
-//    OnShowInputPanel.Invoke(true, true, true);
-//}
-
-//public void RollDice()
-//{
-//    bool allowedToMove = true;
-
-//    rolledDice = new int[2];
-
-//    rolledDice[0] = Random.Range(1, 7);
-//    rolledDice[1] = Random.Range(1, 7);
-
-//    isDoubleRolled = rolledDice[0] == rolledDice[1];
-
-//    if (players[CurrentPlayer].IsInJail)
-//    {
-//        players[CurrentPlayer].IncreaseNumberOfTurnsInJail();
-
-//        if (isDoubleRolled)
-//        {
-//            players[CurrentPlayer].SetOutOfJail();
-//            doubleRollCount++;
-//        }
-//        else if (players[CurrentPlayer].NumberTurnsInJail >= maxTurnsInJail)
-//        {
-//            players[CurrentPlayer].SetOutOfJail();
-//        }
-//        else
-//        {
-//            allowedToMove = false;
-//        }
-//    }
-//    else
-//    {
-//        if (!isDoubleRolled)
-//        {
-//            doubleRollCount = 0;
-//        }
-//        else
-//        {
-//            doubleRollCount++;
-
-//            if (doubleRollCount >= 3)
-//            {
-//                int indexOnBoard = MonopolyBoard.instance.route.IndexOf(players[CurrentPlayer].CurrentPosition);
-//                players[CurrentPlayer].GoToJail(indexOnBoard);
-//                RolledADounle = false;
-//                return;
-//            }
-//        }
-//    }
-
-//    if (allowedToMove)
-//    {
-//        StartCoroutine(DelayBeforeMove(rolledDice[0] + rolledDice[1]));
-//    }
-//    else
-//    {
-//        StartCoroutine(DelayBetweenSwitchPlayer());
-//    }
-
-//    OnShowInputPanel.Invoke(true, false, false);
-//}
-
-//IEnumerator DelayBeforeMove(int rolledDice)
-//{
-//    yield return new WaitForSeconds(SecondsBetweenTurns);
-//    monopolyBoard.MovePlayerToken(players[CurrentPlayer], rolledDice);
-//}
-
-//IEnumerator DelayBetweenSwitchPlayer()
-//{
-//    yield return new WaitForSeconds(SecondsBetweenTurns);
-//    SwitchPlayer();
-//}
-
-//public void SwitchPlayer()
-//{
-//    CurrentPlayer++;
-
-//    doubleRollCount = 0;
-
-//    if (CurrentPlayer >= players.Count)
-//    {
-//        CurrentPlayer = 0;
-//    }
-
-//    OnShowInputPanel.Invoke(true, true, true);
-//}
-
-//public int[] LastRolledDice()
-//{
-//    return rolledDice;
-//}
-
-//public void AddTaxToPool(int amount)
-//{
-//    taxPool += amount;
-//}
-
-//public int GetTaxPool()
-//{
-//    int currentTaxCollected = taxPool;
-//    taxPool = 0;
-//    return currentTaxCollected;
-//}
-
-//public void RemovePlayer(Player player)
-//{
-//    players.Remove(player);
-//    CheckForGameOver();
-//}
-
-//void CheckForGameOver()
-//{
-//    if (players.Count == 1)
-//    {
-
-//    }
-//}

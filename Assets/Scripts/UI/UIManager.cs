@@ -2,12 +2,13 @@
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
-using Unity.Collections;
-using System.Collections;
 
-public sealed class UIManager : NetworkBehaviour
+internal sealed class UIManager : MonoBehaviour
 {
-    #region In-editor Setup (Visuals & Logic)
+    #region Setup (Visuals)
+
+    [Space]
+    [SerializeField] private char currency;
 
     #region Dice
 
@@ -34,70 +35,7 @@ public sealed class UIManager : NetworkBehaviour
     [Header("Dice screen time")]
 
     [Space]
-    [SerializeField][Range(0.0f, 10.0f)] private float diceScreenTime = 1.0f;
-
-    #endregion
-
-    #region Panel Info
-
-    [Space]
-    [Header("Panel \"Info\"")]
-    [Space]
-
-    [Space]
-    [SerializeField] private RectTransform panelInfo;
-
-    [Space]
-    [SerializeField] private Image imagePanelInfo;
-
-    [Space]
-    [SerializeField] private TMP_Text textPanelInfo;
-
-    [Space]
-    [SerializeField] private Button buttonConfirmPanelInfo;
-
-    #endregion
-
-    #region Panel Offer
-
-    [Space]
-    [Header("Panel \"Offer\"")]
-    [Space]
-
-    [Space]
-    [SerializeField] private RectTransform panelOffer;
-
-    [Space]
-    [SerializeField] private Image imagePanelOffer;
-
-    [Space]
-    [SerializeField] private TMP_Text textPanelOffer;
-
-    [Space]
-    [SerializeField] private Button buttonAcceptPanelOffer;
-
-    [Space]
-    [SerializeField] private Button buttonDeclinePanelOffer;
-
-    #endregion
-
-    #region Panel Payment
-
-    [Space]
-    [Header("Panel \"Payment\"")]
-    [Space]
-
-    [Space]
-    [SerializeField] private RectTransform panelPayment;
-
-    [Space]
-    [SerializeField] private Image imagePanelPayment;
-
-    [Space]
-    [SerializeField] private TMP_Text textPanelPayment;
-
-    [Space]
-    [SerializeField] private Button buttonPayPanelPayment;
+    [SerializeField] [Range(0.0f, 10.0f)] private float screenTimeDice = 1.0f;
 
     #endregion
 
@@ -115,182 +53,94 @@ public sealed class UIManager : NetworkBehaviour
 
     #endregion
 
-    #region Panel Message
+    #region Messages
 
     [Space]
-    [Header("Panel \"Message\"")]
+    [Header("Tex \"Messages\"")]
     [Space]
 
     [Space]
-    [SerializeField] private RectTransform panelMessage;
+    [SerializeField] private string messageAlreadyBuilt;
 
     [Space]
-    [SerializeField] private TMP_Text textPanelMessage;
+    [SerializeField] private string messageInsufficientFunds;
 
     [Space]
-    [SerializeField] private Button buttonConfirmPanelMessage;
+    [SerializeField] private string messageCannotUpgradeMaxLevel;
+
+    [Space]
+    [SerializeField] private string messageCannotDowngradeMinLevel;
+
+    [Space]
+    [SerializeField] private string messageOnlyEvenBuildingAllowed;
+
+    public string MessageAlreadyBuilt { get => this.messageAlreadyBuilt; }
+
+    public string MessageInsufficientFunds { get => this.messageInsufficientFunds; }
+
+    public string MessageCannotUpgradeMaxLevel { get => this.messageCannotUpgradeMaxLevel; }
+
+    public string MessageCannotDowngradeMinLevel { get => this.messageCannotDowngradeMinLevel; }
+
+    public string MessageOnlyEvenBuildingAllowed { get => this.messageOnlyEvenBuildingAllowed; }
 
     #endregion
-
-    #region Panel Monopoly Node
-
-    [Space]
-    [Header("Panel \"Monopoly Node\"")]
-    [Space]
-
-    [Space]
-    [SerializeField] private RectTransform panelMonopolyNode;
-
-    [Space]
-    [SerializeField] private Image imagePanelMonopolyNode;
-
-    [Space]
-    [SerializeField] private TMP_Text textPanelMonopolyNode;
-
-    [Space]
-    [SerializeField] private Button buttonUpgradePanelMonopolyNode;
-
-    [Space]
-    [SerializeField] private Button buttonDowngradePanelMonopolyNode;
-
-    #endregion
-
-    #endregion
-
-    #region Events
-
-    public delegate void ButtonClickHandler();
-
-    public event ButtonClickHandler OnButtonRollDiceClicked;
-
-    public event ButtonClickHandler OnButtonPayPanelPaymentClicked;
-
-    public event ButtonClickHandler OnButtonConfirmPanelInfoClicked;
-
-    public event ButtonClickHandler OnButtonAcceptPanelOfferClicked;
-
-    public event ButtonClickHandler OnButtonDeclinePanelOfferClicked;
-
-    public event ButtonClickHandler OnButtonConfirmPanelMessageClicked;
-
-    public event ButtonClickHandler OnButtonUpgradePanelMonopolyNodeClicked;
-
-    public event ButtonClickHandler OnButtonDowngradePanelMonopolyNodeClicked;
 
     #endregion
 
     public static UIManager Instance { get; private set; }
 
-    public enum UIControl : byte
-    {
-        PanelInfo,
-        PanelTrade,
-        PanelOffer,
-        PanelWarning,
-        PanelPayment,
-        PanelMessage,
-        ButtonRollDice,
-        PanelMonopolyNode
-    }
+    public delegate void ButtonClickHandler();
+
+    public event ButtonClickHandler OnButtonRollDiceClicked;
+
+    public char Currency { get => this.currency; }
+
+    public PanelInfoUI PanelInfo { get => PanelInfoUI.Instance; }
+
+    public PanelOfferUI PanelOffer { get => PanelOfferUI.Instance; }
+
+    public PanelMessageUI PanelMessage { get => PanelMessageUI.Instance; }
+
+    public PanelPaymentUI PanelPayment { get => PanelPaymentUI.Instance; }
+
+    public PanelMonopolyNodeUI PanelMonopolyNode { get => PanelMonopolyNodeUI.Instance; }
+
+    #region Setup
 
     private void Awake() => Instance = this;
 
     private void OnEnable()
     {
         this.buttonRollDice.onClick.AddListener(this.HandleButtonRollDiceClicked);
-        this.buttonPayPanelPayment.onClick.AddListener(this.HandleButtonPayPanelPaymentClicked);
-        this.buttonConfirmPanelInfo.onClick.AddListener(this.HandleButtonConfirmPanelInfoClicked);
-        this.buttonAcceptPanelOffer.onClick.AddListener(this.HandleButtonAcceptPanelOfferClicked);
-        this.buttonDeclinePanelOffer.onClick.AddListener(this.HandleButtonDeclinePanelOfferClicked);
-        this.buttonConfirmPanelMessage.onClick.AddListener(this.HandleButtonConfirmPanelMessageClicked);
-        this.buttonUpgradePanelMonopolyNode.onClick.AddListener(this.HandleButtonUpgradeMonopolyNodeClicked);
-        this.buttonDowngradePanelMonopolyNode.onClick.AddListener(this.HandleButtonDowngradeMonopolyNodeClicked);
     }
 
     private void OnDisable()
     {
         this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
-        this.buttonPayPanelPayment.onClick.RemoveListener(this.HandleButtonPayPanelPaymentClicked);
-        this.buttonConfirmPanelInfo.onClick.RemoveListener(this.HandleButtonConfirmPanelInfoClicked);
-        this.buttonAcceptPanelOffer.onClick.RemoveListener(this.HandleButtonAcceptPanelOfferClicked);
-        this.buttonDeclinePanelOffer.onClick.RemoveListener(this.HandleButtonDeclinePanelOfferClicked);
-        this.buttonConfirmPanelMessage.onClick.RemoveListener(this.HandleButtonConfirmPanelMessageClicked);
-        this.buttonUpgradePanelMonopolyNode.onClick.RemoveListener(this.HandleButtonUpgradeMonopolyNodeClicked);
-        this.buttonDowngradePanelMonopolyNode.onClick.RemoveListener(this.HandleButtonDowngradeMonopolyNodeClicked);
     }
 
-    public void WaitPlayerInput(bool condition)
+    #endregion
+
+    public void ShowButtonRollDice() => this.buttonRollDice.gameObject.SetActive(true);
+
+    public void HideButtonRollDice() => this.buttonRollDice.gameObject.SetActive(false);
+
+    //public void AddPlayer(FixedString32Bytes nickname, Color color)
+    //{
+    //    UIPlayerInfo info = NetworkObject.Instantiate(this.playerInfo, this.panelPlayers.transform).GetComponent<UIPlayerInfo>();
+    //    info.SetUpPlayerInfo(nickname, color);
+    //}
+
+    #region Dice Animation
+
+    public void ShowDiceAnimation()
     {
-        this.StartCoroutine(WaitPlayerInputCoroutine());
-
-        IEnumerator WaitPlayerInputCoroutine()
-        {
-            yield return new WaitUntil(() => condition);
-        }
+        this.ShowDiceAnimationAsync();
+        this.ShowDiceAnimationServerRpc();
     }
 
-    public void AddPlayer(FixedString32Bytes nickname, Color color)
-    {
-        UIPlayerInfo info = NetworkObject.Instantiate(this.playerInfo, this.panelPlayers.transform).GetComponent<UIPlayerInfo>();
-        info.SetUpPlayerInfo(nickname, color);
-    }
-
-    public void SetControlState(UIControl control, bool visability, MonopolyNode node = null)
-    {
-        switch (control)
-        {
-            case UIControl.PanelInfo:
-                {
-                    this.panelInfo.gameObject.SetActive(visability);
-
-                    if (node != null)
-                    {
-                        this.imagePanelInfo.sprite = node.NodeSprite;
-                    }
-                }
-                break;
-            case UIControl.PanelOffer:
-                {
-                    this.panelOffer.gameObject.SetActive(visability);
-
-                    if (node != null)
-                    {
-                        this.imagePanelOffer.sprite = node.NodeSprite;
-                        this.textPanelOffer.text = $"₴ {node?.Price}";
-                    }
-                }
-                break;
-            case UIControl.PanelPayment:
-                {
-                    this.panelPayment.gameObject.SetActive(visability);
-                    
-                    if (node != null)
-                    {
-                        this.imagePanelPayment.sprite = node.NodeSprite;
-                    }
-                }
-                break;
-            case UIControl.ButtonRollDice:
-                this.buttonRollDice.gameObject.SetActive(visability);
-                break;
-            case UIControl.PanelMonopolyNode:
-                {
-                    this.panelMonopolyNode.gameObject.SetActive(visability);
-
-                    if (node != null)
-                    {
-                        this.imagePanelMonopolyNode.sprite = node.NodeSprite;
-                    }
-                }
-                break;
-            default:
-                throw new System.ArgumentException($"{nameof(control)} is not a Panel.");
-        }
-    }
-
-    #region Dice
-
-    public void ShowDice()
+    private async void ShowDiceAnimationAsync()
     {
         this.imageDiePlaceholder1.gameObject.SetActive(true);
         this.imageDiePlaceholder2.gameObject.SetActive(true);
@@ -298,38 +148,25 @@ public sealed class UIManager : NetworkBehaviour
         this.imageDiePlaceholder1.sprite = this.spriteDieFaces[GameManager.Instance.FirstDieValue - 1];
         this.imageDiePlaceholder2.sprite = this.spriteDieFaces[GameManager.Instance.SecondDieValue - 1];
 
-        this.StartCoroutine(ShowDiceCoroutine());
+        await Awaitable.WaitForSecondsAsync(this.screenTimeDice);
 
-        IEnumerator ShowDiceCoroutine()
-        {
-            yield return new WaitForSeconds(this.diceScreenTime);
-
-            this.imageDiePlaceholder1.gameObject.SetActive(false);
-            this.imageDiePlaceholder2.gameObject.SetActive(false);
-        }
+        this.imageDiePlaceholder1.gameObject.SetActive(false);
+        this.imageDiePlaceholder2.gameObject.SetActive(false);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SyncShowDiceServerRpc() => this.SyncShowDiceClientRpc(GameManager.Instance.ClientParamsAllPlayers);
+    private void ShowDiceAnimationServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherPlayers);
+    }
 
     [ClientRpc]
-    private void SyncShowDiceClientRpc(ClientRpcParams clientRpcParams) => this.ShowDice();
+    private void ShowDiceAnimationClientRpc(ClientRpcParams clientRpcParams)
+    {
+        this.ShowDiceAnimationAsync();
+    }
 
     #endregion
 
     private void HandleButtonRollDiceClicked() => this.OnButtonRollDiceClicked?.Invoke();
-
-    private void HandleButtonPayPanelPaymentClicked() => this.OnButtonPayPanelPaymentClicked?.Invoke();
-
-    private void HandleButtonConfirmPanelInfoClicked() => this.OnButtonConfirmPanelInfoClicked?.Invoke();
-
-    private void HandleButtonAcceptPanelOfferClicked() => this.OnButtonAcceptPanelOfferClicked?.Invoke();
-
-    private void HandleButtonDeclinePanelOfferClicked() => this.OnButtonDeclinePanelOfferClicked?.Invoke();
-
-    private void HandleButtonConfirmPanelMessageClicked() => this.OnButtonConfirmPanelMessageClicked?.Invoke();
-
-    private void HandleButtonUpgradeMonopolyNodeClicked() => this.OnButtonUpgradePanelMonopolyNodeClicked?.Invoke();
-
-    private void HandleButtonDowngradeMonopolyNodeClicked() => this.OnButtonDowngradePanelMonopolyNodeClicked?.Invoke();
 }

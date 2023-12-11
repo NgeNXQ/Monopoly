@@ -28,15 +28,21 @@ public sealed class MonopolyBoard : MonoBehaviour
     [Space]
     [SerializeField] private List<MonopolySet> monopolies = new List<MonopolySet>();
 
+    [Space]
+    [Header("Chance nodes")]
+    [Space]
+
+    [Space]
+    [SerializeField] private List<ChanceNodeSO> chanceNodes = new List<ChanceNodeSO>();
+
+    [Space]
+    [SerializeField] private List<ChanceNodeSO> taxNodes = new List<ChanceNodeSO>();
+
     #endregion
 
     private List<MonopolyNode> nodes;
 
     public static MonopolyBoard Instance { get; private set; }
-
-    public int NumberOfNodes { get => this.nodes.Count; }
-
-    public List<MonopolySet> Monopolies { get => this.monopolies; }
 
     public MonopolyNode NodeJail { get => this.jail; }
 
@@ -45,6 +51,10 @@ public sealed class MonopolyBoard : MonoBehaviour
     public MonopolyNode NodeSendToJail { get => this.sendJail; }
 
     public MonopolyNode NodeFreeParking { get => this.freeParking; }
+
+    public int NumberOfNodes { get => this.nodes.Count; }
+
+    public List<MonopolySet> Monopolies { get => this.monopolies; }
 
     private void Awake()
     {
@@ -56,12 +66,6 @@ public sealed class MonopolyBoard : MonoBehaviour
         {
             if (child.TryGetComponent(out MonopolyNode monopolyNode))
                 this.nodes.Add(monopolyNode);
-        }
-
-        for (int i = 0; i < this.monopolies.Count; ++i)
-        {
-            for (int j = 0; j < this.monopolies[i].NodesInSet.Count; ++j)
-                this.monopolies[i].NodesInSet[j].MonopolyColor = this.monopolies[i].ColorOfSet;
         }
     }
 
@@ -87,14 +91,6 @@ public sealed class MonopolyBoard : MonoBehaviour
         }
     }
 
-    public int GetDistance(MonopolyNode fromNode, MonopolyNode toNode)
-    {
-        int clockwiseDistance = (this[toNode] - this[fromNode] + this.NumberOfNodes) % this.NumberOfNodes;
-        int counterclockwiseDistance = (this[fromNode] - this[toNode] + this.NumberOfNodes) % this.NumberOfNodes;
-
-        return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
-    }
-
     public int GetDistance(int fromNodeIndex, int toNodeIndex)
     {
         int clockwiseDistance = (toNodeIndex - fromNodeIndex + this.NumberOfNodes) % this.NumberOfNodes;
@@ -103,7 +99,15 @@ public sealed class MonopolyBoard : MonoBehaviour
         return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
     }
 
-    public MonopolySet GetMonopolySetOfNode(MonopolyNode monopolyNode)
+    public int GetDistance(MonopolyNode fromNode, MonopolyNode toNode)
+    {
+        int clockwiseDistance = (this[toNode] - this[fromNode] + this.NumberOfNodes) % this.NumberOfNodes;
+        int counterclockwiseDistance = (this[fromNode] - this[toNode] + this.NumberOfNodes) % this.NumberOfNodes;
+
+        return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
+    }
+
+    public MonopolySet GetMonopolySet(MonopolyNode monopolyNode)
     {
         if (monopolyNode == null)
             throw new System.ArgumentNullException($"{nameof(monopolyNode)} is null.");
@@ -116,4 +120,8 @@ public sealed class MonopolyBoard : MonoBehaviour
 
         return null;
     }
+
+    public ChanceNodeSO GetTaxNode() => this.taxNodes[UnityEngine.Random.Range(0, this.taxNodes.Count)];
+
+    public ChanceNodeSO GetChanceNode() => this.chanceNodes[UnityEngine.Random.Range(0, this.chanceNodes.Count)];
 }
