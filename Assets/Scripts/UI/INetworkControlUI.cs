@@ -7,4 +7,10 @@ internal interface INetworkControlUI
 
     [ClientRpc]
     public void ShowClientRpc(ClientRpcParams clientRpcParams);
+
+    [ServerRpc]
+    public void HideServerRpc(ServerRpcParams serverRpcParams);
+
+    [ClientRpc]
+    public void HideClientRpc(ClientRpcParams clientRpcParams);
 }

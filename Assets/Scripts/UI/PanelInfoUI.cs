@@ -4,17 +4,28 @@ using UnityEngine.UI;
 
 internal sealed class PanelInfoUI : MonoBehaviour, IControlUI
 {
-    #region Setup (Visuals)
+    #region Visuals
 
     [Space]
     [Header("Visuals")]
     [Space]
 
     [Space]
-    [SerializeField] private Image imageLogo;
+    [SerializeField] private RectTransform panel;
+
+    [Space]
+    [SerializeField] private Image imagePicture;
 
     [Space]
     [SerializeField] private TMP_Text textDescription;
+
+    #endregion
+
+    #region Controls
+
+    [Space]
+    [Header("Controls")]
+    [Space]
 
     [Space]
     [SerializeField] private Button buttonConfirm;
@@ -25,21 +36,25 @@ internal sealed class PanelInfoUI : MonoBehaviour, IControlUI
 
     public event UIManager.ButtonClickHandler OnButtonConfirmClicked;
 
-    public Sprite LogoSprite { set => this.imageLogo.sprite = value; }
+    public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
     public string DescriptionText { set => this.textDescription.text = value; }
 
-    private void Awake() => Instance = this;
+    private void Awake()
+    {
+        if (Instance != null)
+            throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
 
-    private void Start() => this.Hide();
+        Instance = this;
+    }
 
     private void OnEnable() => this.buttonConfirm.onClick.AddListener(this.HandleButtonConfirmClicked);
 
     private void OnDisable() => this.buttonConfirm.onClick.RemoveListener(this.HandleButtonConfirmClicked);
 
-    public void Show() => this.gameObject.SetActive(true);
+    public void Show() => this.panel.gameObject.SetActive(true);
 
-    public void Hide() => this.gameObject.SetActive(false);
+    public void Hide() => this.panel.gameObject.SetActive(false);
 
     private void HandleButtonConfirmClicked() => this.OnButtonConfirmClicked?.Invoke();
 }

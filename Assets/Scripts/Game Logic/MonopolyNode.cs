@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public sealed class MonopolyNode : NetworkBehaviour
 {
@@ -69,9 +70,23 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public MonopolySet AffiliatedMonopoly { get; private set; }
 
-    public bool IsUpgradable { get => this.AffiliatedMonopoly.NodesInSet.All(node => node.Level >= this.Level); }
+    public bool IsDowngradable
+    {
+        get
+        {
+            bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.Level <= this.Level);
+            return isEquallySpread && this.Level >= 0;
+        }
+    }
 
-    public bool IsDowngradable { get => this.AffiliatedMonopoly.NodesInSet.All(node => node.Level <= this.Level); }
+    public bool IsUpgradable
+    {
+        get
+        {
+            bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.Level >= this.Level);
+            return isEquallySpread && this.Level <= MonopolyNode.PROPERTY_MAX_LEVEL;
+        }
+    }
 
     private void Awake()
     {

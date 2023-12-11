@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 internal sealed class GameManager : NetworkBehaviour
 {
-    #region #IN_EDITOR #VALUES #LOGIC
+    #region Values
 
     [Space]
     [Header("Values")]
@@ -40,8 +40,6 @@ internal sealed class GameManager : NetworkBehaviour
     public static GameManager Instance { get; private set; }
 
     private ulong[] targetOtherPlayers;
-
-    //private ulong[] targetTradePlayers;
 
     private ulong[] targetCurrentPlayer;
 
@@ -122,7 +120,13 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    private void Awake() => Instance = this;
+    private void Awake()
+    {
+        if (Instance != null)
+            throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
+
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -171,7 +175,7 @@ internal sealed class GameManager : NetworkBehaviour
 
     #endregion
 
-    #region Game Loop (Logic & Network Sync)
+    #region Game Loop
 
     [ServerRpc]
     private void StartTurnServerRpc(ServerRpcParams serverRpcParams = default)
@@ -180,7 +184,7 @@ internal sealed class GameManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SyncSwitchPlayerServerRpc(ServerRpcParams serverRpcParams = default)
+    public void SwitchPlayerServerRpc(ServerRpcParams serverRpcParams = default)
     {
         if (this.HasRolledDouble)
         {
@@ -198,20 +202,20 @@ internal sealed class GameManager : NetworkBehaviour
             this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
         }
 
-        this.SyncSwitchPlayerClientRpc(this.currentPlayerIndex);
+        this.SwitchPlayerClientRpc(this.currentPlayerIndex);
 
         this.StartTurnServerRpc();
     }
 
     [ClientRpc]
-    private void SyncSwitchPlayerClientRpc(int currentPlayerIndex, ClientRpcParams clientRpcParams = default)
+    private void SwitchPlayerClientRpc(int currentPlayerIndex, ClientRpcParams clientRpcParams = default)
     {
         this.currentPlayerIndex = currentPlayerIndex;
     }
 
     #endregion
 
-    #region Rolling Dice (Logic & Network Sync)
+    #region Dice
 
     public void RollDice()
     {
@@ -221,20 +225,20 @@ internal sealed class GameManager : NetworkBehaviour
         this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
         this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
 
-        this.SyncRollDiceServerRpc(this.FirstDieValue, this.SecondDieValue);
+        this.RollDiceServerRpc(this.FirstDieValue, this.SecondDieValue);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SyncRollDiceServerRpc(int firstDieValue, int secondDieValue, ServerRpcParams serverRpcParams = default)
+    private void RollDiceServerRpc(int firstDieValue, int secondDieValue, ServerRpcParams serverRpcParams = default)
     {
         this.FirstDieValue = firstDieValue;
         this.SecondDieValue = secondDieValue;
 
-        this.SyncRollDiceClientRpc(firstDieValue, secondDieValue);
+        this.RollDiceClientRpc(firstDieValue, secondDieValue);
     }
 
     [ClientRpc]
-    private void SyncRollDiceClientRpc(int firstDieValue, int secondDieValue, ClientRpcParams clientRpcParams = default)
+    private void RollDiceClientRpc(int firstDieValue, int secondDieValue, ClientRpcParams clientRpcParams = default)
     {
         this.FirstDieValue = firstDieValue;
         this.SecondDieValue = secondDieValue;

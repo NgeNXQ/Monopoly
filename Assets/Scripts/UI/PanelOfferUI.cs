@@ -1,20 +1,30 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
 {
-    #region Setup (Visuals)
+    #region Visuals
 
     [Space]
     [Header("Visuals")]
     [Space]
 
     [Space]
-    [SerializeField] private Image imageLogo;
+    [SerializeField] private RectTransform panel;
 
     [Space]
-    [SerializeField] private TMP_Text textPrice;
+    [SerializeField] private Image imagePicture;
+
+    [Space]
+    [SerializeField] private Image imageMonopolyType;
+
+    #endregion
+
+    #region Controls
+
+    [Space]
+    [Header("Controls")]
+    [Space]
 
     [Space]
     [SerializeField] private Button buttonAccept;
@@ -30,13 +40,17 @@ internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
 
     public event UIManager.ButtonClickHandler OnButtonDeclineClicked;
 
-    public string PriceText { set => this.textPrice.text = value; }
+    public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
-    public Sprite LogoSprite { set => this.imageLogo.sprite = value; }
+    public Color MonopolyTypeColor { set => this.imageMonopolyType.color = value; }
 
-    private void Awake() => Instance = this;
+    private void Awake()
+    {
+        if (Instance != null)
+            throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
 
-    private void Start() => this.Hide();
+        Instance = this;
+    }
 
     private void OnEnable()
     {
@@ -50,9 +64,9 @@ internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
         this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
     }
 
-    public void Show() => this.gameObject.SetActive(true);
+    public void Show() => this.panel.gameObject.SetActive(true);
 
-    public void Hide() => this.gameObject.SetActive(false);
+    public void Hide() => this.panel.gameObject.SetActive(false);
 
     private void HandleButtonAcceptClicked() => this.OnButtonAcceptClicked?.Invoke();
 

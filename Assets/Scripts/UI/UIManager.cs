@@ -1,14 +1,11 @@
-﻿using TMPro;
-using UnityEngine;
+﻿using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
+using System.Numerics;
 
 internal sealed class UIManager : MonoBehaviour
 {
-    #region Setup (Visuals)
-
-    [Space]
-    [SerializeField] private char currency;
+    #region Visuals
 
     #region Dice
 
@@ -35,7 +32,7 @@ internal sealed class UIManager : MonoBehaviour
     [Header("Dice screen time")]
 
     [Space]
-    [SerializeField] [Range(0.0f, 10.0f)] private float screenTimeDice = 1.0f;
+    [SerializeField][Range(0.0f, 10.0f)] private float diceScreenTime = 1.0f;
 
     #endregion
 
@@ -50,6 +47,15 @@ internal sealed class UIManager : MonoBehaviour
 
     [Space]
     [SerializeField] private NetworkObject panelPlayers;
+
+    #endregion
+
+    #region Currency
+
+    [Space]
+    [SerializeField] private char currency;
+
+    public char Currency { get => this.currency; }
 
     #endregion
 
@@ -74,6 +80,9 @@ internal sealed class UIManager : MonoBehaviour
     [Space]
     [SerializeField] private string messageOnlyEvenBuildingAllowed;
 
+    [Space]
+    [SerializeField] private string messageCompleteMonopolyRequired;
+
     public string MessageAlreadyBuilt { get => this.messageAlreadyBuilt; }
 
     public string MessageInsufficientFunds { get => this.messageInsufficientFunds; }
@@ -83,6 +92,8 @@ internal sealed class UIManager : MonoBehaviour
     public string MessageCannotDowngradeMinLevel { get => this.messageCannotDowngradeMinLevel; }
 
     public string MessageOnlyEvenBuildingAllowed { get => this.messageOnlyEvenBuildingAllowed; }
+
+    public string MessageCompleteMonopolyRequired { get => this.messageCompleteMonopolyRequired; }
 
     #endregion
 
@@ -94,21 +105,25 @@ internal sealed class UIManager : MonoBehaviour
 
     public event ButtonClickHandler OnButtonRollDiceClicked;
 
-    public char Currency { get => this.currency; }
-
     public PanelInfoUI PanelInfo { get => PanelInfoUI.Instance; }
 
     public PanelOfferUI PanelOffer { get => PanelOfferUI.Instance; }
 
-    public PanelMessageUI PanelMessage { get => PanelMessageUI.Instance; }
-
     public PanelPaymentUI PanelPayment { get => PanelPaymentUI.Instance; }
+
+    public PanelMessageBoxUI PanelMessageBox { get => PanelMessageBoxUI.Instance; }
 
     public PanelMonopolyNodeUI PanelMonopolyNode { get => PanelMonopolyNodeUI.Instance; }
 
     #region Setup
 
-    private void Awake() => Instance = this;
+    private void Awake()
+    {
+        if (Instance != null)
+            throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
+
+        Instance = this;
+    }
 
     private void OnEnable()
     {
@@ -148,7 +163,7 @@ internal sealed class UIManager : MonoBehaviour
         this.imageDiePlaceholder1.sprite = this.spriteDieFaces[GameManager.Instance.FirstDieValue - 1];
         this.imageDiePlaceholder2.sprite = this.spriteDieFaces[GameManager.Instance.SecondDieValue - 1];
 
-        await Awaitable.WaitForSecondsAsync(this.screenTimeDice);
+        await Awaitable.WaitForSecondsAsync(this.diceScreenTime);
 
         this.imageDiePlaceholder1.gameObject.SetActive(false);
         this.imageDiePlaceholder2.gameObject.SetActive(false);
