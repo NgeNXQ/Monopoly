@@ -2,7 +2,7 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class UILobby : MonoBehaviour
+public sealed class UIManagerGameLobby : MonoBehaviour
 {
     [SerializeField] private Button buttonHostGame;
 
@@ -12,7 +12,7 @@ public sealed class UILobby : MonoBehaviour
     {
         buttonHostGame.onClick.AddListener(() => {
             NetworkManager.Singleton.StartHost();
-            SceneLoader.Load(SceneLoader.Scene.Lobby);
+            MonopolySceneManager.Load(SceneManager.Scene.Lobby);
         });
 
         buttonJoinGame.onClick.AddListener(() => { NetworkManager.Singleton.StartClient(); });

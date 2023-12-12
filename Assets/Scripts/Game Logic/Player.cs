@@ -70,32 +70,32 @@ public sealed class Player : NetworkBehaviour
 
     private void OnEnable()
     {
-        UIManager.Instance.OnButtonRollDiceClicked += this.RollDiceCallback;
-        UIManager.Instance.PanelPayment.OnButtonConfirmClicked += this.PayCallback;
+        UIManagerMonopoly.Instance.OnButtonRollDiceClicked += this.RollDiceCallback;
+        UIManagerMonopoly.Instance.PanelPayment.OnButtonConfirmClicked += this.PayCallback;
 
-        UIManager.Instance.PanelOffer.OnButtonAcceptClicked += this.AcceptPropertyOfferCallback;
-        UIManager.Instance.PanelOffer.OnButtonDeclineClicked += this.DeclinePropertyOfferCallback;
+        UIManagerMonopoly.Instance.PanelOffer.OnButtonAcceptClicked += this.AcceptPropertyOfferCallback;
+        UIManagerMonopoly.Instance.PanelOffer.OnButtonDeclineClicked += this.DeclinePropertyOfferCallback;
 
-        UIManager.Instance.PanelMonopolyNode.OnButtonUpgradeClicked += this.UpgradeNodeCallback;
-        UIManager.Instance.PanelMonopolyNode.OnButtonDowngradeClicked += this.DowngradeNodeCallback;
+        UIManagerMonopoly.Instance.PanelMonopolyNode.OnButtonUpgradeClicked += this.UpgradeNodeCallback;
+        UIManagerMonopoly.Instance.PanelMonopolyNode.OnButtonDowngradeClicked += this.DowngradeNodeCallback;
 
-        UIManager.Instance.PanelInfo.OnButtonConfirmClicked += this.ClosePanelInfoCallback;
-        UIManager.Instance.PanelMessageBox.OnButtonConfirmClicked += this.ClosePanelMessageBoxCallback;
+        UIManagerMonopoly.Instance.PanelInfo.OnButtonConfirmClicked += this.ClosePanelInfoCallback;
+        UIManagerMonopoly.Instance.PanelMessageBox.OnButtonConfirmClicked += this.ClosePanelMessageBoxCallback;
     }
 
     private void OnDisable()
     {
-        UIManager.Instance.OnButtonRollDiceClicked -= this.RollDiceCallback;
-        UIManager.Instance.PanelPayment.OnButtonConfirmClicked -= this.PayCallback;
+        UIManagerMonopoly.Instance.OnButtonRollDiceClicked -= this.RollDiceCallback;
+        UIManagerMonopoly.Instance.PanelPayment.OnButtonConfirmClicked -= this.PayCallback;
 
-        UIManager.Instance.PanelOffer.OnButtonAcceptClicked -= this.AcceptPropertyOfferCallback;
-        UIManager.Instance.PanelOffer.OnButtonDeclineClicked -= this.DeclinePropertyOfferCallback;
+        UIManagerMonopoly.Instance.PanelOffer.OnButtonAcceptClicked -= this.AcceptPropertyOfferCallback;
+        UIManagerMonopoly.Instance.PanelOffer.OnButtonDeclineClicked -= this.DeclinePropertyOfferCallback;
 
-        UIManager.Instance.PanelMonopolyNode.OnButtonUpgradeClicked -= this.UpgradeNodeCallback;
-        UIManager.Instance.PanelMonopolyNode.OnButtonDowngradeClicked -= this.DowngradeNodeCallback;
+        UIManagerMonopoly.Instance.PanelMonopolyNode.OnButtonUpgradeClicked -= this.UpgradeNodeCallback;
+        UIManagerMonopoly.Instance.PanelMonopolyNode.OnButtonDowngradeClicked -= this.DowngradeNodeCallback;
 
-        UIManager.Instance.PanelInfo.OnButtonConfirmClicked -= this.ClosePanelInfoCallback;
-        UIManager.Instance.PanelMessageBox.OnButtonConfirmClicked -= this.ClosePanelMessageBoxCallback;
+        UIManagerMonopoly.Instance.PanelInfo.OnButtonConfirmClicked -= this.ClosePanelInfoCallback;
+        UIManagerMonopoly.Instance.PanelMessageBox.OnButtonConfirmClicked -= this.ClosePanelMessageBoxCallback;
     }
 
     public override void OnNetworkSpawn()
@@ -163,7 +163,7 @@ public sealed class Player : NetworkBehaviour
             return;
         }
 
-        UIManager.Instance.ShowButtonRollDice();
+        UIManagerMonopoly.Instance.ShowButtonRollDice();
 
         IEnumerator PerformTurnCoroutine()
         {
@@ -262,9 +262,9 @@ public sealed class Player : NetworkBehaviour
     {
         this.CurrentChanceNode = MonopolyBoard.Instance.GetTaxNode();
 
-        UIManager.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
-        UIManager.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
-        UIManager.Instance.PanelPayment.Show();
+        UIManagerMonopoly.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
+        UIManagerMonopoly.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
+        UIManagerMonopoly.Instance.PanelPayment.Show();
     }
 
     public void HandleChanceLanding()
@@ -273,15 +273,15 @@ public sealed class Player : NetworkBehaviour
 
         if (this.CurrentChanceNode.ChanceType == ChanceNodeSO.Type.Penalty)
         {
-            UIManager.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManager.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
-            UIManager.Instance.PanelPayment.Show();
+            UIManagerMonopoly.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopoly.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
+            UIManagerMonopoly.Instance.PanelPayment.Show();
         }
         else
         {
-            UIManager.Instance.PanelInfo.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManager.Instance.PanelInfo.DescriptionText = this.CurrentChanceNode.Description;
-            UIManager.Instance.PanelInfo.Show();
+            UIManagerMonopoly.Instance.PanelInfo.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopoly.Instance.PanelInfo.DescriptionText = this.CurrentChanceNode.Description;
+            UIManagerMonopoly.Instance.PanelInfo.Show();
         }
     }
 
@@ -320,9 +320,9 @@ public sealed class Player : NetworkBehaviour
     {
         if (this.CurrentNode.Owner == null)
         {
-            UIManager.Instance.PanelOffer.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManager.Instance.PanelOffer.MonopolyTypeColor = this.CurrentNode.AffiliatedMonopoly.ColorOfSet;
-            UIManager.Instance.PanelOffer.Show();
+            UIManagerMonopoly.Instance.PanelOffer.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopoly.Instance.PanelOffer.MonopolyTypeColor = this.CurrentNode.AffiliatedMonopoly.ColorOfSet;
+            UIManagerMonopoly.Instance.PanelOffer.Show();
         }
         else if (this.CurrentNode.Owner == this)
         {
@@ -330,9 +330,9 @@ public sealed class Player : NetworkBehaviour
         }
         else
         {
-            UIManager.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManager.Instance.PanelPayment.DescriptionText = this.CurrentNode.PriceRent.ToString();
-            UIManager.Instance.PanelOffer.Show();
+            UIManagerMonopoly.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopoly.Instance.PanelPayment.DescriptionText = this.CurrentNode.PriceRent.ToString();
+            UIManagerMonopoly.Instance.PanelOffer.Show();
         }
     }
 
@@ -343,7 +343,7 @@ public sealed class Player : NetworkBehaviour
 
         if (this.Balance >= this.CurrentNode.PriceUpgrade)
         {
-            UIManager.Instance.PanelOffer.Hide();
+            UIManagerMonopoly.Instance.PanelOffer.Hide();
 
             this.CurrentNode.UpdateOwner(this);
             this.OwnedNodes.Add(this.CurrentNode);
@@ -352,8 +352,8 @@ public sealed class Player : NetworkBehaviour
         }
         else
         {
-            UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageInsufficientFunds;
-            UIManager.Instance.PanelMessageBox.Show();
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
+            UIManagerMonopoly.Instance.PanelMessageBox.Show();
         }
     }
 
@@ -362,7 +362,7 @@ public sealed class Player : NetworkBehaviour
         if (this.OwnerClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
             return;
 
-        UIManager.Instance.PanelOffer.Hide();
+        UIManagerMonopoly.Instance.PanelOffer.Hide();
         this.HasCompletedTurn = true;
     }
 
@@ -373,17 +373,17 @@ public sealed class Player : NetworkBehaviour
 
         if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.CurrentNode.IsMortgaged)
         {
-            UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageCompleteMonopolyRequired;
-            UIManager.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
-            UIManager.Instance.PanelMessageBox.Show();
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCompleteMonopolyRequired;
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
+            UIManagerMonopoly.Instance.PanelMessageBox.Show();
             return;
         }
 
         if (this.HasBuilt)
         {
-            UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageAlreadyBuilt;
-            UIManager.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
-            UIManager.Instance.PanelMessageBox.Show();
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageAlreadyBuilt;
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
+            UIManagerMonopoly.Instance.PanelMessageBox.Show();
             return;
         }
 
@@ -391,23 +391,23 @@ public sealed class Player : NetworkBehaviour
         {
             if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MAX_LEVEL)
             {
-                UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageCannotUpgradeMaxLevel;
-                UIManager.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
-                UIManager.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCannotUpgradeMaxLevel;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
+                UIManagerMonopoly.Instance.PanelMessageBox.Show();
                 return;
             }
             else
             {
-                UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageOnlyEvenBuildingAllowed;
-                UIManager.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
-                UIManager.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageOnlyEvenBuildingAllowed;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
+                UIManagerMonopoly.Instance.PanelMessageBox.Show();
                 return;
             }
         }
 
         this.HasBuilt = true;
         this.SelectedNode.Upgrade();
-        UIManager.Instance.PanelMonopolyNode.Hide();
+        UIManagerMonopoly.Instance.PanelMonopolyNode.Hide();
     }
 
     public void DowngradeNodeCallback()
@@ -419,22 +419,22 @@ public sealed class Player : NetworkBehaviour
         {
             if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MIN_LEVEL)
             {
-                UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageCannotDowngradeMinLevel;
-                UIManager.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
-                UIManager.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCannotDowngradeMinLevel;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
+                UIManagerMonopoly.Instance.PanelMessageBox.Show();
                 return;
             }
             else
             {
-                UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageOnlyEvenBuildingAllowed;
-                UIManager.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
-                UIManager.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageOnlyEvenBuildingAllowed;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Exclamation;
+                UIManagerMonopoly.Instance.PanelMessageBox.Show();
                 return;
             }
         }
 
         this.SelectedNode.Downgrade();
-        UIManager.Instance.PanelMonopolyNode.Hide();
+        UIManagerMonopoly.Instance.PanelMonopolyNode.Hide();
     }
 
     #endregion
@@ -451,13 +451,13 @@ public sealed class Player : NetworkBehaviour
             if (this.Balance >= this.CurrentChanceNode.Penalty)
             {
                 this.Balance -= this.CurrentChanceNode.Penalty;
-                UIManager.Instance.PanelPayment.Hide();
+                UIManagerMonopoly.Instance.PanelPayment.Hide();
                 this.HasCompletedTurn = true;
             }
             else
             {
-                UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageInsufficientFunds;
-                UIManager.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
+                UIManagerMonopoly.Instance.PanelMessageBox.Show();
             }
         }
         else
@@ -465,13 +465,13 @@ public sealed class Player : NetworkBehaviour
             if (this.Balance >= this.CurrentNode.PriceRent)
             {
                 this.Balance -= this.CurrentNode.PriceRent;
-                UIManager.Instance.PanelPayment.Hide();
+                UIManagerMonopoly.Instance.PanelPayment.Hide();
                 this.HasCompletedTurn = true;
             }
             else
             {
-                UIManager.Instance.PanelMessageBox.MessageText = UIManager.Instance.MessageInsufficientFunds;
-                UIManager.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
+                UIManagerMonopoly.Instance.PanelMessageBox.Show();
             }
         }
     }
@@ -481,9 +481,9 @@ public sealed class Player : NetworkBehaviour
         if (this.OwnerClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
             return;
 
-        UIManager.Instance.HideButtonRollDice();
+        UIManagerMonopoly.Instance.HideButtonRollDice();
         GameManager.Instance.RollDice();
-        UIManager.Instance.ShowDiceAnimation();
+        UIManagerMonopoly.Instance.ShowDiceAnimation();
 
         if (this.isInJail)
         {
@@ -506,7 +506,7 @@ public sealed class Player : NetworkBehaviour
 
     private void ClosePanelInfoCallback()
     {
-        UIManager.Instance.PanelInfo.Hide();
+        UIManagerMonopoly.Instance.PanelInfo.Hide();
 
         switch (this.CurrentChanceNode.ChanceType)
         {
@@ -528,14 +528,14 @@ public sealed class Player : NetworkBehaviour
             case ChanceNodeSO.Type.MoveForward:
                 {
                     GameManager.Instance.RollDice();
-                    UIManager.Instance.ShowDiceAnimation();
+                    UIManagerMonopoly.Instance.ShowDiceAnimation();
                     this.Move(GameManager.Instance.TotalRollResult);
                 }
                 break;
             case ChanceNodeSO.Type.MoveBackwards:
                 {
                     GameManager.Instance.RollDice();
-                    UIManager.Instance.ShowDiceAnimation();
+                    UIManagerMonopoly.Instance.ShowDiceAnimation();
                     this.Move(-GameManager.Instance.TotalRollResult);
                 }
                 break;
@@ -544,7 +544,7 @@ public sealed class Player : NetworkBehaviour
 
     private void ClosePanelMessageBoxCallback()
     {
-        UIManager.Instance.PanelMessageBox.Hide();
+        UIManagerMonopoly.Instance.PanelMessageBox.Hide();
     }
 
     #endregion

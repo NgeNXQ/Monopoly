@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
-using System.Numerics;
 
-internal sealed class UIManager : MonoBehaviour
+internal sealed class UIManagerMonopoly : MonoBehaviour
 {
     #region Visuals
 
@@ -99,7 +98,7 @@ internal sealed class UIManager : MonoBehaviour
 
     #endregion
 
-    public static UIManager Instance { get; private set; }
+    public static UIManagerMonopoly Instance { get; private set; }
 
     public delegate void ButtonClickHandler();
 

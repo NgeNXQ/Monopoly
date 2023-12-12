@@ -36,9 +36,9 @@ internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
 
     public static PanelOfferUI Instance { get; private set; }
 
-    public event UIManager.ButtonClickHandler OnButtonAcceptClicked;
+    public event UIManagerMonopoly.ButtonClickHandler OnButtonAcceptClicked;
 
-    public event UIManager.ButtonClickHandler OnButtonDeclineClicked;
+    public event UIManagerMonopoly.ButtonClickHandler OnButtonDeclineClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 

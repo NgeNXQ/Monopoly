@@ -36,9 +36,9 @@ internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IControlUI
 
     public static PanelMonopolyNodeUI Instance { get; private set; }
 
-    public event UIManager.ButtonClickHandler OnButtonUpgradeClicked;
+    public event UIManagerMonopoly.ButtonClickHandler OnButtonUpgradeClicked;
 
-    public event UIManager.ButtonClickHandler OnButtonDowngradeClicked;
+    public event UIManagerMonopoly.ButtonClickHandler OnButtonDowngradeClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 

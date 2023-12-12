@@ -34,7 +34,7 @@ internal sealed class PanelInfoUI : MonoBehaviour, IControlUI
 
     public static PanelInfoUI Instance { get; private set; }
 
-    public event UIManager.ButtonClickHandler OnButtonConfirmClicked;
+    public event UIManagerMonopoly.ButtonClickHandler OnButtonConfirmClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 

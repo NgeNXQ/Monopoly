@@ -34,7 +34,7 @@ internal sealed class PanelPaymentUI : MonoBehaviour, IControlUI
 
     public static PanelPaymentUI Instance { get; private set; }
 
-    public event UIManager.ButtonClickHandler OnButtonConfirmClicked;
+    public event UIManagerMonopoly.ButtonClickHandler OnButtonConfirmClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 

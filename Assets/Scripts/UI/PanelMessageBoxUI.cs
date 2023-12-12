@@ -50,7 +50,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     public static PanelMessageBoxUI Instance { get; private set; }
 
-    public event UIManager.ButtonClickHandler OnButtonConfirmClicked;
+    public event UIManagerMonopoly.ButtonClickHandler OnButtonConfirmClicked;
 
     public Type MessageType { get; set; }
 
