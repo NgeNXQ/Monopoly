@@ -2,7 +2,7 @@
 using Unity.Netcode;
 using UnityEngine.UI;
 
-internal sealed class UIManagerMonopoly : MonoBehaviour
+internal sealed class UIManagerMonopoly : MonoBehaviour, IButtonHandlerUI
 {
     #region Visuals
 
@@ -100,9 +100,7 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
 
     public static UIManagerMonopoly Instance { get; private set; }
 
-    public delegate void ButtonClickHandler();
-
-    public event ButtonClickHandler OnButtonRollDiceClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonRollDiceClicked;
 
     public PanelInfoUI PanelInfo { get => PanelInfoUI.Instance; }
 
@@ -182,5 +180,5 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
 
     #endregion
 
-    private void HandleButtonRollDiceClicked() => this.OnButtonRollDiceClicked?.Invoke();
+    private void HandleButtonRollDiceClicked() => this.ButtonRollDiceClicked?.Invoke();
 }

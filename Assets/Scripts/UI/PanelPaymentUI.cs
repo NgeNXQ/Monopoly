@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelPaymentUI : MonoBehaviour, IControlUI
+internal sealed class PanelPaymentUI : MonoBehaviour, IControlUI, IButtonHandlerUI
 {
     #region Visuals
 
@@ -34,7 +34,7 @@ internal sealed class PanelPaymentUI : MonoBehaviour, IControlUI
 
     public static PanelPaymentUI Instance { get; private set; }
 
-    public event UIManagerMonopoly.ButtonClickHandler OnButtonConfirmClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
@@ -56,5 +56,5 @@ internal sealed class PanelPaymentUI : MonoBehaviour, IControlUI
 
     public void Hide() => this.panel.gameObject.SetActive(false);
 
-    private void HandleButtonConfirmClicked() => this.OnButtonConfirmClicked?.Invoke();
+    private void HandleButtonConfirmClicked() => this.ButtonConfirmClicked?.Invoke();
 }

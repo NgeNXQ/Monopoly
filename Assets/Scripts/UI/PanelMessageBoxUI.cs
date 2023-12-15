@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
+internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHandlerUI
 {
     #region Visuals
 
@@ -17,13 +17,13 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
     [SerializeField] private Image imageIcon;
 
     [Space]
+    [SerializeField] private Sprite spriteError;
+
+    [Space]
     [SerializeField] private Sprite spriteTrophy;
 
     [Space]
     [SerializeField] private Sprite spriteWarning;
-
-    [Space]
-    [SerializeField] private Sprite spriteExclamation;
 
     [Space]
     [SerializeField] private TMP_Text textMessage;
@@ -43,14 +43,14 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     public enum Type : byte
     {
+        Error,
         Trophy,
         Warning,
-        Exclamation,
     }
 
     public static PanelMessageBoxUI Instance { get; private set; }
 
-    public event UIManagerMonopoly.ButtonClickHandler OnButtonConfirmClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmClicked;
 
     public Type MessageType { get; set; }
 
@@ -72,14 +72,14 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
     {
         switch (this.MessageType)
         {
+            case Type.Error:
+                this.imageIcon.sprite = this.spriteError;
+                break;
             case Type.Trophy:
                 this.imageIcon.sprite = this.spriteTrophy;
                 break;
             case Type.Warning:
                 this.imageIcon.sprite = this.spriteWarning;
-                break;
-            case Type.Exclamation:
-                this.imageIcon.sprite = this.spriteExclamation;
                 break;
         }
 
@@ -88,5 +88,5 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     public void Hide() => this.panel.gameObject.SetActive(false);
 
-    private void HandleButtonConfirmClicked() => this.OnButtonConfirmClicked?.Invoke();
+    private void HandleButtonConfirmClicked() => this.ButtonConfirmClicked?.Invoke();
 }

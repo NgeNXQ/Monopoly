@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
+internal sealed class PanelOfferUI : MonoBehaviour, IControlUI, IButtonHandlerUI
 {
     #region Visuals
 
@@ -36,9 +36,9 @@ internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
 
     public static PanelOfferUI Instance { get; private set; }
 
-    public event UIManagerMonopoly.ButtonClickHandler OnButtonAcceptClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonAcceptClicked;
 
-    public event UIManagerMonopoly.ButtonClickHandler OnButtonDeclineClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonDeclineClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
@@ -68,7 +68,7 @@ internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
 
     public void Hide() => this.panel.gameObject.SetActive(false);
 
-    private void HandleButtonAcceptClicked() => this.OnButtonAcceptClicked?.Invoke();
+    private void HandleButtonAcceptClicked() => this.ButtonAcceptClicked?.Invoke();
 
-    private void HandleButtonDeclineClicked() => this.OnButtonDeclineClicked?.Invoke();
+    private void HandleButtonDeclineClicked() => this.ButtonDeclineClicked?.Invoke();
 }

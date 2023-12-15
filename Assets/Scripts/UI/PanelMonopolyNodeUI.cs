@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IControlUI
+internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IControlUI, IButtonHandlerUI
 {
     #region Visuals
 
@@ -36,9 +36,9 @@ internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IControlUI
 
     public static PanelMonopolyNodeUI Instance { get; private set; }
 
-    public event UIManagerMonopoly.ButtonClickHandler OnButtonUpgradeClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonUpgradeClicked;
 
-    public event UIManagerMonopoly.ButtonClickHandler OnButtonDowngradeClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonDowngradeClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
@@ -68,7 +68,7 @@ internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IControlUI
 
     public void Hide() => this.panel.gameObject.SetActive(false);
 
-    private void HandleButtonUpgradeClicked() => this.OnButtonUpgradeClicked?.Invoke();
+    private void HandleButtonUpgradeClicked() => this.ButtonUpgradeClicked?.Invoke();
 
-    private void HandleButtonDowngradeClicked() => this.OnButtonDowngradeClicked?.Invoke();
+    private void HandleButtonDowngradeClicked() => this.ButtonDowngradeClicked?.Invoke();
 }
