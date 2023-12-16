@@ -2,7 +2,7 @@
 using Unity.Netcode;
 using UnityEngine.UI;
 
-internal sealed class UIManagerMonopoly : MonoBehaviour, IButtonHandlerUI
+internal sealed class UIManagerMonopoly : MonoBehaviour //, IButtonHandlerUI
 {
     #region Visuals
 

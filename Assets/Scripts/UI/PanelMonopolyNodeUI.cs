@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IControlUI, IButtonHandlerUI
+internal sealed class PanelMonopolyNodeUI : MonoBehaviour //, IControlUI, IButtonHandlerUI
 {
     #region Visuals
 

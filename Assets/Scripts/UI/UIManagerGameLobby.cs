@@ -1,18 +1,48 @@
 using TMPro;
 using UnityEngine;
-using Unity.Netcode;
 using UnityEngine.UI;
 
-internal sealed class UIManagerGameLobby : NetworkBehaviour
+internal sealed class UIManagerGameLobby : MonoBehaviour
 {
-    #region Controls
+    #region Host Controls
 
     [Space]
-    [Header("Controls")]
+    [Header("Host Controls")]
     [Space]
 
     [Space]
-    [SerializeField] private Button buttonCancel;
+    [SerializeField] private Canvas canvasHost;
+
+    [Space]
+    [SerializeField] private Button buttonStartGame;
+
+    [Space]
+    [SerializeField] private Button buttonDisconnect;
+
+    #endregion
+
+    #region Client Controls
+
+    [Space]
+    [Header("Client Controls")]
+    [Space]
+
+    [Space]
+    [SerializeField] private Canvas canvasClient;
+
+    //[Space]
+    //[SerializeField] private Button buttonStartGame;
+
+    //[Space]
+    //[SerializeField] private Button buttonDisconnect;
+
+    #endregion
+
+    #region Shared Visuals
+
+    [Space]
+    [Header("Shared Visuals")]
+    [Space]
 
     [Space]
     [SerializeField] private TMP_Text labelJoinCode;
@@ -22,12 +52,6 @@ internal sealed class UIManagerGameLobby : NetworkBehaviour
     public static UIManagerGameLobby LocalInstance { get; private set; }
 
     public PanelMessageBoxUI PanelMessageBox { get => PanelMessageBoxUI.Instance; }
-
-    public string LabelJoinCode 
-    { 
-        get => this.labelJoinCode.text; 
-        set => this.labelJoinCode.text = value; 
-    }
 
     private void Awake()
     {
@@ -39,12 +63,17 @@ internal sealed class UIManagerGameLobby : NetworkBehaviour
 
     private void OnEnable()
     {
-        this.buttonCancel.onClick.AddListener(this.HandleButtonCancelClicked);
+        this.buttonDisconnect.onClick.AddListener(this.HandleButtonCancelClicked);
     }
 
     private void OnDisable()
     {
-        this.buttonCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
+        this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonCancelClicked);
+    }
+
+    private void Start()
+    {
+        this.labelJoinCode.text = GameLobbyManager.LocalInstance.JoinCode;
     }
 
     private void HandleButtonCancelClicked()

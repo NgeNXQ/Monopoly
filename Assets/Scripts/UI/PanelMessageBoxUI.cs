@@ -6,15 +6,54 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
 {
     #region Visuals
 
+    #region Panel OK
+
     [Space]
-    [Header("Visuals")]
+    [Header("Panel OK")]
     [Space]
 
     [Space]
-    [SerializeField] private RectTransform panel;
+    [SerializeField] private RectTransform panelOK;
 
     [Space]
-    [SerializeField] private Image imageIcon;
+    [SerializeField] private Image imageIconPanelOK;
+
+    [Space]
+    [SerializeField] private TMP_Text textMessagePanelOK;
+
+    [Space]
+    [SerializeField] private Button buttonConfirmPanelOK;
+
+    #endregion
+
+    #region Panel OK/Cancel
+
+    [Space]
+    [Header("Panel OK/Cancel")]
+    [Space]
+
+    [Space]
+    [SerializeField] private RectTransform panelOKCancel;
+
+    [Space]
+    [SerializeField] private Image imageIconPanelOKCancel;
+
+    [Space]
+    [SerializeField] private TMP_Text textMessagePanelOKCancel;
+
+    [Space]
+    [SerializeField] private Button buttonConfirmPanelOKCancel;
+
+    [Space]
+    [SerializeField] private Button buttonCancelPanelOKCancel;
+
+    #endregion
+
+    #region Assets
+
+    [Space]
+    [Header("Assets")]
+    [Space]
 
     [Space]
     [SerializeField] private Sprite spriteError;
@@ -26,35 +65,62 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
     [SerializeField] private Sprite spriteWarning;
 
     [Space]
-    [SerializeField] private TMP_Text textMessage;
+    [SerializeField] private Sprite spriteQuestion;
 
-    #endregion
-
-    #region Controls
-
-    [Space]
-    [Header("Controls")]
-    [Space]
-
-    [Space]
-    [SerializeField] private Button buttonConfirm;
+    #endregion  
 
     #endregion
 
     public enum Type : byte
     {
+        OK,
+        OKCancel
+    }
+
+    public enum Icon : byte
+    {
         Error,
         Trophy,
         Warning,
+        Question
     }
 
     public static PanelMessageBoxUI Instance { get; private set; }
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmClicked;
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmPanelOKClicked;
 
-    public Type MessageType { get; set; }
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmPanelOKCancelClicked;
 
-    public string MessageText { set => this.textMessage.text = value; }
+    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonCancelPanelOKCancelClicked;
+
+    public Type MessageBoxType { get; set; }
+
+    public Icon MessageBoxIcon 
+    { 
+        set
+        {
+            switch (value)
+            {
+                case Icon.Error:
+                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteError;
+                    break;
+                case Icon.Trophy:
+                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteTrophy;
+                    break;
+                case Icon.Warning:
+                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteWarning;
+                    break;
+                case Icon.Question:
+                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteQuestion;
+                    break;
+            }
+        }
+    }
+
+    public string MessageText 
+    { 
+        set => this.textMessagePanelOK.text = this.textMessagePanelOKCancel.text = value; 
+    }
 
     private void Awake()
     {
@@ -64,29 +130,49 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
         Instance = this;
     }
 
-    private void OnEnable() => this.buttonConfirm.onClick.AddListener(this.HandleButtonConfirmClicked);
+    private void OnEnable()
+    {
+        this.buttonConfirmPanelOK.onClick.AddListener(this.HandleButtonConfirmPanelOKClicked);
+        this.buttonConfirmPanelOKCancel.onClick.AddListener(this.HandleButtonConfirmPanelOKCancelClicked);
+        this.buttonCancelPanelOKCancel.onClick.AddListener(this.HandleButtonCancelPanelOKCancelClicked);
+    }
 
-    private void OnDisable() => this.buttonConfirm.onClick.RemoveListener(this.HandleButtonConfirmClicked);
+    private void OnDisable()
+    {
+        this.buttonConfirmPanelOK.onClick.RemoveListener(this.HandleButtonConfirmPanelOKClicked);
+        this.buttonConfirmPanelOKCancel.onClick.RemoveListener(this.HandleButtonConfirmPanelOKCancelClicked);
+        this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.HandleButtonCancelPanelOKCancelClicked);
+    }
 
     public void Show()
     {
-        switch (this.MessageType)
+        switch (this.MessageBoxType)
         {
-            case Type.Error:
-                this.imageIcon.sprite = this.spriteError;
+            case Type.OK:
+                this.panelOK.gameObject.SetActive(true);
                 break;
-            case Type.Trophy:
-                this.imageIcon.sprite = this.spriteTrophy;
-                break;
-            case Type.Warning:
-                this.imageIcon.sprite = this.spriteWarning;
+            case Type.OKCancel:
+                this.panelOKCancel.gameObject.SetActive(true);
                 break;
         }
-
-        this.panel.gameObject.SetActive(true);
     }
 
-    public void Hide() => this.panel.gameObject.SetActive(false);
+    public void Hide()
+    {
+        switch (this.MessageBoxType)
+        {
+            case Type.OK:
+                this.panelOK.gameObject.SetActive(false);
+                break;
+            case Type.OKCancel:
+                this.panelOKCancel.gameObject.SetActive(false);
+                break;
+        }
+    }
 
-    private void HandleButtonConfirmClicked() => this.ButtonConfirmClicked?.Invoke();
+    private void HandleButtonConfirmPanelOKClicked() => this.ButtonConfirmPanelOKClicked?.Invoke();
+
+    private void HandleButtonConfirmPanelOKCancelClicked() => this.ButtonConfirmPanelOKCancelClicked?.Invoke();
+
+    private void HandleButtonCancelPanelOKCancelClicked() => this.ButtonCancelPanelOKCancelClicked?.Invoke();
 }

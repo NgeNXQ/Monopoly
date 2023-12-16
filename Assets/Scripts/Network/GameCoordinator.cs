@@ -11,7 +11,8 @@ using Unity.Networking.Transport.Relay;
 
 internal sealed class GameCoordinator : MonoBehaviour
 {
-    private const int MAX_PLAYERS = 5;
+    public const int MAX_PLAYERS = 5;
+
     private const string CONNECTION_TYPE = "dtls";
 
     public enum Scene : byte
@@ -34,12 +35,6 @@ internal sealed class GameCoordinator : MonoBehaviour
         UnityEngine.Object.DontDestroyOnLoad(this.gameObject);
     }
 
-    private async void Start()
-    {
-        await UnityServices.InitializeAsync();
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
-    }
-
     private void OnEnable()
     {
         GameLobbyManager.LocalInstance.HostDisconnected += this.HandleHostDisconnected;
@@ -49,6 +44,23 @@ internal sealed class GameCoordinator : MonoBehaviour
     {
         GameLobbyManager.LocalInstance.HostDisconnected -= this.HandleHostDisconnected;
     }
+
+    private async void Start()
+    {
+        await UnityServices.InitializeAsync();
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+    }
+
+    #region Event Callbacks
+
+    private void HandleHostDisconnected()
+    {
+        this.LoadScene(GameCoordinator.Scene.MainMenu);
+    }
+
+    #endregion
+
+    #region Scenes Management
 
     public void LoadScene(Scene scene)
     {
@@ -60,11 +72,15 @@ internal sealed class GameCoordinator : MonoBehaviour
         NetworkManager.Singleton.SceneManager.LoadScene(scene.ToString(), LoadSceneMode.Single);
     }
 
+    #endregion
+
+    #region Establishing Connection
+
     public async void HostLobbyAsync()
     {
         try
         {
-            Allocation hostAllocation = await RelayService.Instance.CreateAllocationAsync(GameCoordinator.MAX_PLAYERS - 1);
+            Allocation hostAllocation = await RelayService.Instance.CreateAllocationAsync(GameCoordinator.MAX_PLAYERS);
 
             RelayServerData relayServerData = new RelayServerData(hostAllocation, GameCoordinator.CONNECTION_TYPE);
 
@@ -100,8 +116,5 @@ internal sealed class GameCoordinator : MonoBehaviour
         }
     }
 
-    private void HandleHostDisconnected()
-    {
-        this.LoadScene(GameCoordinator.Scene.MainMenu);
-    }
+    #endregion
 }

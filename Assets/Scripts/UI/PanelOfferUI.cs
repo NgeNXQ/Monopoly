@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelOfferUI : MonoBehaviour, IControlUI, IButtonHandlerUI
+internal sealed class PanelOfferUI : MonoBehaviour //, IControlUI, IButtonHandlerUI
 {
     #region Visuals
 

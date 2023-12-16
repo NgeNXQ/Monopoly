@@ -16,13 +16,15 @@ using System.Collections;
 using ParrelSync;
 #endif
 
-internal sealed class GameLobbyManager : MonoBehaviour
+internal sealed class GameLobbyManager : NetworkBehaviour
 {
     private const string LOCAL_LOBBY_NAME = "LOCAL_LOBBY_NAME";
 
     private Lobby lobby;
 
     private string joinCode;
+
+    private List<Player> players;
 
     public static GameLobbyManager LocalInstance { get; private set; }
 
@@ -43,14 +45,34 @@ internal sealed class GameLobbyManager : MonoBehaviour
         UnityEngine.Object.DontDestroyOnLoad(this.gameObject);
     }
 
-    public void InitializeGameLobby(string joinCode)
+    private void OnEnable()
     {
-        this.joinCode = joinCode;
-        UIManagerGameLobby.LocalInstance.LabelJoinCode = this.JoinCode;
-        GameCoordinator.LocalInstance.LoadScene(GameCoordinator.Scene.GameLobby);
+        this.ClientConnected += this.HandleClientConnected;
     }
 
-    private IEnumerator HeartbeatLobbyCoroutine(string lobbyId, float waitTimeSeconds)
+    private void OnDisable()
+    {
+        this.ClientConnected -= this.HandleClientConnected;
+    }
+
+    private void Start()
+    {
+        this.players = new List<Player>();
+        //this.StartCoroutine(this.PingLobbyCoroutine());
+    }
+
+    public async void InitializeGameLobby(string joinCode)
+    {
+        this.joinCode = joinCode;
+
+        this.lobby = await LobbyService.Instance.CreateLobbyAsync(GameLobbyManager.LOCAL_LOBBY_NAME, GameCoordinator.MAX_PLAYERS);
+        
+        GameCoordinator.LocalInstance.LoadScene(GameCoordinator.Scene.GameLobby);
+
+        this.ClientConnected?.Invoke();
+    }
+
+    private IEnumerator PingLobbyCoroutine(string lobbyId, float waitTimeSeconds)
     {
         WaitForSeconds waitForSeconds = new WaitForSeconds(waitTimeSeconds);
 
@@ -74,6 +96,11 @@ internal sealed class GameLobbyManager : MonoBehaviour
     private async void Disconnect()
     {
         await LobbyService.Instance.RemovePlayerAsync(this.lobby.Id, AuthenticationService.Instance.PlayerId);
+    }
+
+    private void HandleClientConnected()
+    {
+
     }
 
     //private async void Update()

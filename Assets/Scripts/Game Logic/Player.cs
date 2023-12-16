@@ -80,7 +80,7 @@ public sealed class Player : NetworkBehaviour
         UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked += this.DowngradeNodeCallback;
 
         UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked += this.ClosePanelInfoCallback;
-        UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmClicked += this.ClosePanelMessageBoxCallback;
+        //UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked += this.ClosePanelMessageBoxCallback;
     }
 
     private void OnDisable()
@@ -95,7 +95,7 @@ public sealed class Player : NetworkBehaviour
         UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked -= this.DowngradeNodeCallback;
 
         UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked -= this.ClosePanelInfoCallback;
-        UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmClicked -= this.ClosePanelMessageBoxCallback;
+        //UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.ClosePanelMessageBoxCallback;
     }
 
     public override void OnNetworkSpawn()
@@ -364,7 +364,7 @@ public sealed class Player : NetworkBehaviour
         else
         {
             UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
-            UIManagerMonopoly.Instance.PanelMessageBox.Show();
+            //UIManagerMonopoly.Instance.PanelMessageBox.Show();
         }
     }
 
@@ -385,16 +385,18 @@ public sealed class Player : NetworkBehaviour
         if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.CurrentNode.IsMortgaged)
         {
             UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCompleteMonopolyRequired;
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Error;
-            UIManagerMonopoly.Instance.PanelMessageBox.Show();
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+            //UIManagerMonopoly.Instance.PanelMessageBox.Show();
             return;
         }
 
         if (this.HasBuilt)
         {
             UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageAlreadyBuilt;
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Error;
-            UIManagerMonopoly.Instance.PanelMessageBox.Show();
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+           // UIManagerMonopoly.Instance.PanelMessageBox.Show();
             return;
         }
 
@@ -403,15 +405,17 @@ public sealed class Player : NetworkBehaviour
             if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MAX_LEVEL)
             {
                 UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCannotUpgradeMaxLevel;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
                 return;
             }
             else
             {
                 UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageOnlyEvenBuildingAllowed;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
                 return;
             }
         }
@@ -431,15 +435,16 @@ public sealed class Player : NetworkBehaviour
             if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MIN_LEVEL)
             {
                 UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCannotDowngradeMinLevel;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
                 return;
             }
             else
             {
                 UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageOnlyEvenBuildingAllowed;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageType = PanelMessageBoxUI.Type.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
                 return;
             }
         }
@@ -468,7 +473,7 @@ public sealed class Player : NetworkBehaviour
             else
             {
                 UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
-                UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
             }
         }
         else
@@ -482,7 +487,7 @@ public sealed class Player : NetworkBehaviour
             else
             {
                 UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
-                UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
             }
         }
     }
