@@ -14,7 +14,7 @@ using System.Collections.Generic;
 // TODO: Implement surrendering
 // TODO: Write all values and messages
 
-public sealed class Player : NetworkBehaviour
+public sealed class MonopolyPlayer : NetworkBehaviour
 {
     #region Visuals
 
@@ -23,8 +23,6 @@ public sealed class Player : NetworkBehaviour
     [Space]
 
     [SerializeField] private Color playerColor;
-
-    [SerializeField] private string playerNickname;
 
     [SerializeField] private Image playerImageToken;
 

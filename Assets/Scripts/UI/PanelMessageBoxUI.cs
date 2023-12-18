@@ -1,10 +1,28 @@
 ﻿using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHandlerUI
 {
     #region Visuals
+
+    #region Shared Visuals
+
+    [Space]
+    [Header("Shared Visuals")]
+    [Space]
+
+    [Space]
+    [SerializeField] private Canvas panelTemplate;
+
+    [Space]
+    [SerializeField] private Image imageIcon;
+
+    [Space]
+    [SerializeField] private TMP_Text textMessage;
+
+    #endregion
 
     #region Panel OK
 
@@ -14,12 +32,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
 
     [Space]
     [SerializeField] private RectTransform panelOK;
-
-    [Space]
-    [SerializeField] private Image imageIconPanelOK;
-
-    [Space]
-    [SerializeField] private TMP_Text textMessagePanelOK;
 
     [Space]
     [SerializeField] private Button buttonConfirmPanelOK;
@@ -34,12 +46,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
 
     [Space]
     [SerializeField] private RectTransform panelOKCancel;
-
-    [Space]
-    [SerializeField] private Image imageIconPanelOKCancel;
-
-    [Space]
-    [SerializeField] private TMP_Text textMessagePanelOKCancel;
 
     [Space]
     [SerializeField] private Button buttonConfirmPanelOKCancel;
@@ -65,6 +71,9 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
     [SerializeField] private Sprite spriteWarning;
 
     [Space]
+    [SerializeField] private Sprite spriteLoading;
+
+    [Space]
     [SerializeField] private Sprite spriteQuestion;
 
     #endregion  
@@ -74,15 +83,18 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
     public enum Type : byte
     {
         OK,
-        OKCancel
+        None,
+        OKCancel,
     }
 
     public enum Icon : byte
     {
+        None,
         Error,
         Trophy,
         Warning,
-        Question
+        Loading,
+        Question,
     }
 
     public static PanelMessageBoxUI Instance { get; private set; }
@@ -96,30 +108,36 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
     public Type MessageBoxType { get; set; }
 
     public Icon MessageBoxIcon 
-    { 
+    {
         set
         {
             switch (value)
             {
+                case Icon.None:
+                    this.imageIcon.sprite = null;
+                    break;
                 case Icon.Error:
-                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteError;
+                    this.imageIcon.sprite = this.spriteError;
                     break;
                 case Icon.Trophy:
-                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteTrophy;
+                    this.imageIcon.sprite = this.spriteTrophy;
                     break;
                 case Icon.Warning:
-                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteWarning;
+                    this.imageIcon.sprite = this.spriteWarning;
+                    break;
+                case Icon.Loading:
+                    this.imageIcon.sprite = this.spriteLoading;
                     break;
                 case Icon.Question:
-                    this.imageIconPanelOK.sprite = this.imageIconPanelOKCancel.sprite = this.spriteQuestion;
+                    this.imageIcon.sprite = this.spriteQuestion;
                     break;
             }
         }
     }
 
     public string MessageText 
-    { 
-        set => this.textMessagePanelOK.text = this.textMessagePanelOKCancel.text = value; 
+    {
+        set => this.textMessage.text = value; 
     }
 
     private void Awake()
@@ -146,6 +164,8 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
 
     public void Show()
     {
+        this.panelTemplate.gameObject.SetActive(true);
+
         switch (this.MessageBoxType)
         {
             case Type.OK:
@@ -159,6 +179,8 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
 
     public void Hide()
     {
+        this.panelTemplate.gameObject.SetActive(false);
+
         switch (this.MessageBoxType)
         {
             case Type.OK:
@@ -168,6 +190,10 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
                 this.panelOKCancel.gameObject.SetActive(false);
                 break;
         }
+
+        this.MessageText = String.Empty;
+        this.MessageBoxIcon = PanelMessageBoxUI.Icon.None;
+        this.MessageBoxType = PanelMessageBoxUI.Type.None;
     }
 
     private void HandleButtonConfirmPanelOKClicked() => this.ButtonConfirmPanelOKClicked?.Invoke();

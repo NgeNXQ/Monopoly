@@ -1,10 +1,31 @@
 fileFormatVersion: 2
-guid: 3d87a7ec59e3ab04d9e3c522ba0df7e1
+guid: 00be551b8ec16de4ba87657b2ca28ee2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1134032105938053371
-    second: Loading_0
+      213: 6936938283514872148
+    second: Loading (1) (1)_0
+  - first:
+      213: -5629587769537753994
+    second: Loading (1) (1)_1
+  - first:
+      213: -4384482936851565861
+    second: Loading (1) (1)_2
+  - first:
+      213: 7983420644351509720
+    second: Loading (1) (1)_3
+  - first:
+      213: 2122273252288772126
+    second: Loading (1) (1)_4
+  - first:
+      213: -2269368293873963356
+    second: Loading (1) (1)_5
+  - first:
+      213: 269577355939575614
+    second: Loading (1) (1)_6
+  - first:
+      213: 2278542181205614527
+    second: Loading (1) (1)_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +67,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -139,13 +160,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Loading_0
+      name: Loading (1) (1)_0
       rect:
         serializedVersion: 2
-        x: 17
-        y: 17
-        width: 166
-        height: 178
+        x: 34
+        y: 161
+        width: 61
+        height: 61
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -153,8 +174,155 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5079ca9decb1340f0800000000000000
-      internalID: -1134032105938053371
+      spriteID: 45146b98d94f44060800000000000000
+      internalID: 6936938283514872148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Loading (1) (1)_1
+      rect:
+        serializedVersion: 2
+        x: 114
+        y: 184
+        width: 28
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67c81dc10cfafd1b0800000000000000
+      internalID: -5629587769537753994
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Loading (1) (1)_2
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 161
+        width: 61
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd27339bfff2723c0800000000000000
+      internalID: -4384482936851565861
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Loading (1) (1)_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 114
+        width: 72
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8d4871f27cecace60800000000000000
+      internalID: 7983420644351509720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Loading (1) (1)_4
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 114
+        width: 72
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e183cf65744d37d10800000000000000
+      internalID: 2122273252288772126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Loading (1) (1)_5
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 34
+        width: 61
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4aeab137f859180e0800000000000000
+      internalID: -2269368293873963356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Loading (1) (1)_6
+      rect:
+        serializedVersion: 2
+        x: 114
+        y: 0
+        width: 28
+        height: 72
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e37744c4d2bbdb300800000000000000
+      internalID: 269577355939575614
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Loading (1) (1)_7
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 34
+        width: 61
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbf1184aa020f9f10800000000000000
+      internalID: 2278542181205614527
       vertices: []
       indices: 
       edges: []
@@ -162,14 +330,22 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Loading (1) (1)_0: 6936938283514872148
+      Loading (1) (1)_1: -5629587769537753994
+      Loading (1) (1)_2: -4384482936851565861
+      Loading (1) (1)_3: 7983420644351509720
+      Loading (1) (1)_4: 2122273252288772126
+      Loading (1) (1)_5: -2269368293873963356
+      Loading (1) (1)_6: 269577355939575614
+      Loading (1) (1)_7: 2278542181205614527
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

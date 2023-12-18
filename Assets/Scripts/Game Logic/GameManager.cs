@@ -45,11 +45,11 @@ internal sealed class GameManager : NetworkBehaviour
 
     private int rolledDoubles;
 
-    private List<Player> players;
+    private List<MonopolyPlayer> players;
 
     private int currentPlayerIndex;
 
-    public IReadOnlyList<Player> Players { get => this.players; }
+    public IReadOnlyList<MonopolyPlayer> Players { get => this.players; }
 
     public int FirstDieValue { get; set; }
 
@@ -67,7 +67,7 @@ internal sealed class GameManager : NetworkBehaviour
 
     public float PlayerMovementSpeed { get => this.playerMovementSpeed; }
 
-    public Player CurrentPlayer { get => this.players[this.currentPlayerIndex]; }
+    public MonopolyPlayer CurrentPlayer { get => this.players[this.currentPlayerIndex]; }
 
     public int TotalRollResult { get => this.FirstDieValue + this.SecondDieValue; }
 
@@ -79,7 +79,7 @@ internal sealed class GameManager : NetworkBehaviour
         {
             int index = 0; ;
 
-            foreach (Player player in this.players)
+            foreach (MonopolyPlayer player in this.players)
             {
                 if (player.OwnerClientId != this.CurrentPlayer.OwnerClientId)
                     this.targetOtherPlayers[index++] = player.OwnerClientId;
@@ -130,7 +130,7 @@ internal sealed class GameManager : NetworkBehaviour
 
     private void Start()
     {
-        this.players = new List<Player>();
+        this.players = new List<MonopolyPlayer>();
         this.targetCurrentPlayer = new ulong[1];
     }
 
@@ -161,9 +161,9 @@ internal sealed class GameManager : NetworkBehaviour
     [ClientRpc]
     private void DebugStartGameClientRpc(ClientRpcParams clientRpcParams = default)
     {
-        Player[] debugPlayers = FindObjectsOfType<Player>();
+        MonopolyPlayer[] debugPlayers = FindObjectsOfType<MonopolyPlayer>();
 
-        foreach (Player player in debugPlayers)
+        foreach (MonopolyPlayer player in debugPlayers)
         {
             this.players.Add(player);
             player.InitializePlayerClientRpc();

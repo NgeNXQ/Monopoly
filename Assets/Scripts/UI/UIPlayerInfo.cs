@@ -20,5 +20,5 @@ public sealed class UIPlayerInfo : NetworkBehaviour
         this.ImageLeftPanel.color = this.ImageRightPanel.color = color;
     }
 
-    public void UpdateBalance(Player player) => this.textPlayerBalance.text = $"₴ {player.Balance}";
+    public void UpdateBalance(MonopolyPlayer player) => this.textPlayerBalance.text = $"₴ {player.Balance}";
 }

@@ -56,7 +56,7 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public Type NodeType { get => this.type; }
 
-    public Player Owner { get; private set; }
+    public MonopolyPlayer Owner { get; private set; }
 
     public int Level { get; private set; }
 
@@ -101,7 +101,7 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     #region UpdateOwner
 
-    public void UpdateOwner(Player owner)
+    public void UpdateOwner(MonopolyPlayer owner)
     {
         this.UpdateOwner();
         this.SyncUpdateOwnerServerRpc();

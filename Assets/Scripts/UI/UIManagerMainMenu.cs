@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Services.Relay;
+using Unity.Services.Lobbies;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -10,28 +11,6 @@ using UnityEditor;
 
 internal sealed class UIManagerMainMenu : MonoBehaviour
 {
-    #region Loading Tab
-
-    [Space]
-    [Header("Loading Tab")]
-    [Space]
-
-    [Space]
-    [SerializeField] private Canvas loadingTab;
-
-    #region Controls
-
-    [Space]
-    [Header("Image Loading")]
-    [Space]
-
-    [Space]
-    [SerializeField] private Image imageLoading;
-
-    #endregion
-
-    #endregion
-
     #region Main Menu Tab
 
     [Space]
@@ -74,26 +53,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #endregion
 
-    #region Messages
-
-    [Space]
-    [Header("Messages")]
-    [Space]
-
-    [Space]
-    [SerializeField] private string messageNicknameEmpty;
-
-    [Space]
-    [SerializeField] private string messageNicknameTooLong;
-
-    [Space]
-    [SerializeField] private string messageNicknameTooShort;
-
-    [Space]
-    [SerializeField] private string messageConfirmClosingGame;
-
-    #endregion
-
     #endregion
 
     #region Connection Tab
@@ -121,13 +80,84 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #endregion
 
+    #region Join Code settings
+
+    [Space]
+    [Header("Settings Join Code")]
+    [Space]
+
+    [Space]
+    [SerializeField] private int joinCodeLength;
+
+    #endregion
+
+    #endregion
+
     #region Messages
+
+    [Space]
+    [Header("Messages")]
+    [Space]
+
+    #region General Information
+
+    [Space]
+    [Header("General Information")]
+    [Space]
+
+    [Space]
+    [SerializeField] private string messageEstablishingConnection;
+
+    #endregion
+
+    #region Code Validation
+
+    [Space]
+    [Header("Code Validation")]
+    [Space]
 
     [Space]
     [SerializeField] private string messageEmptyJoinCode;
 
     [Space]
-    [SerializeField] private string messageWrongJoinCode;
+    [SerializeField] private string messageInvalidLengthJoinCode;
+
+    #endregion
+
+    #region Nickname Validation
+
+    [Space]
+    [Header("Nickname Validation")]
+    [Space]
+
+    [Space]
+    [SerializeField] private string messageNicknameEmpty;
+
+    [Space]
+    [SerializeField] private string messageNicknameTooLong;
+
+    [Space]
+    [SerializeField] private string messageNicknameTooShort;
+
+    [Space]
+    [SerializeField] private string messageConfirmClosingGame;
+
+    #endregion
+
+    #region Establishing Connection
+
+    [Space]
+    [Header("Establishing Connection")]
+    [Space]
+
+    [Space]
+    [SerializeField] private string messageLobbyIsFull;
+
+    [Space]
+    [SerializeField] private string messageInvalidJoinCode;
+
+    [Space]
+    [SerializeField] private string messageFailedToJoinLobby;
 
     [Space]
     [SerializeField] private string messageGameCoordinatorIsDown;
@@ -157,11 +187,12 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         this.buttonCancel.onClick.AddListener(this.HandleButtonCancelClicked);
         this.buttonConnect.onClick.AddListener(this.HandleButtonConnectClicked);
 
-        this.PanelMessageBox.ButtonConfirmPanelOKCancelClicked += this.HandleCloseGame;
-        this.PanelMessageBox.ButtonConfirmPanelOKClicked += this.HandleClosePanelMessageBox;
-        this.PanelMessageBox.ButtonCancelPanelOKCancelClicked += this.HandleClosePanelMessageBox;
+        this.PanelMessageBox.ButtonConfirmPanelOKCancelClicked += this.HandleCloseGameCalled;
+        this.PanelMessageBox.ButtonConfirmPanelOKClicked += this.HandleClosePanelMessageBoxCalled;
+        this.PanelMessageBox.ButtonCancelPanelOKCancelClicked += this.HandleClosePanelMessageBoxCalled;
 
-        GameCoordinator.LocalInstance.EstablishingConnectionFailed += this.HandleEstablishingConnectionFailed;
+        GameCoordinator.Instance.EstablishingConnectionRelayFailed += this.HandleEstablishingConnectionRelayFailed;
+        GameCoordinator.Instance.EstablishingConnectionLobbyFailed += this.HandleEstablishingConnectionLobbyFailed;
     }
 
     private void OnDisable()
@@ -173,11 +204,12 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         this.buttonCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
         this.buttonConnect.onClick.RemoveListener(this.HandleButtonConnectClicked);
 
-        this.PanelMessageBox.ButtonConfirmPanelOKCancelClicked -= this.HandleCloseGame;
-        this.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.HandleClosePanelMessageBox;
-        this.PanelMessageBox.ButtonCancelPanelOKCancelClicked -= this.HandleClosePanelMessageBox;
+        this.PanelMessageBox.ButtonConfirmPanelOKCancelClicked -= this.HandleCloseGameCalled;
+        this.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.HandleClosePanelMessageBoxCalled;
+        this.PanelMessageBox.ButtonCancelPanelOKCancelClicked -= this.HandleClosePanelMessageBoxCalled;
 
-        GameCoordinator.LocalInstance.EstablishingConnectionFailed -= this.HandleEstablishingConnectionFailed;
+        GameCoordinator.Instance.EstablishingConnectionRelayFailed -= this.HandleEstablishingConnectionRelayFailed;
+        GameCoordinator.Instance.EstablishingConnectionLobbyFailed -= this.HandleEstablishingConnectionLobbyFailed;
     }
 
     #region Validation
@@ -213,64 +245,34 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (String.IsNullOrWhiteSpace(this.textBoxJoinCode.text))
         {
-            this.PanelMessageBox.MessageText = this.messageEmptyJoinCode;
-            this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
             this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Warning;
-            this.PanelMessageBox.Show();
-            return false;
+            this.PanelMessageBox.MessageText = this.messageEmptyJoinCode;
+        }
+        else if (this.textBoxJoinCode.text.Length != this.joinCodeLength)
+        {
+            this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+            this.PanelMessageBox.MessageText = this.messageInvalidLengthJoinCode;
         }
         else
         {
             return true;
         }
+
+        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+        this.PanelMessageBox.Show();
+        return false;
     }
 
     #endregion
 
     #region UI Callbacks
 
-    private void HandleCloseGame()
-    {
-#if UNITY_EDITOR
-        EditorApplication.ExitPlaymode();
-#endif
-
-        Application.Quit();
-    }
+    #region Flow Callbacks
 
     private void HandleButtonCancelClicked()
     {
         this.canvasMainMenuTab.gameObject.SetActive(true);
         this.canvasConnectionTab.gameObject.SetActive(false);
-    }
-
-    private void HandleButtonConnectClicked()
-    {
-        if (this.ValidateTextBoxJoinCode())
-        {
-            GameCoordinator.LocalInstance.ConnectLobbyAsync(this.textBoxJoinCode.text);
-        }
-    }
-
-    private void HandleClosePanelMessageBox()
-    {
-        this.PanelMessageBox.Hide();
-    }
-
-    private void HandleButtonHostLobbyClicked()
-    {
-        if (this.ValidateTextBoxNickname())
-        {
-            GameCoordinator.LocalInstance.HostLobbyAsync();
-        }
-    }
-
-    private void HandleButtonCloseGameClicked()
-    {
-        this.PanelMessageBox.MessageText = this.messageConfirmClosingGame;
-        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
-        this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
-        this.PanelMessageBox.Show();
     }
 
     private void HandleButtonConnectLobbyClicked()
@@ -284,15 +286,73 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #endregion
 
+    #region Functional Callbacks
+
+    private void HandleCloseGameCalled()
+    {
+#if UNITY_EDITOR
+        EditorApplication.ExitPlaymode();
+#else
+        Application.Quit();
+#endif
+    }
+
+    private void HandleButtonCloseGameClicked()
+    {
+        this.PanelMessageBox.MessageText = this.messageConfirmClosingGame;
+        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
+        this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
+        this.PanelMessageBox.Show();
+    }
+
+    private void HandleClosePanelMessageBoxCalled()
+    {
+        this.PanelMessageBox.Hide();
+    }
+
+    #endregion
+
+    #region Connection Callbacks
+
+    private async void HandleButtonConnectClicked()
+    {
+        if (this.ValidateTextBoxJoinCode())
+        {
+            this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+            this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+            this.PanelMessageBox.MessageText = this.messageEstablishingConnection;
+            this.PanelMessageBox.Show();
+
+            await GameCoordinator.Instance.ConnectLobbyAsync(GameCoordinator.Instance.InitializePlayer(this.textBoxNickname.text), this.textBoxJoinCode.text);
+        }
+    }
+
+    private async void HandleButtonHostLobbyClicked()
+    {
+        if (this.ValidateTextBoxNickname())
+        {
+            this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+            this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+            this.PanelMessageBox.MessageText = this.messageEstablishingConnection;
+            this.PanelMessageBox.Show();
+
+            await GameCoordinator.Instance.HostLobbyAsync(GameCoordinator.Instance.InitializePlayer(this.textBoxNickname.text));
+        }
+    }
+
+    #endregion
+
+    #endregion
+
     #region GameCoordinator Callbacks
 
-    private void HandleEstablishingConnectionFailed(RelayServiceException relayServiceException)
+    private void HandleEstablishingConnectionRelayFailed(RelayServiceException relayServiceException)
     {
         switch (relayServiceException.Reason)
         {
             case RelayExceptionReason.InvalidRequest:
             case RelayExceptionReason.JoinCodeNotFound:
-                this.PanelMessageBox.MessageText = this.messageWrongJoinCode;
+                this.PanelMessageBox.MessageText = this.messageInvalidJoinCode;
                 break;
             case RelayExceptionReason.NetworkError:
             case RelayExceptionReason.EntityNotFound:
@@ -303,6 +363,31 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
                 break;
             default:
                 this.PanelMessageBox.MessageText = relayServiceException.Message;
+                break;
+        }
+
+        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+        this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+        this.PanelMessageBox.Show();
+    }
+
+    private void HandleEstablishingConnectionLobbyFailed(LobbyServiceException lobbyServiceException)
+    {
+        switch (lobbyServiceException.Reason)
+        {
+            case LobbyExceptionReason.LobbyFull:
+                this.PanelMessageBox.MessageText = this.messageLobbyIsFull;
+                break;
+            case LobbyExceptionReason.LobbyNotFound:
+            case LobbyExceptionReason.InvalidJoinCode:
+                this.PanelMessageBox.MessageText = this.messageInvalidJoinCode;
+                break;
+            case LobbyExceptionReason.LobbyConflict:
+            case LobbyExceptionReason.LobbyAlreadyExists:
+                this.PanelMessageBox.MessageText = this.messageFailedToJoinLobby;
+                break;
+            default:
+                this.PanelMessageBox.MessageText = lobbyServiceException.Message;
                 break;
         }
 
