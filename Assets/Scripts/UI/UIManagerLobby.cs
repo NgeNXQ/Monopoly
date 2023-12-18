@@ -1,7 +1,8 @@
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using Unity.Services.Lobbies.Models;
 
 internal sealed class UIManagerLobby : MonoBehaviour
 {
@@ -86,19 +87,21 @@ internal sealed class UIManagerLobby : MonoBehaviour
 
     private void OnEnable()
     {
+        this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGame);
         this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClicked);
 
-        //LobbyManager.LocalInstance.ClientConnected += this.ShowPlayerControls;
-        //LobbyManager.LocalInstance.ClientConnected += this.UpdatePlayersList;
+        PanelMessageBox.ButtonConfirmPanelOKCancelClicked += this.OKPanelMessageBoxClicked;
+        PanelMessageBox.ButtonCancelPanelOKCancelClicked += this.CancelPanelMessageBoxClicked;
+
     }
 
     private void OnDisable()
     {
+        this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGame);
         this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
 
-        //LobbyManager.LocalInstance.ClientConnected -= this.ShowPlayerControls;
-
-        //LobbyManager.LocalInstance.ClientConnected -= this.UpdatePlayersList;
+        PanelMessageBox.ButtonConfirmPanelOKCancelClicked -= this.OKPanelMessageBoxClicked;
+        PanelMessageBox.ButtonCancelPanelOKCancelClicked -= this.CancelPanelMessageBoxClicked;
     }
 
     private void Start()
@@ -106,11 +109,31 @@ internal sealed class UIManagerLobby : MonoBehaviour
         this.labelJoinCode.text = LobbyManager.LocalInstance.JoinCode;
     }
 
-    public void UpdatePlayersList()
+    public void ShowPlayerControls(Player player)
     {
-        //string pla
-        //this.panelPlayerLobby.PlayerNickname = LobbyManager.LocalInstance.LastConnectedPlayer.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-        GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
+        if (player.Id == LobbyManager.LocalInstance.CurrentLobby.HostId)
+        {
+            this.canvasHost.gameObject.SetActive(true);
+        }
+        else
+        {
+            this.canvasClient.gameObject.SetActive(true);
+        }
+    }
+
+    private async void OKPanelMessageBoxClicked()
+    {
+        await LobbyManager.LocalInstance.DisconnectLobby();
+    }
+
+    private void HandleButtonStartGame()
+    {
+        LobbyManager.LocalInstance.StartGame();
+    }
+
+    private void CancelPanelMessageBoxClicked()
+    {
+        this.PanelMessageBox.Hide();
     }
 
     private void HandleButtonDisconnectClicked()
@@ -121,16 +144,18 @@ internal sealed class UIManagerLobby : MonoBehaviour
         this.PanelMessageBox.Show();
     }
 
-    private void ShowPlayerControls()
+    public void UpdatePlayersList(Player player)
     {
-        if (LobbyManager.LocalInstance.LastConnectedPlayer.Id == LobbyManager.LocalInstance.CurrentLobby.HostId)
-        {
-            this.canvasHost.gameObject.SetActive(true);
-        }
-        else
-        {
-            this.canvasClient.gameObject.SetActive(true);
-        }
+        this.panelPlayerLobby.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+        GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
     }
 
+    public void FillPlayersList(List<Player> players)
+    {
+        foreach (Player player in players)
+        {
+            this.panelPlayerLobby.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+            GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
+        }
+    }
 }

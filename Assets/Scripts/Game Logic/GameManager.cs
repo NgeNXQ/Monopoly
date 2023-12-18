@@ -37,6 +37,111 @@ internal sealed class GameManager : NetworkBehaviour
 
     #endregion
 
+
+
+
+
+    //private ulong[] targetAllClients;
+    //private ulong[] targetOtherClients;
+    //private ulong[] targetCurrentClient;
+    //private ulong[] targetAllClientsExceptHost;
+
+
+    //private ulong[] TargetAllClients
+    //{
+    //    get
+    //    {
+    //        this.targetAllClients[0] = 0;
+    //        return this.targetAllClients;
+    //    }
+    //}
+
+    //private ulong[] TargetOtherClients
+    //{
+    //    get
+    //    {
+    //        this.targetOtherClients[0] = 0;
+    //        return this.targetOtherClients;
+    //    }
+    //}
+
+    //private ulong[] TargetCurrentClient
+    //{
+    //    get
+    //    {
+    //        this.targetCurrentClient[0] = 0;
+    //        return this.targetCurrentClient;
+    //    }
+    //}
+
+    //private ulong[] TargetAllClientsExceptHost
+    //{
+    //    get
+    //    {
+    //        this.targetAllClientsExceptHost[0] = 0;
+    //        return this.targetAllClientsExceptHost;
+    //    }
+    //}
+
+    //public ClientRpcParams TargetAllClientsParams
+    //{
+    //    get
+    //    {
+    //        return new ClientRpcParams
+    //        {
+    //            Send = new ClientRpcSendParams { TargetClientIds = this.TargetAllClients }
+    //        };
+    //    }
+    //}
+
+    //public ClientRpcParams TargetOtherClientsParams
+    //{
+    //    get
+    //    {
+    //        return new ClientRpcParams
+    //        {
+    //            Send = new ClientRpcSendParams { TargetClientIds = this.TargetOtherClients }
+    //        };
+    //    }
+    //}
+
+    //public ClientRpcParams TargetCurrentClientParams
+    //{
+    //    get
+    //    {
+    //        return new ClientRpcParams
+    //        {
+    //            Send = new ClientRpcSendParams { TargetClientIds = this.TargetCurrentClient }
+    //        };
+    //    }
+    //}
+
+    //public ClientRpcParams TargetAllClientsGameLobby
+    //{
+    //    get
+    //    {
+    //        return new ClientRpcParams
+    //        {
+    //            Send = new ClientRpcSendParams { TargetClientIds = this.targetAllClientsGameLobby.ToArray() }
+    //        };
+    //    }
+    //}
+
+
+    //public ServerRpcParams SenderCurrentClientParams
+    //{
+    //    get
+    //    {
+    //        return new ServerRpcParams
+    //        {
+    //            Receive = new ServerRpcReceiveParams { SenderClientId = NetworkManager.LocalClientId }
+    //        };
+    //    }
+    //}
+
+
+
+
     public static GameManager Instance { get; private set; }
 
     private ulong[] targetOtherPlayers;

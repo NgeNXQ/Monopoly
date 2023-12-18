@@ -53,13 +53,11 @@ internal sealed class GameCoordinator : MonoBehaviour
     private void OnEnable()
     {
         SceneManager.sceneLoaded += this.HandleSceneLoaded;
-        LobbyManager.LocalInstance.HostDisconnected += this.HandleHostDisconnected;
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= this.HandleSceneLoaded;
-        LobbyManager.LocalInstance.HostDisconnected -= this.HandleHostDisconnected;
     }
 
     private async void Start()
@@ -84,15 +82,6 @@ internal sealed class GameCoordinator : MonoBehaviour
         this.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
     }
 
-    #region Event Callbacks
-
-    private void HandleHostDisconnected()
-    {
-        this.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
-    }
-
-    #endregion
-
     #region Scenes Management
 
     public void LoadScene(MonopolyScene scene)
@@ -113,7 +102,10 @@ internal sealed class GameCoordinator : MonoBehaviour
                 this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
                 break;
             case nameof(GameCoordinator.MonopolyScene.GameLobby):
-                this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
+                {
+                    this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
+                    LobbyManager.LocalInstance.GameLobbyLoaded?.Invoke();
+                }
                 break;
             case nameof(GameCoordinator.MonopolyScene.MonopolyGame):
                 this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
@@ -127,7 +119,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     public Player InitializePlayer(string nickname)
     {
-        Player player = new Player
+        Player player = new Player(AuthenticationService.Instance.PlayerId)
         {
             Data = new Dictionary<string, PlayerDataObject>
             {

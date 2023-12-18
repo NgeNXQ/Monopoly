@@ -5,14 +5,10 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
-// TODO: Implement upgrading
-// TODO: Implement Chance node full logic
-// TODO: Implement insufficient funds
-
-// TODO: Implement trading
 // TODO: Implement lobby
 // TODO: Implement surrendering
-// TODO: Write all values and messages
+// TODO: Implement upgrading
+// TODO: Implement trading
 
 public sealed class MonopolyPlayer : NetworkBehaviour
 {

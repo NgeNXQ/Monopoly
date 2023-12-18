@@ -1,41 +1,42 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using Unity.Netcode;
 using System.Collections;
 using System.Threading.Tasks;
 using Unity.Services.Lobbies;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 using Unity.Services.Lobbies.Models;
+using Unity.Netcode;
 
-internal sealed class LobbyManager : NetworkBehaviour
+internal sealed class LobbyManager : MonoBehaviour
 {
     private const float LOBBY_UPTIME = 25.0f;
 
     public const string KEY_PLAYER_NICKNAME = "Nickname";
 
-    private Player localPlayer;
+    private LobbyEventCallbacks lobbyEventCallbacks;
 
     private string lobbyName { get => $"LOBBY_{this.JoinCode}"; }
 
     public static LobbyManager LocalInstance { get; private set; }
 
-    public Action ClientLoaded;
+    public Action GameLobbyLoaded;
 
-    public Action HostDisconnected;
+    //public Action HostDisconnected;
 
-    public Action<ClientRpcParams> ClientConnected;
+    //public Action<ClientRpcParams> ClientConnected;
 
-    public Action<ClientRpcParams> ClientDisconnected;
+    //public Action<ServerRpcParams> ClientConnected;
+
+    //public Action<ClientRpcParams> ClientDisconnected;
+
+    //public Action<ClientRpcParams> ClientDisconnected;
 
     public string JoinCode { get; private set; }
 
+    public Player LocalPlayer { get; private set; }
+
     public Lobby CurrentLobby { get; private set; }
-
-    public Player LastConnectedPlayer { get => this.CurrentLobby.Players.Last(); }
-
-    public IReadOnlyList<Player> ConnectedPlayers { get => this.CurrentLobby.Players; }
 
     private void Awake()
     {
@@ -48,35 +49,75 @@ internal sealed class LobbyManager : NetworkBehaviour
 
     private void OnEnable()
     {
-        //this.ClientConnected += this.HandleClientConnected;
-        //this.ClientDisconnected += this.HandleClientDisconnected;
+        this.GameLobbyLoaded += this.HandleLocalLobbyLoaded;
 
-        UIManagerLobby.Instance.PanelMessageBox.ButtonCancelPanelOKCancelClicked += this.HandleCancelDisconnectClicked;
-        UIManagerLobby.Instance.PanelMessageBox.ButtonConfirmPanelOKCancelClicked += this.HandleConfirmDisconnectClicked;
+        this.lobbyEventCallbacks = new LobbyEventCallbacks();
+
+        this.lobbyEventCallbacks.LobbyDeleted += this.HandleLobbyDeleted;
+        this.lobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
+        this.lobbyEventCallbacks.KickedFromLobby += this.HandlePlayerDisconnected;
     }
 
     private void OnDisable()
     {
-        if (GameCoordinator.Instance.ActiveScene == GameCoordinator.MonopolyScene.GameLobby)
-        {
-            //this.ClientConnected -= this.HandleClientConnected;
-            //this.ClientDisconnected -= this.HandleClientDisconnected;
+        this.GameLobbyLoaded -= this.HandleLocalLobbyLoaded;
 
-            UIManagerLobby.Instance.PanelMessageBox.ButtonCancelPanelOKCancelClicked -= this.HandleCancelDisconnectClicked;
-            UIManagerLobby.Instance.PanelMessageBox.ButtonConfirmPanelOKCancelClicked -= this.HandleConfirmDisconnectClicked;
-        }
+        this.lobbyEventCallbacks = new LobbyEventCallbacks();
+
+        this.lobbyEventCallbacks.LobbyDeleted -= this.HandleLobbyDeleted;
+        this.lobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
+        this.lobbyEventCallbacks.KickedFromLobby -= this.HandlePlayerDisconnected;
     }
+
+    #region UI Callbacks
+
+    public void StartGame()
+    {
+        GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.MonopolyGame);
+    }
+
+    private void HandleCancelDisconnectClicked()
+    {
+        UIManagerLobby.Instance.PanelMessageBox.Hide();
+    }
+
+    #endregion
+
+    #region Lobby Connect & Disconnect
 
     public async Task DisconnectLobby()
     {
-        //this.ClientDisconnected?.Invoke();
-        await LobbyService.Instance.RemovePlayerAsync(this.CurrentLobby.Id, this.localPlayer.Id);
+        Debug.Log(this.LocalPlayer.Id);
+        Debug.Log(this.CurrentLobby.Id);
+        Debug.Log(this.CurrentLobby.HostId);
+
+        Debug.Log("1");
+
+        if (this.LocalPlayer.Id == this.CurrentLobby.HostId)
+        {
+            Debug.Log("2");
+            await LobbyService.Instance.DeleteLobbyAsync(this.CurrentLobby.Id);
+        }
+        else
+        {
+            Debug.Log("3");
+            await LobbyService.Instance.RemovePlayerAsync(this.CurrentLobby.Id, this.LocalPlayer.Id);
+        }
+
+        Debug.Log("4");
+        this.CurrentLobby = null;
+        NetworkManager.Singleton.DisconnectClient(NetworkManager.Singleton.LocalClientId);
+
+        Debug.Log("5");
+
+        Debug.Log(NetworkManager.Singleton.IsClient);
+        Debug.Log(NetworkManager.Singleton.IsHost);
     }
 
     public async Task HostLobby(Player player, string joinCode)
     {
         this.JoinCode = joinCode;
-        this.localPlayer = player;
+        this.LocalPlayer = player;
 
         CreateLobbyOptions lobbyOptions = new CreateLobbyOptions
         {
@@ -87,6 +128,8 @@ internal sealed class LobbyManager : NetworkBehaviour
         try
         {
             this.CurrentLobby = await LobbyService.Instance.CreateLobbyAsync(this.lobbyName, GameCoordinator.MAX_PLAYERS, lobbyOptions);
+
+            ILobbyEvents currentLobbyEvents = await LobbyService.Instance.SubscribeToLobbyEventsAsync(this.CurrentLobby.Id, this.lobbyEventCallbacks);
         }
         catch (LobbyServiceException lobbyServiceException)
         {
@@ -101,7 +144,7 @@ internal sealed class LobbyManager : NetworkBehaviour
     public async Task ConnectLobby(Player player, string joinCode)
     {
         this.JoinCode = joinCode;
-        this.localPlayer = player;
+        this.LocalPlayer = player;
 
         try
         {
@@ -116,6 +159,8 @@ internal sealed class LobbyManager : NetworkBehaviour
             QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync(queryLobbiesOptions);
 
             this.CurrentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(queryResponse.Results.First().Id, new JoinLobbyByIdOptions() { Player = player });
+
+            ILobbyEvents currentLobbyEvents = await LobbyService.Instance.SubscribeToLobbyEventsAsync(this.CurrentLobby.Id, this.lobbyEventCallbacks);
         }
         catch (LobbyServiceException lobbyServiceException)
         {
@@ -134,31 +179,53 @@ internal sealed class LobbyManager : NetworkBehaviour
         }
     }
 
+    #endregion
+
     #region Connect & Disconnect Callbacks
 
-    private void HandleClientConnected()
+    private async void HandleLobbyDeleted()
     {
-        
+        Debug.Log("In HandleLobbyDeleted 1");
+
+        if (this.LocalPlayer.Id != this.CurrentLobby.HostId)
+        {
+            Debug.Log("In HandleLobbyDeleted 2");
+
+            await this.DisconnectLobby();
+        }
     }
 
-    private void HandleClientDisconnected()
+    private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayer)
     {
-        GameCoordinator.Instance.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
+        UIManagerLobby.Instance.UpdatePlayersList(joinedPlayer.First().Player);
+    }
+
+    private void HandlePlayerDisconnected()
+    {
+        //UIManagerLobby.Instance.PanelMessageBox.ButtonCancelPanelOKCancelClicked -= this.HandleCancelDisconnectClicked;
+        //UIManagerLobby.Instance.PanelMessageBox.ButtonConfirmPanelOKCancelClicked -= this.HandleConfirmDisconnectClicked;
+
+        Debug.Log("Disconnected");
+    }
+
+    private void HandleLocalLobbyLoaded()
+    {
+        //UIManagerLobby.Instance.PanelMessageBox.ButtonCancelPanelOKCancelClicked += this.HandleCancelDisconnectClicked;
+        //UIManagerLobby.Instance.PanelMessageBox.ButtonConfirmPanelOKCancelClicked += this.HandleConfirmDisconnectClicked;
+
+        UIManagerLobby.Instance.ShowPlayerControls(this.LocalPlayer);
+        UIManagerLobby.Instance.FillPlayersList(this.CurrentLobby.Players);
     }
 
     #endregion
 
-    #region UI Disconnect Callbacks
-
-    private void HandleCancelDisconnectClicked()
+    private void Update()
     {
-        UIManagerLobby.Instance.PanelMessageBox.Hide();
-    }
+        if (this.CurrentLobby != null)
+        {
+            Debug.Log(this.CurrentLobby.LastUpdated);
+        }
 
-    private async void HandleConfirmDisconnectClicked()
-    {
-        await this.DisconnectLobby();
-    }
 
-    #endregion
+    }
 }
