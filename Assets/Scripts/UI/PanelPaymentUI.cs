@@ -34,7 +34,7 @@ internal sealed class PanelPaymentUI : MonoBehaviour //, IControlUI, IButtonHand
 
     public static PanelPaymentUI Instance { get; private set; }
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmClicked;
+    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
@@ -48,13 +48,13 @@ internal sealed class PanelPaymentUI : MonoBehaviour //, IControlUI, IButtonHand
         Instance = this;
     }
 
-    private void OnEnable() => this.buttonConfirm.onClick.AddListener(this.HandleButtonConfirmClicked);
+    //private void OnEnable() => this.buttonConfirm.onClick.AddListener(this.HandleButtonConfirmClicked);
 
-    private void OnDisable() => this.buttonConfirm.onClick.RemoveListener(this.HandleButtonConfirmClicked);
+    //private void OnDisable() => this.buttonConfirm.onClick.RemoveListener(this.HandleButtonConfirmClicked);
 
     public void Show() => this.panel.gameObject.SetActive(true);
 
     public void Hide() => this.panel.gameObject.SetActive(false);
 
-    private void HandleButtonConfirmClicked() => this.ButtonConfirmClicked?.Invoke();
+    //private void HandleButtonConfirmClicked() => this.ButtonConfirmClicked?.Invoke();
 }

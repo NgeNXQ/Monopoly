@@ -36,9 +36,9 @@ internal sealed class PanelOfferUI : MonoBehaviour //, IControlUI, IButtonHandle
 
     public static PanelOfferUI Instance { get; private set; }
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonAcceptClicked;
+    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonAcceptClicked;
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonDeclineClicked;
+    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonDeclineClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
@@ -54,21 +54,21 @@ internal sealed class PanelOfferUI : MonoBehaviour //, IControlUI, IButtonHandle
 
     private void OnEnable()
     {
-        this.buttonAccept.onClick.AddListener(this.HandleButtonAcceptClicked);
-        this.buttonDecline.onClick.AddListener(this.HandleButtonDeclineClicked);
+        //this.buttonAccept.onClick.AddListener(this.HandleButtonAcceptClicked);
+        //this.buttonDecline.onClick.AddListener(this.HandleButtonDeclineClicked);
     }
 
     private void OnDisable()
     {
-        this.buttonAccept.onClick.RemoveListener(this.HandleButtonAcceptClicked);
-        this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
+        //this.buttonAccept.onClick.RemoveListener(this.HandleButtonAcceptClicked);
+        //this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
     }
 
     public void Show() => this.panel.gameObject.SetActive(true);
 
     public void Hide() => this.panel.gameObject.SetActive(false);
 
-    private void HandleButtonAcceptClicked() => this.ButtonAcceptClicked?.Invoke();
+    //private void HandleButtonAcceptClicked() => this.ButtonAcceptClicked?.Invoke();
 
-    private void HandleButtonDeclineClicked() => this.ButtonDeclineClicked?.Invoke();
+    //private void HandleButtonDeclineClicked() => this.ButtonDeclineClicked?.Invoke();
 }

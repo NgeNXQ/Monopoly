@@ -2,7 +2,7 @@
 using Unity.Netcode;
 using UnityEngine.UI;
 
-internal sealed class UIManagerMonopoly : MonoBehaviour //, IButtonHandlerUI
+internal sealed class UIManagerMonopoly : MonoBehaviour
 {
     #region Visuals
 
@@ -100,7 +100,7 @@ internal sealed class UIManagerMonopoly : MonoBehaviour //, IButtonHandlerUI
 
     public static UIManagerMonopoly Instance { get; private set; }
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonRollDiceClicked;
+    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonRollDiceClicked;
 
     public PanelInfoUI PanelInfo { get => PanelInfoUI.Instance; }
 
@@ -122,15 +122,15 @@ internal sealed class UIManagerMonopoly : MonoBehaviour //, IButtonHandlerUI
         Instance = this;
     }
 
-    private void OnEnable()
-    {
-        this.buttonRollDice.onClick.AddListener(this.HandleButtonRollDiceClicked);
-    }
+    //private void OnEnable()
+    //{
+    //    this.buttonRollDice.onClick.AddListener(this.HandleButtonRollDiceClicked);
+    //}
 
-    private void OnDisable()
-    {
-        this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
-    }
+    //private void OnDisable()
+    //{
+    //    this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
+    //}
 
     #endregion
 
@@ -180,5 +180,5 @@ internal sealed class UIManagerMonopoly : MonoBehaviour //, IButtonHandlerUI
 
     #endregion
 
-    private void HandleButtonRollDiceClicked() => this.ButtonRollDiceClicked?.Invoke();
+    //private void HandleButtonRollDiceClicked() => this.ButtonRollDiceClicked?.Invoke();
 }

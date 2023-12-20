@@ -36,9 +36,9 @@ internal sealed class PanelMonopolyNodeUI : MonoBehaviour //, IControlUI, IButto
 
     public static PanelMonopolyNodeUI Instance { get; private set; }
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonUpgradeClicked;
+    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonUpgradeClicked;
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonDowngradeClicked;
+    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonDowngradeClicked;
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
@@ -54,21 +54,21 @@ internal sealed class PanelMonopolyNodeUI : MonoBehaviour //, IControlUI, IButto
 
     private void OnEnable()
     {
-        this.buttonUpgrade.onClick.AddListener(this.HandleButtonUpgradeClicked);
-        this.buttonDowngrade.onClick.AddListener(this.HandleButtonDowngradeClicked);
+        //this.buttonUpgrade.onClick.AddListener(this.HandleButtonUpgradeClicked);
+        //this.buttonDowngrade.onClick.AddListener(this.HandleButtonDowngradeClicked);
     }
 
     private void OnDisable()
     {
-        this.buttonUpgrade.onClick.RemoveListener(this.HandleButtonUpgradeClicked);
-        this.buttonDowngrade.onClick.RemoveListener(this.HandleButtonDowngradeClicked);
+        //this.buttonUpgrade.onClick.RemoveListener(this.HandleButtonUpgradeClicked);
+        //this.buttonDowngrade.onClick.RemoveListener(this.HandleButtonDowngradeClicked);
     }
 
     public void Show() => this.panel.gameObject.SetActive(true);
 
     public void Hide() => this.panel.gameObject.SetActive(false);
 
-    private void HandleButtonUpgradeClicked() => this.ButtonUpgradeClicked?.Invoke();
+    //private void HandleButtonUpgradeClicked() => this.ButtonUpgradeClicked?.Invoke();
 
-    private void HandleButtonDowngradeClicked() => this.ButtonDowngradeClicked?.Invoke();
+    //private void HandleButtonDowngradeClicked() => this.ButtonDowngradeClicked?.Invoke();
 }

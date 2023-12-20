@@ -1,4 +1,5 @@
 using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -6,6 +7,12 @@ using Unity.Services.Lobbies.Models;
 
 internal sealed class UIManagerLobby : MonoBehaviour
 {
+    #region Setup
+
+    [Space]
+    [Header("Setup")]
+    [Space]
+
     #region Host Controls
 
     [Space]
@@ -69,11 +76,30 @@ internal sealed class UIManagerLobby : MonoBehaviour
     [Space]
 
     [Space]
+    [SerializeField] private string messageLoadingGame;
+
+    [Space]
+    [SerializeField] private string messageDisconnecting;
+
+    [Space]
+    [SerializeField] private string messageConfirmStartGame;
+
+    [Space]
+    [SerializeField] private string messageHostDisconnected;
+
+    [Space]
     [SerializeField] private string messageConfirmDisconnect;
 
     #endregion
 
+    #endregion
+
     public static UIManagerLobby Instance { get; private set; }
+
+    public string MessageHostDisconnected 
+    { 
+        get => this.messageHostDisconnected; 
+    }
 
     public PanelMessageBoxUI PanelMessageBox { get => PanelMessageBoxUI.Instance; }
 
@@ -85,55 +111,75 @@ internal sealed class UIManagerLobby : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        this.labelJoinCode.text = LobbyManager.Instance.JoinCode;
+    }
+
     private void OnEnable()
     {
         this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGame);
         this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClicked);
-
-        PanelMessageBox.ButtonConfirmPanelOKCancelClicked += this.OKPanelMessageBoxClicked;
-        PanelMessageBox.ButtonCancelPanelOKCancelClicked += this.CancelPanelMessageBoxClicked;
-
     }
 
     private void OnDisable()
     {
         this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGame);
         this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
-
-        PanelMessageBox.ButtonConfirmPanelOKCancelClicked -= this.OKPanelMessageBoxClicked;
-        PanelMessageBox.ButtonCancelPanelOKCancelClicked -= this.CancelPanelMessageBoxClicked;
     }
 
-    private void Start()
+    public void ShowHostControls()
     {
-        this.labelJoinCode.text = LobbyManager.LocalInstance.JoinCode;
+        this.canvasHost.gameObject.SetActive(true);
     }
 
-    public void ShowPlayerControls(Player player)
+    public void ShowClientControls()
     {
-        if (player.Id == LobbyManager.LocalInstance.CurrentLobby.HostId)
+        this.canvasClient.gameObject.SetActive(true);
+    }
+
+    public void AddPlayerToList(Player player)
+    {
+        PanelPlayerLobbyUI newPanelPlayer = GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
+        newPanelPlayer.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+        newPanelPlayer.name = player.Id;
+    }
+
+    public void RemovePlayerFromList(int playerIndex)
+    {
+        GameObject.Destroy(this.canvaslPlayersList.transform.GetChild(playerIndex).gameObject);
+    }
+
+    public void InitializePlayersList(List<Player> players)
+    {
+        foreach (Player player in players)
         {
-            this.canvasHost.gameObject.SetActive(true);
-        }
-        else
-        {
-            this.canvasClient.gameObject.SetActive(true);
-        }
-    }
+            this.panelPlayerLobby.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
 
-    private async void OKPanelMessageBoxClicked()
-    {
-        await LobbyManager.LocalInstance.DisconnectLobby();
+            PanelPlayerLobbyUI newPanelPlayer = GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
+            newPanelPlayer.name = player.Id;
+        }
     }
 
     private void HandleButtonStartGame()
     {
-        LobbyManager.LocalInstance.StartGame();
+        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
+        this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
+        this.PanelMessageBox.MessageText = this.messageConfirmStartGame;
+        this.PanelMessageBox.Show(this.InvokeButtonStartGameCallback);
     }
 
-    private void CancelPanelMessageBoxClicked()
+    private void InvokeButtonStartGameCallback()
     {
-        this.PanelMessageBox.Hide();
+        if (this.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK) 
+        {
+            this.PanelMessageBox.MessageText = this.messageLoadingGame;
+            this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+            this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+            this.PanelMessageBox.Show(null);
+
+            LobbyManager.Instance.StartGame();
+        }
     }
 
     private void HandleButtonDisconnectClicked()
@@ -141,21 +187,19 @@ internal sealed class UIManagerLobby : MonoBehaviour
         this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
         this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
         this.PanelMessageBox.MessageText = this.messageConfirmDisconnect;
-        this.PanelMessageBox.Show();
+        this.PanelMessageBox.Show(this.InvokeButtonDisconnectCallback);
     }
 
-    public void UpdatePlayersList(Player player)
+    private async void InvokeButtonDisconnectCallback()
     {
-        this.panelPlayerLobby.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-        GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
-    }
-
-    public void FillPlayersList(List<Player> players)
-    {
-        foreach (Player player in players)
+        if (this.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
-            this.panelPlayerLobby.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-            GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
+            this.PanelMessageBox.MessageText = this.messageDisconnecting;
+            this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+            this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+            this.PanelMessageBox.Show(null);
+
+            await LobbyManager.Instance.DisconnectLobby();
         }
     }
 }

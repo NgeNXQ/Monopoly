@@ -3,6 +3,12 @@ using UnityEngine;
 
 public sealed class PanelPlayerLobbyUI : MonoBehaviour
 {
+    #region Setup
+
+    [Space]
+    [Header("Setup")]
+    [Space]
+
     #region Visuals
 
     [Space]
@@ -13,5 +19,12 @@ public sealed class PanelPlayerLobbyUI : MonoBehaviour
 
     #endregion
 
-    public string PlayerNickname { set => this.textLabelPlayerNickname.text = value; }
+    #endregion
+
+    public int PlayerNumber { get; set; }
+
+    public string PlayerNickname 
+    {
+        set => this.textLabelPlayerNickname.text = value; 
+    }
 }

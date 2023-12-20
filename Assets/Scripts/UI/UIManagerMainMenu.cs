@@ -11,6 +11,12 @@ using UnityEditor;
 
 internal sealed class UIManagerMainMenu : MonoBehaviour
 {
+    #region Setup
+
+    [Space]
+    [Header("Setup")]
+    [Space]
+
     #region Main Menu Tab
 
     [Space]
@@ -166,6 +172,8 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #endregion
 
+    #endregion
+
     public static UIManagerMainMenu Instance { get; private set; }
 
     private PanelMessageBoxUI PanelMessageBox { get => PanelMessageBoxUI.Instance; }
@@ -178,38 +186,35 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        this.textBoxNickname.text = PlayerPrefs.GetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS);
+    }
+
     private void OnEnable()
     {
+        this.buttonCancel.onClick.AddListener(this.HandleButtonCancelClicked);
+        this.buttonConnect.onClick.AddListener(this.HandleButtonConnectClicked);
+
         this.buttonCloseGame.onClick.AddListener(this.HandleButtonCloseGameClicked);
         this.buttonHostLobby.onClick.AddListener(this.HandleButtonHostLobbyClicked);
         this.buttonConnectLobby.onClick.AddListener(this.HandleButtonConnectLobbyClicked);
 
-        this.buttonCancel.onClick.AddListener(this.HandleButtonCancelClicked);
-        this.buttonConnect.onClick.AddListener(this.HandleButtonConnectClicked);
-
-        this.PanelMessageBox.ButtonConfirmPanelOKCancelClicked += this.HandleCloseGameCalled;
-        this.PanelMessageBox.ButtonConfirmPanelOKClicked += this.HandleClosePanelMessageBoxCalled;
-        this.PanelMessageBox.ButtonCancelPanelOKCancelClicked += this.HandleClosePanelMessageBoxCalled;
-
-        GameCoordinator.Instance.EstablishingConnectionRelayFailed += this.HandleEstablishingConnectionRelayFailed;
-        GameCoordinator.Instance.EstablishingConnectionLobbyFailed += this.HandleEstablishingConnectionLobbyFailed;
+        GameCoordinator.Instance.OnEstablishingConnectionRelayFailed += this.HandleEstablishingConnectionRelayFailed;
+        GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed += this.HandleEstablishingConnectionLobbyFailed;
     }
 
     private void OnDisable()
     {
+        this.buttonCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
+        this.buttonConnect.onClick.RemoveListener(this.HandleButtonConnectClicked);
+
         this.buttonCloseGame.onClick.RemoveListener(this.HandleButtonCloseGameClicked);
         this.buttonHostLobby.onClick.RemoveListener(this.HandleButtonHostLobbyClicked);
         this.buttonConnectLobby.onClick.RemoveListener(this.HandleButtonConnectLobbyClicked);
 
-        this.buttonCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
-        this.buttonConnect.onClick.RemoveListener(this.HandleButtonConnectClicked);
-
-        this.PanelMessageBox.ButtonConfirmPanelOKCancelClicked -= this.HandleCloseGameCalled;
-        this.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.HandleClosePanelMessageBoxCalled;
-        this.PanelMessageBox.ButtonCancelPanelOKCancelClicked -= this.HandleClosePanelMessageBoxCalled;
-
-        GameCoordinator.Instance.EstablishingConnectionRelayFailed -= this.HandleEstablishingConnectionRelayFailed;
-        GameCoordinator.Instance.EstablishingConnectionLobbyFailed -= this.HandleEstablishingConnectionLobbyFailed;
+        GameCoordinator.Instance.OnEstablishingConnectionRelayFailed -= this.HandleEstablishingConnectionRelayFailed;
+        GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed -= this.HandleEstablishingConnectionLobbyFailed;
     }
 
     #region Validation
@@ -237,7 +242,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         }
 
         this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        this.PanelMessageBox.Show();
+        this.PanelMessageBox.Show(null);
         return false;
     }
 
@@ -259,20 +264,40 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         }
 
         this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        this.PanelMessageBox.Show();
+        this.PanelMessageBox.Show(null);
         return false;
     }
 
     #endregion
 
-    #region UI Callbacks
+    #region GUI Callbacks
 
-    #region Flow Callbacks
+    #region General Callbacks
+
+    private void InvokeCloseGameCallback()
+    {
+        if (this.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
+        {
+#if UNITY_EDITOR
+            EditorApplication.ExitPlaymode();
+#else
+            Application.Quit();
+#endif
+        }
+    }
 
     private void HandleButtonCancelClicked()
     {
         this.canvasMainMenuTab.gameObject.SetActive(true);
         this.canvasConnectionTab.gameObject.SetActive(false);
+    }
+
+    private void HandleButtonCloseGameClicked()
+    {
+        this.PanelMessageBox.MessageText = this.messageConfirmClosingGame;
+        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
+        this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
+        this.PanelMessageBox.Show(this.InvokeCloseGameCallback);
     }
 
     private void HandleButtonConnectLobbyClicked()
@@ -286,32 +311,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #endregion
 
-    #region Functional Callbacks
-
-    private void HandleCloseGameCalled()
-    {
-#if UNITY_EDITOR
-        EditorApplication.ExitPlaymode();
-#else
-        Application.Quit();
-#endif
-    }
-
-    private void HandleButtonCloseGameClicked()
-    {
-        this.PanelMessageBox.MessageText = this.messageConfirmClosingGame;
-        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
-        this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
-        this.PanelMessageBox.Show();
-    }
-
-    private void HandleClosePanelMessageBoxCalled()
-    {
-        this.PanelMessageBox.Hide();
-    }
-
-    #endregion
-
     #region Connection Callbacks
 
     private async void HandleButtonConnectClicked()
@@ -321,9 +320,11 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
             this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
             this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
             this.PanelMessageBox.MessageText = this.messageEstablishingConnection;
-            this.PanelMessageBox.Show();
+            this.PanelMessageBox.Show(null);
 
-            await GameCoordinator.Instance.ConnectLobbyAsync(GameCoordinator.Instance.InitializePlayer(this.textBoxNickname.text), this.textBoxJoinCode.text);
+            GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
+
+            await GameCoordinator.Instance.ConnectLobbyAsync(this.textBoxJoinCode.text);
         }
     }
 
@@ -334,9 +335,11 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
             this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
             this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
             this.PanelMessageBox.MessageText = this.messageEstablishingConnection;
-            this.PanelMessageBox.Show();
+            this.PanelMessageBox.Show(null);
 
-            await GameCoordinator.Instance.HostLobbyAsync(GameCoordinator.Instance.InitializePlayer(this.textBoxNickname.text));
+            GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
+
+            await GameCoordinator.Instance.HostLobbyAsync();
         }
     }
 
@@ -368,7 +371,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
         this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
         this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-        this.PanelMessageBox.Show();
+        this.PanelMessageBox.Show(null);
     }
 
     private void HandleEstablishingConnectionLobbyFailed(LobbyServiceException lobbyServiceException)
@@ -393,7 +396,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
         this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
         this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-        this.PanelMessageBox.Show();
+        this.PanelMessageBox.Show(null);
     }
 
     #endregion

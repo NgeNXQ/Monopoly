@@ -23,6 +23,8 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     public const int MAX_PLAYERS = 5;
 
+    public const string KEY_NICKNAME_PLAYER_PREFS = "nickname";
+
     public enum MonopolyScene : byte
     {
         MainMenu,
@@ -31,15 +33,17 @@ internal sealed class GameCoordinator : MonoBehaviour
         ConnectionSetup
     }
 
-    public MonopolyScene ActiveScene { get; private set; }
-
     public static GameCoordinator Instance  { get; private set; }
 
-    public event Action AuthenticationFailed;
+    public Player LocalPlayer { get; set; }
 
-    public event Action<RelayServiceException> EstablishingConnectionRelayFailed;
+    public MonopolyScene ActiveScene { get; private set; }
 
-    public event Action<LobbyServiceException> EstablishingConnectionLobbyFailed;
+    public event Action OnAuthenticationFailed;
+
+    public event Action<RelayServiceException> OnEstablishingConnectionRelayFailed;
+
+    public event Action<LobbyServiceException> OnEstablishingConnectionLobbyFailed;
 
     private void Awake()
     {
@@ -52,12 +56,12 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     private void OnEnable()
     {
-        SceneManager.sceneLoaded += this.HandleSceneLoaded;
+        SceneManager.activeSceneChanged += this.HandleActiveSceneChanged;
     }
 
     private void OnDisable()
     {
-        SceneManager.sceneLoaded -= this.HandleSceneLoaded;
+        SceneManager.activeSceneChanged -= this.HandleActiveSceneChanged;
     }
 
     private async void Start()
@@ -72,21 +76,23 @@ internal sealed class GameCoordinator : MonoBehaviour
             await UnityServices.InitializeAsync();
 #endif
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+            GameCoordinator.Instance.InitializeLocalPlayer(PlayerPrefs.GetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS));
         }
         catch
         {
-            this.AuthenticationFailed?.Invoke();
+            this.OnAuthenticationFailed?.Invoke();
             return;
         }
 
-        this.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
+        await this.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
     }
 
     #region Scenes Management
 
-    public void LoadScene(MonopolyScene scene)
+    public async Task LoadScene(MonopolyScene scene)
     {
-        SceneManager.LoadScene(scene.ToString(), LoadSceneMode.Single);
+        await SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Single);
     }
 
     public void LoadSceneNetwork(MonopolyScene scene)
@@ -94,9 +100,9 @@ internal sealed class GameCoordinator : MonoBehaviour
         NetworkManager.Singleton.SceneManager.LoadScene(scene.ToString(), LoadSceneMode.Single);
     }
 
-    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
     {
-        switch (scene.name)
+        switch (newActiveScene.name)
         {
             case nameof(GameCoordinator.MonopolyScene.MainMenu):
                 this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
@@ -104,7 +110,7 @@ internal sealed class GameCoordinator : MonoBehaviour
             case nameof(GameCoordinator.MonopolyScene.GameLobby):
                 {
                     this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
-                    LobbyManager.LocalInstance.GameLobbyLoaded?.Invoke();
+                    LobbyManager.Instance.OnGameLobbyLoaded?.Invoke();
                 }
                 break;
             case nameof(GameCoordinator.MonopolyScene.MonopolyGame):
@@ -117,23 +123,35 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     #region Establishing Connection
 
-    public Player InitializePlayer(string nickname)
+    public void UpdateLocalPlayer(string newNickname)
+    {
+        this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value = newNickname;
+
+        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, newNickname);
+        PlayerPrefs.Save();
+    }
+
+    public void InitializeLocalPlayer(string nickname)
     {
         Player player = new Player(AuthenticationService.Instance.PlayerId)
         {
             Data = new Dictionary<string, PlayerDataObject>
             {
-                { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) }
+                { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
+                { LobbyManager.KEY_PLAYER_STATUS, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, LobbyManager.PLAYER_STATUS_NOT_READY) }
             }
         };
 
-        return player;
+        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, nickname);
+        PlayerPrefs.Save();
+
+        this.LocalPlayer = player;
     }
 
-    public async Task HostLobbyAsync(Player player)
+    public async Task HostLobbyAsync()
     {
-        if (player == null)
-            throw new System.ArgumentNullException($"{nameof(player)} is null.");
+        if (this.LocalPlayer == null)
+            throw new System.ArgumentNullException($"{nameof(this.LocalPlayer)} is null.");
 
         try
         {
@@ -143,26 +161,26 @@ internal sealed class GameCoordinator : MonoBehaviour
 
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
-            string joinCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
+            string relayCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
 
             NetworkManager.Singleton.StartHost();
 
-            await LobbyManager.LocalInstance.HostLobby(player, joinCode);
+            await LobbyManager.Instance.HostLobby(relayCode);
         }
         catch (RelayServiceException relayServiceException)
         {
-            this.EstablishingConnectionRelayFailed?.Invoke(relayServiceException);
+            this.OnEstablishingConnectionRelayFailed?.Invoke(relayServiceException);
         }
         catch (LobbyServiceException lobbyServiceException)
         {
-            this.EstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
+            this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
         }
     }
 
-    public async Task ConnectLobbyAsync(Player player, string joinCode)
+    public async Task ConnectLobbyAsync(string joinCode)
     {
-        if (player == null)
-            throw new System.ArgumentNullException($"{nameof(player)} is null.");
+        if (this.LocalPlayer == null)
+            throw new System.ArgumentNullException($"{nameof(this.LocalPlayer)} is null.");
 
         try
         {
@@ -174,15 +192,15 @@ internal sealed class GameCoordinator : MonoBehaviour
 
             NetworkManager.Singleton.StartClient();
 
-            await LobbyManager.LocalInstance.ConnectLobby(player, joinCode);
+            await LobbyManager.Instance.ConnectLobby(joinCode);
         }
         catch (RelayServiceException relayServiceException)
         {
-            this.EstablishingConnectionRelayFailed?.Invoke(relayServiceException);
+            this.OnEstablishingConnectionRelayFailed?.Invoke(relayServiceException);
         }
         catch (LobbyServiceException lobbyServiceException)
         {
-            this.EstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
+            this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
         }
     }
 

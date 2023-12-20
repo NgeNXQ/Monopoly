@@ -3,14 +3,18 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHandlerUI
+internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 {
-    #region Visuals
-
-    #region Shared Visuals
+    #region Setup
 
     [Space]
-    [Header("Shared Visuals")]
+    [Header("Setup")]
+    [Space]
+
+    #region Panel Template
+
+    [Space]
+    [Header("Panel Template")]
     [Space]
 
     [Space]
@@ -97,15 +101,32 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
         Question,
     }
 
+    public enum DialogResult : byte
+    {
+        OK,
+        None,
+        Cancel
+    }
+
+    private bool isShown;
+
+    private Type messageBoxType;
+
+    private DialogResult messageBoxDialogResult;
+
+    private IControlUI.ButtonClickedCallback callback;
+
     public static PanelMessageBoxUI Instance { get; private set; }
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmPanelOKClicked;
+    public string MessageText
+    {
+        set => this.textMessage.text = value;
+    }
 
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonConfirmPanelOKCancelClicked;
-
-    public event IButtonHandlerUI.ButtonClickedEventHandler ButtonCancelPanelOKCancelClicked;
-
-    public Type MessageBoxType { get; set; }
+    public Type MessageBoxType
+    {
+        set => this.messageBoxType = value;
+    }
 
     public Icon MessageBoxIcon 
     {
@@ -135,9 +156,9 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
         }
     }
 
-    public string MessageText 
+    public DialogResult MessageBoxDialogResult 
     {
-        set => this.textMessage.text = value; 
+        get => this.messageBoxDialogResult;
     }
 
     private void Awake()
@@ -150,23 +171,35 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
 
     private void OnEnable()
     {
-        this.buttonConfirmPanelOK.onClick.AddListener(this.HandleButtonConfirmPanelOKClicked);
-        this.buttonConfirmPanelOKCancel.onClick.AddListener(this.HandleButtonConfirmPanelOKCancelClicked);
-        this.buttonCancelPanelOKCancel.onClick.AddListener(this.HandleButtonCancelPanelOKCancelClicked);
+        this.buttonConfirmPanelOK.onClick.AddListener(this.HandleButtonOKClicked);
+        this.buttonConfirmPanelOKCancel.onClick.AddListener(this.HandleButtonOKClicked);
+        this.buttonCancelPanelOKCancel.onClick.AddListener(this.HandleButtonCancelClicked);
     }
 
     private void OnDisable()
     {
-        this.buttonConfirmPanelOK.onClick.RemoveListener(this.HandleButtonConfirmPanelOKClicked);
-        this.buttonConfirmPanelOKCancel.onClick.RemoveListener(this.HandleButtonConfirmPanelOKCancelClicked);
-        this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.HandleButtonCancelPanelOKCancelClicked);
+        this.buttonConfirmPanelOK.onClick.RemoveListener(this.HandleButtonOKClicked);
+        this.buttonConfirmPanelOKCancel.onClick.RemoveListener(this.HandleButtonOKClicked);
+        this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
     }
 
-    public void Show()
+    public void Show(PanelMessageBoxUI.Type type, string message, PanelMessageBoxUI.Icon icon = PanelMessageBoxUI.Icon.None, IControlUI.ButtonClickedCallback callback = null)
     {
+        this.isShown = true;
+
+        this.MessageBoxType = type;
+        this.MessageText = message;
+        this.MessageBoxIcon = icon;
+
+        this.Show(callback);
+    }
+
+    public void Show(IControlUI.ButtonClickedCallback callback)
+    {
+        this.callback = callback;
         this.panelTemplate.gameObject.SetActive(true);
 
-        switch (this.MessageBoxType)
+        switch (this.messageBoxType)
         {
             case Type.OK:
                 this.panelOK.gameObject.SetActive(true);
@@ -181,7 +214,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
     {
         this.panelTemplate.gameObject.SetActive(false);
 
-        switch (this.MessageBoxType)
+        switch (this.messageBoxType)
         {
             case Type.OK:
                 this.panelOK.gameObject.SetActive(false);
@@ -196,9 +229,19 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IButtonHand
         this.MessageBoxType = PanelMessageBoxUI.Type.None;
     }
 
-    private void HandleButtonConfirmPanelOKClicked() => this.ButtonConfirmPanelOKClicked?.Invoke();
+    private void HandleButtonOKClicked()
+    {
+        this.Hide();
+        this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.OK;
 
-    private void HandleButtonConfirmPanelOKCancelClicked() => this.ButtonConfirmPanelOKCancelClicked?.Invoke();
+        this.callback?.Invoke();
+    }
 
-    private void HandleButtonCancelPanelOKCancelClicked() => this.ButtonCancelPanelOKCancelClicked?.Invoke();
+    private void HandleButtonCancelClicked()
+    {
+        this.Hide();
+        this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.Cancel;
+        
+        this.callback?.Invoke();
+    }
 }

@@ -64,31 +64,31 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void OnEnable()
     {
-        UIManagerMonopoly.Instance.ButtonRollDiceClicked += this.RollDiceCallback;
-        UIManagerMonopoly.Instance.PanelPayment.ButtonConfirmClicked += this.PayCallback;
+        //UIManagerMonopoly.Instance.ButtonRollDiceClicked += this.RollDiceCallback;
+        //UIManagerMonopoly.Instance.PanelPayment.ButtonConfirmClicked += this.PayCallback;
 
-        UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked += this.AcceptPropertyOfferCallback;
-        UIManagerMonopoly.Instance.PanelOffer.ButtonDeclineClicked += this.DeclinePropertyOfferCallback;
+        //UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked += this.AcceptPropertyOfferCallback;
+        //UIManagerMonopoly.Instance.PanelOffer.ButtonDeclineClicked += this.DeclinePropertyOfferCallback;
 
-        UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonUpgradeClicked += this.UpgradeNodeCallback;
-        UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked += this.DowngradeNodeCallback;
+        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonUpgradeClicked += this.UpgradeNodeCallback;
+        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked += this.DowngradeNodeCallback;
 
-        UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked += this.ClosePanelInfoCallback;
+        //UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked += this.ClosePanelInfoCallback;
         //UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked += this.ClosePanelMessageBoxCallback;
     }
 
     private void OnDisable()
     {
-        UIManagerMonopoly.Instance.ButtonRollDiceClicked -= this.RollDiceCallback;
-        UIManagerMonopoly.Instance.PanelPayment.ButtonConfirmClicked -= this.PayCallback;
+        //UIManagerMonopoly.Instance.ButtonRollDiceClicked -= this.RollDiceCallback;
+        //UIManagerMonopoly.Instance.PanelPayment.ButtonConfirmClicked -= this.PayCallback;
 
-        UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked -= this.AcceptPropertyOfferCallback;
-        UIManagerMonopoly.Instance.PanelOffer.ButtonDeclineClicked -= this.DeclinePropertyOfferCallback;
+        //UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked -= this.AcceptPropertyOfferCallback;
+        //UIManagerMonopoly.Instance.PanelOffer.ButtonDeclineClicked -= this.DeclinePropertyOfferCallback;
 
-        UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonUpgradeClicked -= this.UpgradeNodeCallback;
-        UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked -= this.DowngradeNodeCallback;
+        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonUpgradeClicked -= this.UpgradeNodeCallback;
+        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked -= this.DowngradeNodeCallback;
 
-        UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked -= this.ClosePanelInfoCallback;
+        //UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked -= this.ClosePanelInfoCallback;
         //UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.ClosePanelMessageBoxCallback;
     }
 
