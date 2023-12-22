@@ -12,6 +12,11 @@ using System.Collections.Generic;
 
 public sealed class MonopolyPlayer : NetworkBehaviour
 {
+    #region Setup
+
+    [Space]
+    [Header("Setup")]
+
     #region Visuals
 
     [Space]
@@ -26,7 +31,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     #endregion
 
-    #region Values
+    #endregion
 
     private bool isInJail;
 
@@ -38,13 +43,13 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     public bool HasCompletedTurn { get; private set; }
 
-    public int Balance { get; set; }
+    public int Balance { get; private set; }
 
     public bool HasBuilt { get; private set; }
 
-    public MonopolyNode CurrentNode { get; set; }
-
     public MonopolyNode SelectedNode { get; set; }
+
+    public MonopolyNode CurrentNode { get; private set; }
 
     public Color PlayerColor { get => this.playerColor; }
 
@@ -52,14 +57,12 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     public ChanceNodeSO CurrentChanceNode { get; private set; }
 
-    #endregion
-
-    #region Setup
-
-    private void Awake()
+    private void Start()
     {
         this.OwnedNodes = new List<MonopolyNode>();
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+
+        this.InitializeMonopolyPlayer();
     }
 
     private void OnEnable()
@@ -74,7 +77,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked += this.DowngradeNodeCallback;
 
         //UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked += this.ClosePanelInfoCallback;
-        //UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked += this.ClosePanelMessageBoxCallback;
+        //UIManagerGlobal.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked += this.ClosePanelMessageBoxCallback;
     }
 
     private void OnDisable()
@@ -89,50 +92,49 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked -= this.DowngradeNodeCallback;
 
         //UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked -= this.ClosePanelInfoCallback;
-        //UIManagerMonopoly.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.ClosePanelMessageBoxCallback;
+        //UIManagerGlobal.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.ClosePanelMessageBoxCallback;
     }
 
     public override void OnNetworkSpawn()
     {
-        if (this.IsServer)
-            NetworkManager.Singleton.OnClientDisconnectCallback += Singleton_OnClientDisconnectCallback;
+        Debug.Log("In Spawn");
 
-        if (!this.IsOwner)
-            return;
+        this.InitializeMonopolyPlayer();
 
-        base.OnNetworkSpawn();
-        this.InitializePlayer();
-        this.InitializePlayerClientRpc();
+        //if (this.IsServer)
+        //    NetworkManager.Singleton.OnClientDisconnectCallback += Singleton_OnClientDisconnectCallback;
+
+        //if (!this.IsOwner)
+        //    return;
+
+        //base.OnNetworkSpawn();
+        //this.InitializePlayer();
+        //this.InitializePlayerClientRpc();
     }
 
-    private void Singleton_OnClientDisconnectCallback(ulong obj)
+    private void InitializeMonopolyPlayer()
     {
-        //if (this.OwnerClientId == )
-        {
-            // do all stuff
-        }
-    }
-
-    [ClientRpc]
-    public void InitializePlayerClientRpc(ClientRpcParams clientRpcParams = default)
-    {
-        if (!this.IsOwner)
-            this.InitializePlayer();
-    }
-
-    private void InitializePlayer()
-    {
-        this.OwnedNodes = new List<MonopolyNode>();
-        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
-
-        this.playerImageToken.sprite = playerSpriteToken;
         this.Balance = GameManager.Instance.StartingBalance;
+        this.playerImageToken.sprite = this.playerSpriteToken;
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
-
-        //UIManager.Instance.AddPlayer(this.playerNickname, this.playerColor);
     }
 
-    #endregion
+    //private void Singleton_OnClientDisconnectCallback(ulong obj)
+    //{
+    //    //if (this.OwnerClientId == )
+    //    {
+    //        // do all stuff
+    //    }
+    //}
+
+    //[ClientRpc]
+    //public void InitializePlayerClientRpc(ClientRpcParams clientRpcParams = default)
+    //{
+    //    if (!this.IsOwner)
+    //        this.InitializePlayer();
+    //}
+
+
 
     #region Monopoly
 
@@ -168,7 +170,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             return;
         }
 
-        UIManagerMonopoly.Instance.ShowButtonRollDice();
+        UIManagerMonopolyGame.Instance.ShowButtonRollDice();
 
         IEnumerator PerformTurnCoroutine()
         {
@@ -267,9 +269,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     {
         this.CurrentChanceNode = MonopolyBoard.Instance.GetTaxNode();
 
-        UIManagerMonopoly.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
-        UIManagerMonopoly.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
-        UIManagerMonopoly.Instance.PanelPayment.Show();
+        UIManagerMonopolyGame.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
+        UIManagerMonopolyGame.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
+        UIManagerMonopolyGame.Instance.PanelPayment.Show();
     }
 
     public void HandleChanceLanding()
@@ -278,15 +280,15 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (this.CurrentChanceNode.ChanceType == ChanceNodeSO.Type.Penalty)
         {
-            UIManagerMonopoly.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManagerMonopoly.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
-            UIManagerMonopoly.Instance.PanelPayment.Show();
+            UIManagerMonopolyGame.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopolyGame.Instance.PanelPayment.DescriptionText = this.CurrentChanceNode.Description;
+            UIManagerMonopolyGame.Instance.PanelPayment.Show();
         }
         else
         {
-            UIManagerMonopoly.Instance.PanelInfo.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManagerMonopoly.Instance.PanelInfo.DescriptionText = this.CurrentChanceNode.Description;
-            UIManagerMonopoly.Instance.PanelInfo.Show();
+            UIManagerMonopolyGame.Instance.PanelInfo.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopolyGame.Instance.PanelInfo.DescriptionText = this.CurrentChanceNode.Description;
+            UIManagerMonopolyGame.Instance.PanelInfo.Show();
         }
     }
 
@@ -325,9 +327,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     {
         if (this.CurrentNode.Owner == null)
         {
-            UIManagerMonopoly.Instance.PanelOffer.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManagerMonopoly.Instance.PanelOffer.MonopolyTypeColor = this.CurrentNode.AffiliatedMonopoly.ColorOfSet;
-            UIManagerMonopoly.Instance.PanelOffer.Show();
+            UIManagerMonopolyGame.Instance.PanelOffer.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopolyGame.Instance.PanelOffer.MonopolyTypeColor = this.CurrentNode.AffiliatedMonopoly.ColorOfSet;
+            UIManagerMonopolyGame.Instance.PanelOffer.Show();
         }
         else if (this.CurrentNode.Owner == this)
         {
@@ -335,9 +337,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         }
         else
         {
-            UIManagerMonopoly.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManagerMonopoly.Instance.PanelPayment.DescriptionText = this.CurrentNode.PriceRent.ToString();
-            UIManagerMonopoly.Instance.PanelOffer.Show();
+            UIManagerMonopolyGame.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
+            UIManagerMonopolyGame.Instance.PanelPayment.DescriptionText = this.CurrentNode.PriceRent.ToString();
+            UIManagerMonopolyGame.Instance.PanelOffer.Show();
         }
     }
 
@@ -348,7 +350,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (this.Balance >= this.CurrentNode.PriceUpgrade)
         {
-            UIManagerMonopoly.Instance.PanelOffer.Hide();
+            UIManagerMonopolyGame.Instance.PanelOffer.Hide();
 
             this.CurrentNode.UpdateOwner(this);
             this.OwnedNodes.Add(this.CurrentNode);
@@ -357,8 +359,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         }
         else
         {
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
-            //UIManagerMonopoly.Instance.PanelMessageBox.Show();
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageInsufficientFunds;
+            //UIManagerGlobal.Instance.PanelMessageBox.Show();
         }
     }
 
@@ -367,7 +369,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         if (this.OwnerClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
             return;
 
-        UIManagerMonopoly.Instance.PanelOffer.Hide();
+        UIManagerMonopolyGame.Instance.PanelOffer.Hide();
         this.HasCompletedTurn = true;
     }
 
@@ -378,19 +380,19 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.CurrentNode.IsMortgaged)
         {
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCompleteMonopolyRequired;
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-            //UIManagerMonopoly.Instance.PanelMessageBox.Show();
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageCompleteMonopolyRequired;
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+            //UIManagerGlobal.Instance.PanelMessageBox.Show();
             return;
         }
 
         if (this.HasBuilt)
         {
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageAlreadyBuilt;
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-            UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-           // UIManagerMonopoly.Instance.PanelMessageBox.Show();
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageAlreadyBuilt;
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+           // UIManagerGlobal.Instance.PanelMessageBox.Show();
             return;
         }
 
@@ -398,25 +400,25 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         {
             if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MAX_LEVEL)
             {
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCannotUpgradeMaxLevel;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageCannotUpgradeMaxLevel;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+                //UIManagerGlobal.Instance.PanelMessageBox.Show();
                 return;
             }
             else
             {
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageOnlyEvenBuildingAllowed;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageOnlyEvenBuildingAllowed;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+                //UIManagerGlobal.Instance.PanelMessageBox.Show();
                 return;
             }
         }
 
         this.HasBuilt = true;
         this.SelectedNode.Upgrade();
-        UIManagerMonopoly.Instance.PanelMonopolyNode.Hide();
+        UIManagerMonopolyGame.Instance.PanelMonopolyNode.Hide();
     }
 
     public void DowngradeNodeCallback()
@@ -428,23 +430,23 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         {
             if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MIN_LEVEL)
             {
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageCannotDowngradeMinLevel;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageCannotDowngradeMinLevel;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+                //UIManagerGlobal.Instance.PanelMessageBox.Show();
                 return;
             }
             else
             {
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageOnlyEvenBuildingAllowed;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageOnlyEvenBuildingAllowed;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
                 return;
             }
         }
 
         this.SelectedNode.Downgrade();
-        UIManagerMonopoly.Instance.PanelMonopolyNode.Hide();
+        UIManagerMonopolyGame.Instance.PanelMonopolyNode.Hide();
     }
 
     #endregion
@@ -461,13 +463,13 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             if (this.Balance >= this.CurrentChanceNode.Penalty)
             {
                 this.Balance -= this.CurrentChanceNode.Penalty;
-                UIManagerMonopoly.Instance.PanelPayment.Hide();
+                UIManagerMonopolyGame.Instance.PanelPayment.Hide();
                 this.HasCompletedTurn = true;
             }
             else
             {
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
-                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageInsufficientFunds;
+                //UIManagerGlobal.Instance.PanelMessageBox.Show();
             }
         }
         else
@@ -475,13 +477,13 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             if (this.Balance >= this.CurrentNode.PriceRent)
             {
                 this.Balance -= this.CurrentNode.PriceRent;
-                UIManagerMonopoly.Instance.PanelPayment.Hide();
+                UIManagerMonopolyGame.Instance.PanelPayment.Hide();
                 this.HasCompletedTurn = true;
             }
             else
             {
-                UIManagerMonopoly.Instance.PanelMessageBox.MessageText = UIManagerMonopoly.Instance.MessageInsufficientFunds;
-                //UIManagerMonopoly.Instance.PanelMessageBox.Show();
+                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageInsufficientFunds;
+                //UIManagerGlobal.Instance.PanelMessageBox.Show();
             }
         }
     }
@@ -491,9 +493,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         if (this.OwnerClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
             return;
 
-        UIManagerMonopoly.Instance.HideButtonRollDice();
+        UIManagerMonopolyGame.Instance.HideButtonRollDice();
         GameManager.Instance.RollDice();
-        UIManagerMonopoly.Instance.ShowDiceAnimation();
+        UIManagerMonopolyGame.Instance.ShowDiceAnimation();
 
         if (this.isInJail)
         {
@@ -516,7 +518,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void ClosePanelInfoCallback()
     {
-        UIManagerMonopoly.Instance.PanelInfo.Hide();
+        UIManagerMonopolyGame.Instance.PanelInfo.Hide();
 
         switch (this.CurrentChanceNode.ChanceType)
         {
@@ -538,14 +540,14 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             case ChanceNodeSO.Type.MoveForward:
                 {
                     GameManager.Instance.RollDice();
-                    UIManagerMonopoly.Instance.ShowDiceAnimation();
+                    UIManagerMonopolyGame.Instance.ShowDiceAnimation();
                     this.Move(GameManager.Instance.TotalRollResult);
                 }
                 break;
             case ChanceNodeSO.Type.MoveBackwards:
                 {
                     GameManager.Instance.RollDice();
-                    UIManagerMonopoly.Instance.ShowDiceAnimation();
+                    UIManagerMonopolyGame.Instance.ShowDiceAnimation();
                     this.Move(-GameManager.Instance.TotalRollResult);
                 }
                 break;
@@ -554,7 +556,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void ClosePanelMessageBoxCallback()
     {
-        UIManagerMonopoly.Instance.PanelMessageBox.Hide();
+        //UIManagerGlobal.Instance.PanelMessageBox.Hide();
     }
 
     #endregion

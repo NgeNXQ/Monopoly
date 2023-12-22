@@ -1,10 +1,16 @@
 ﻿using System;
 using UnityEngine;
 using Unity.Netcode;
+using System.Collections;
 using System.Collections.Generic;
 
-internal sealed class GameManager : NetworkBehaviour
+internal sealed class GameManager : MonoBehaviour
 {
+    #region Setup
+
+    [Space]
+    [Header("Setup")]
+
     #region Values
 
     [Space]
@@ -37,9 +43,17 @@ internal sealed class GameManager : NetworkBehaviour
 
     #endregion
 
+    #region Players Tokens
 
+    [Space]
+    [Header("Players Tokens")]
 
+    [Space]
+    [SerializeField] private List<MonopolyPlayer> monopolyPlayers;
 
+    #endregion
+
+    #endregion
 
     //private ulong[] targetAllClients;
     //private ulong[] targetOtherClients;
@@ -128,21 +142,11 @@ internal sealed class GameManager : NetworkBehaviour
     //}
 
 
-    //public ServerRpcParams SenderCurrentClientParams
-    //{
-    //    get
-    //    {
-    //        return new ServerRpcParams
-    //        {
-    //            Receive = new ServerRpcReceiveParams { SenderClientId = NetworkManager.LocalClientId }
-    //        };
-    //    }
-    //}
-
-
 
 
     public static GameManager Instance { get; private set; }
+
+    private int currentMonopolyPlayerIndex; 
 
     private ulong[] targetOtherPlayers;
 
@@ -150,15 +154,11 @@ internal sealed class GameManager : NetworkBehaviour
 
     private int rolledDoubles;
 
-    private List<MonopolyPlayer> players;
-
     private int currentPlayerIndex;
 
-    public IReadOnlyList<MonopolyPlayer> Players { get => this.players; }
+    public int FirstDieValue { get; private set; }
 
-    public int FirstDieValue { get; set; }
-
-    public int SecondDieValue { get; set; }
+    public int SecondDieValue { get; private set; }
 
     public int CircleBonus { get => this.circleBonus; }
 
@@ -172,11 +172,11 @@ internal sealed class GameManager : NetworkBehaviour
 
     public float PlayerMovementSpeed { get => this.playerMovementSpeed; }
 
-    public MonopolyPlayer CurrentPlayer { get => this.players[this.currentPlayerIndex]; }
-
     public int TotalRollResult { get => this.FirstDieValue + this.SecondDieValue; }
 
     public bool HasRolledDouble { get => this.FirstDieValue == this.SecondDieValue; }
+
+    public MonopolyPlayer CurrentPlayer { get => this.monopolyPlayers[this.currentPlayerIndex]; }
 
     private ulong[] TargetOtherPlayers
     {
@@ -184,7 +184,7 @@ internal sealed class GameManager : NetworkBehaviour
         {
             int index = 0; ;
 
-            foreach (MonopolyPlayer player in this.players)
+            foreach (MonopolyPlayer player in this.monopolyPlayers)
             {
                 if (player.OwnerClientId != this.CurrentPlayer.OwnerClientId)
                     this.targetOtherPlayers[index++] = player.OwnerClientId;
@@ -225,6 +225,17 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
+    public ServerRpcParams SenderCurrentClient
+    {
+        get
+        {
+            return new ServerRpcParams
+            {
+                Receive = new ServerRpcReceiveParams { SenderClientId = NetworkManager.Singleton.LocalClientId }
+            };
+        }
+    }
+
     private void Awake()
     {
         if (Instance != null)
@@ -235,50 +246,169 @@ internal sealed class GameManager : NetworkBehaviour
 
     private void Start()
     {
-        this.players = new List<MonopolyPlayer>();
         this.targetCurrentPlayer = new ulong[1];
+        this.targetOtherPlayers = new ulong[LobbyManager.Instance.LocalLobby.Players.Count - 1];
+
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers;
+        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
     }
 
-    #region DEBUG
-
-    [Space]
-    [Header("DEBUG ONLY")]
-    [Space]
-
-    [SerializeField] private bool RUN;
-
-    private bool debugBeenInitialized;
-
-    private void Update()
+    private void OnEnable()
     {
-        if (RUN && !debugBeenInitialized)
+        LobbyManager.Instance.OnMonopolyGameLoaded += this.HandleMonopolyGameLoaded;
+    }
+
+    private void OnDisable()
+    {
+        LobbyManager.Instance.OnMonopolyGameLoaded -= this.HandleMonopolyGameLoaded;
+    }
+
+    private void HandleMonopolyGameLoaded()
+    {
+        if (NetworkManager.Singleton.IsHost)
         {
-            debugBeenInitialized = true;
-            this.DebugStartGameClientRpc();
-            this.StartTurnServerRpc();
+            this.StartCoroutine(this.WaitOtherPlayersCoroutine());
         }
-        //else
+
+        
+
+        GameCoordinator.Instance.LocalPlayer.Data[LobbyManager.KEY_PLAYER_ACTIVE_SCENE].Value = GameCoordinator.Instance.ActiveScene.ToString();
+    }
+
+    private IEnumerator WaitOtherPlayersCoroutine()
+    {
+        float elapsedTime = 0f;
+
+        while (LobbyManager.Instance.ArePlayersLoaded && elapsedTime < LobbyManager.PLAYER_LOADING_TIMEOUT)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        if (!LobbyManager.Instance.ArePlayersLoaded)
+        {
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessagePlayersFailedToLoad;
+            UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+
+            this.StopCoroutine(this.WaitOtherPlayersCoroutine());
+
+            GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.GameLobby);
+        }
+        else
+        {
+            this.StartGame();
+        }
+    }
+
+    private void StartGame()
+    {
+        //GameObject go = GameObject.Instantiate(this.gameObject);
+
+        //go.GetComponent<NetworkObject>().SpawnWithOwnership();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //this.SpawnMonopolyPlayerServerRpc(this.SenderCurrentClient);
+
+        //foreach (Player player in LobbyManager.Instance.LocalLobby.Players)
         //{
-        //    Debug.Log($"Current player: {this.currentPlayerIndex}");
+        //    GameObject go = Instantiate(myPrefab, Vector3.zero, Quaternion.identity);
+        //    go.GetComponent<NetworkObject>().Spawn();
         //}
+
+        //this.players = new List<MonopolyPlayer>();
+        //
+
+        //GameObject.Instantiate(this.monopolyPlayersTokens.);
     }
 
-    [ClientRpc]
-    private void DebugStartGameClientRpc(ClientRpcParams clientRpcParams = default)
-    {
-        MonopolyPlayer[] debugPlayers = FindObjectsOfType<MonopolyPlayer>();
+    //[ServerRpc(RequireOwnership = false)]
+    //private void SpawnMonopolyPlayerServerRpc(ServerRpcParams serverRpcParams)
+    //{
+    //    Debug.Log(NetworkManager.Singleton.IsHost);
+    //    Debug.Log(NetworkManager.Singleton.IsServer);
+    //    Debug.Log(NetworkManager.Singleton.IsClient);
 
-        foreach (MonopolyPlayer player in debugPlayers)
-        {
-            this.players.Add(player);
-            player.InitializePlayerClientRpc();
-        }
+    //    GameObject newMonopolyPlayer = GameObject.Instantiate(this.monopolyPlayers[this.currentMonopolyPlayerIndex++].gameObject);
+    //    newMonopolyPlayer.GetComponent<NetworkObject>().Spawn();
+    //}
 
-        //this.targetAllPlayers = new ulong[this.players.Count];
-        this.targetOtherPlayers = new ulong[this.players.Count - 1];
-    }
+    //[ClientRpc]
+    //private void SpawnMonopolyPlayerClientRpc(ClientRpcParams clientRpcParams)
+    //{
 
-    #endregion
+    //}
+
+    //#region DEBUG
+
+    //[Space]
+    //[Header("DEBUG ONLY")]
+    //[Space]
+
+    //[SerializeField] private bool RUN;
+
+    //private bool debugBeenInitialized;
+
+    //private void Update()
+    //{
+    //    if (RUN && !debugBeenInitialized)
+    //    {
+    //        debugBeenInitialized = true;
+    //        this.DebugStartGameClientRpc();
+    //        this.StartTurnServerRpc();
+    //    }
+    //    //else
+    //    //{
+    //    //    Debug.Log($"Current player: {this.currentPlayerIndex}");
+    //    //}
+    //}
+
+    //[ClientRpc]
+    //private void DebugStartGameClientRpc(ClientRpcParams clientRpcParams = default)
+    //{
+    //    MonopolyPlayer[] debugPlayers = FindObjectsOfType<MonopolyPlayer>();
+
+    //    foreach (MonopolyPlayer player in debugPlayers)
+    //    {
+    //        this.players.Add(player);
+    //        player.InitializePlayerClientRpc();
+    //    }
+
+    //    //this.targetAllPlayers = new ulong[this.players.Count];
+    //    this.targetOtherPlayers = new ulong[this.players.Count - 1];
+    //}
+
+    //#endregion
 
     #region Game Loop
 
@@ -304,7 +434,7 @@ internal sealed class GameManager : NetworkBehaviour
         else
         {
             this.rolledDoubles = 0;
-            this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
+            this.currentPlayerIndex = ++this.currentPlayerIndex % this.monopolyPlayers.Count;
         }
 
         this.SwitchPlayerClientRpc(this.currentPlayerIndex);

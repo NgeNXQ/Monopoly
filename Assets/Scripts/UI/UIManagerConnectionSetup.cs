@@ -10,13 +10,10 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
 
     [Space]
     [Header("Setup")]
-    [Space]
 
     #region Messages
 
-    [Space]
     [Header("Messages")]
-    [Space]
 
     [Space]
     [SerializeField] private string messageInitializingGameCoordinator;
@@ -30,8 +27,6 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
 
     public static UIManagerConnectionSetup Instance { get; private set; }
 
-    private PanelMessageBoxUI PanelMessageBox { get => PanelMessageBoxUI.Instance; }
-
     private void Awake()
     {
         if (Instance != null)
@@ -42,7 +37,10 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
 
     private void Start()
     {
-        this.PanelMessageBox.Show(PanelMessageBoxUI.Type.None, this.messageInitializingGameCoordinator, PanelMessageBoxUI.Icon.Loading);
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageInitializingGameCoordinator;
+        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
     }
 
     private void OnEnable()
@@ -55,26 +53,19 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
         GameCoordinator.Instance.OnAuthenticationFailed -= this.HandleAuthenticationFailed;
     }
 
-    private void OnDestroy()
-    {
-        this.PanelMessageBox.Hide();
-    }
-
     #region GameCoordinator Callbacks
 
     private void HandleAuthenticationFailed()
     {
-        this.PanelMessageBox.Hide();
-
-        this.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        this.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-        this.PanelMessageBox.MessageText = this.messageInitializationGameCoordinatorFailed;
-        this.PanelMessageBox.Show(this.InvokeAuthenticationFailedCallback);
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
+        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageInitializationGameCoordinatorFailed;
+        UIManagerGlobal.Instance.PanelMessageBox.Show(this.InvokeAuthenticationFailedCallback);
     }
 
     private async void InvokeAuthenticationFailedCallback()
     {
-        switch (this.PanelMessageBox.MessageBoxDialogResult)
+        switch (UIManagerGlobal.Instance.PanelMessageBox.MessageBoxDialogResult)
         {
             case PanelMessageBoxUI.DialogResult.OK:
                 {

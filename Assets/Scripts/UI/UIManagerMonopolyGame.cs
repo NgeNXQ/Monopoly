@@ -2,8 +2,13 @@
 using Unity.Netcode;
 using UnityEngine.UI;
 
-internal sealed class UIManagerMonopoly : MonoBehaviour
+internal sealed class UIManagerMonopolyGame : MonoBehaviour
 {
+    #region Setup
+
+    [Space]
+    [Header("Setup")]
+
     #region Visuals
 
     #region Dice
@@ -35,6 +40,15 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
 
     #endregion
 
+    #region Currency
+
+    [Space]
+    [SerializeField] private char currency;
+
+    public char Currency { get => this.currency; }
+
+    #endregion
+
     #region Panel Players
 
     [Space]
@@ -48,13 +62,6 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
     [SerializeField] private NetworkObject panelPlayers;
 
     #endregion
-
-    #region Currency
-
-    [Space]
-    [SerializeField] private char currency;
-
-    public char Currency { get => this.currency; }
 
     #endregion
 
@@ -71,6 +78,12 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
     [SerializeField] private string messageInsufficientFunds;
 
     [Space]
+    [SerializeField] private string messageWaitingOtherPlayers;
+
+    [Space]
+    [SerializeField] private string messagePlayersFailedToLoad;
+
+    [Space]
     [SerializeField] private string messageCannotUpgradeMaxLevel;
 
     [Space]
@@ -82,33 +95,59 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
     [Space]
     [SerializeField] private string messageCompleteMonopolyRequired;
 
-    public string MessageAlreadyBuilt { get => this.messageAlreadyBuilt; }
+    public string MessageAlreadyBuilt 
+    { 
+        get => this.messageAlreadyBuilt; 
+    }
 
-    public string MessageInsufficientFunds { get => this.messageInsufficientFunds; }
+    public string MessageInsufficientFunds 
+    { 
+        get => this.messageInsufficientFunds; 
+    }
 
-    public string MessageCannotUpgradeMaxLevel { get => this.messageCannotUpgradeMaxLevel; }
+    public string MessageWaitingOtherPlayers 
+    { 
+        get => this.messageWaitingOtherPlayers; 
+    }
 
-    public string MessageCannotDowngradeMinLevel { get => this.messageCannotDowngradeMinLevel; }
+    public string MessagePlayersFailedToLoad 
+    { 
+        get => this.messagePlayersFailedToLoad; 
+    }
 
-    public string MessageOnlyEvenBuildingAllowed { get => this.messageOnlyEvenBuildingAllowed; }
+    public string MessageCannotUpgradeMaxLevel 
+    { 
+        get => this.messageCannotUpgradeMaxLevel; 
+    }
 
-    public string MessageCompleteMonopolyRequired { get => this.messageCompleteMonopolyRequired; }
+    public string MessageCannotDowngradeMinLevel 
+    { 
+        get => this.messageCannotDowngradeMinLevel; 
+    }
+
+    public string MessageOnlyEvenBuildingAllowed 
+    { 
+        get => this.messageOnlyEvenBuildingAllowed; 
+    }
+
+    public string MessageCompleteMonopolyRequired 
+    { 
+        get => this.messageCompleteMonopolyRequired; 
+    }
 
     #endregion
 
     #endregion
 
-    public static UIManagerMonopoly Instance { get; private set; }
+    public static UIManagerMonopolyGame Instance { get; private set; }
 
-    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonRollDiceClicked;
+    public event IControlUI.ButtonClickedCallback ButtonRollDiceClicked;
 
     public PanelInfoUI PanelInfo { get => PanelInfoUI.Instance; }
 
     public PanelOfferUI PanelOffer { get => PanelOfferUI.Instance; }
 
     public PanelPaymentUI PanelPayment { get => PanelPaymentUI.Instance; }
-
-    public PanelMessageBoxUI PanelMessageBox { get => PanelMessageBoxUI.Instance; }
 
     public PanelMonopolyNodeUI PanelMonopolyNode { get => PanelMonopolyNodeUI.Instance; }
 
@@ -122,21 +161,32 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
         Instance = this;
     }
 
-    //private void OnEnable()
-    //{
-    //    this.buttonRollDice.onClick.AddListener(this.HandleButtonRollDiceClicked);
-    //}
+    private void OnEnable()
+    {
+        this.buttonRollDice.onClick.AddListener(this.HandleButtonRollDiceClicked);
+    }
 
-    //private void OnDisable()
-    //{
-    //    this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
-    //}
+    private void OnDisable()
+    {
+        this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
+    }
 
     #endregion
 
-    public void ShowButtonRollDice() => this.buttonRollDice.gameObject.SetActive(true);
+    public void ShowButtonRollDice()
+    {
+        this.buttonRollDice.gameObject.SetActive(true);
+    }
 
-    public void HideButtonRollDice() => this.buttonRollDice.gameObject.SetActive(false);
+    public void HideButtonRollDice()
+    {
+        this.buttonRollDice.gameObject.SetActive(false);
+    }
+
+    private void HandleButtonRollDiceClicked()
+    {
+        this.ButtonRollDiceClicked?.Invoke();
+    }
 
     //public void AddPlayer(FixedString32Bytes nickname, Color color)
     //{
@@ -179,6 +229,4 @@ internal sealed class UIManagerMonopoly : MonoBehaviour
     }
 
     #endregion
-
-    //private void HandleButtonRollDiceClicked() => this.ButtonRollDiceClicked?.Invoke();
 }

@@ -190,7 +190,7 @@ GameObject:
   - component: {fileID: 310468000744606967}
   - component: {fileID: -4276702159148105150}
   m_Layer: 0
-  m_Name: Player1
+  m_Name: MonopolyPlayer1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -228,8 +228,8 @@ MonoBehaviour:
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 0
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
 --- !u!114 &310468000744606967
@@ -245,7 +245,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerColor: {r: 1, g: 0, b: 0, a: 1}
-  playerNickname: TestPlayer #1
   playerImageToken: {fileID: 6923675600965488005}
   playerSpriteToken: {fileID: 21300000, guid: 7539f1d33877f3e4391098f024533393, type: 3}
 --- !u!114 &-4276702159148105150

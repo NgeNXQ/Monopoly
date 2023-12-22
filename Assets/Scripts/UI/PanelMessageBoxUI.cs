@@ -1,9 +1,11 @@
 ﻿using TMPro;
 using System;
 using UnityEngine;
+using Unity.Netcode;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
-internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
+internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, INetworkControlUI
 {
     #region Setup
 
@@ -108,8 +110,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         Cancel
     }
 
-    private bool isShown;
-
     private Type messageBoxType;
 
     private DialogResult messageBoxDialogResult;
@@ -118,12 +118,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     public static PanelMessageBoxUI Instance { get; private set; }
 
-    public string MessageText
-    {
-        set => this.textMessage.text = value;
-    }
-
-    public Type MessageBoxType
+    public Type MessageBoxType 
     {
         set => this.messageBoxType = value;
     }
@@ -156,6 +151,11 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         }
     }
 
+    public string MessageBoxText 
+    {
+        set => this.textMessage.text = value;
+    }
+
     public DialogResult MessageBoxDialogResult 
     {
         get => this.messageBoxDialogResult;
@@ -171,6 +171,8 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private void OnEnable()
     {
+        SceneManager.activeSceneChanged += this.HandleActiveSceneChanged;
+
         this.buttonConfirmPanelOK.onClick.AddListener(this.HandleButtonOKClicked);
         this.buttonConfirmPanelOKCancel.onClick.AddListener(this.HandleButtonOKClicked);
         this.buttonCancelPanelOKCancel.onClick.AddListener(this.HandleButtonCancelClicked);
@@ -178,20 +180,11 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private void OnDisable()
     {
+        SceneManager.activeSceneChanged -= this.HandleActiveSceneChanged;
+
         this.buttonConfirmPanelOK.onClick.RemoveListener(this.HandleButtonOKClicked);
         this.buttonConfirmPanelOKCancel.onClick.RemoveListener(this.HandleButtonOKClicked);
         this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
-    }
-
-    public void Show(PanelMessageBoxUI.Type type, string message, PanelMessageBoxUI.Icon icon = PanelMessageBoxUI.Icon.None, IControlUI.ButtonClickedCallback callback = null)
-    {
-        this.isShown = true;
-
-        this.MessageBoxType = type;
-        this.MessageText = message;
-        this.MessageBoxIcon = icon;
-
-        this.Show(callback);
     }
 
     public void Show(IControlUI.ButtonClickedCallback callback)
@@ -223,10 +216,26 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
                 this.panelOKCancel.gameObject.SetActive(false);
                 break;
         }
+    }
 
-        this.MessageText = String.Empty;
-        this.MessageBoxIcon = PanelMessageBoxUI.Icon.None;
-        this.MessageBoxType = PanelMessageBoxUI.Type.None;
+    public void ShowServerRpc(ServerRpcParams serverRpcParams)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void ShowClientRpc(ClientRpcParams clientRpcParams)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void HideServerRpc(ServerRpcParams serverRpcParams)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void HideClientRpc(ClientRpcParams clientRpcParams)
+    {
+        throw new NotImplementedException();
     }
 
     private void HandleButtonOKClicked()
@@ -241,7 +250,12 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
     {
         this.Hide();
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.Cancel;
-        
+
         this.callback?.Invoke();
+    }
+
+    private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
+    {
+        this.Hide();
     }
 }

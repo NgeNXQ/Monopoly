@@ -23,7 +23,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     public const int MAX_PLAYERS = 5;
 
-    public const string KEY_NICKNAME_PLAYER_PREFS = "nickname";
+    public const string KEY_NICKNAME_PLAYER_PREFS = "Nickname";
 
     public enum MonopolyScene : byte
     {
@@ -88,6 +88,15 @@ internal sealed class GameCoordinator : MonoBehaviour
         await this.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
     }
 
+    private async void OnApplicationQuit()
+    {
+        if (LobbyManager.Instance.LocalLobby != null)
+        {
+            LobbyManager.Instance.StopAllCoroutines();
+            await LobbyManager.Instance.DisconnectLobby();
+        }
+    }
+
     #region Scenes Management
 
     public async Task LoadScene(MonopolyScene scene)
@@ -105,7 +114,7 @@ internal sealed class GameCoordinator : MonoBehaviour
         switch (newActiveScene.name)
         {
             case nameof(GameCoordinator.MonopolyScene.MainMenu):
-                this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
+                    this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
                 break;
             case nameof(GameCoordinator.MonopolyScene.GameLobby):
                 {
@@ -114,7 +123,10 @@ internal sealed class GameCoordinator : MonoBehaviour
                 }
                 break;
             case nameof(GameCoordinator.MonopolyScene.MonopolyGame):
-                this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
+                {
+                    this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
+                    LobbyManager.Instance.OnMonopolyGameLoaded?.Invoke();
+                }
                 break;
         }
     }
@@ -138,7 +150,7 @@ internal sealed class GameCoordinator : MonoBehaviour
             Data = new Dictionary<string, PlayerDataObject>
             {
                 { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
-                { LobbyManager.KEY_PLAYER_STATUS, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, LobbyManager.PLAYER_STATUS_NOT_READY) }
+                { LobbyManager.KEY_PLAYER_ACTIVE_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
             }
         };
 
@@ -159,13 +171,11 @@ internal sealed class GameCoordinator : MonoBehaviour
 
             RelayServerData relayServerData = new RelayServerData(hostAllocation, GameCoordinator.CONNECTION_TYPE);
 
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
+            NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
             string relayCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
 
-            NetworkManager.Singleton.StartHost();
-
-            await LobbyManager.Instance.HostLobby(relayCode);
+            await LobbyManager.Instance?.HostLobby(relayCode);
         }
         catch (RelayServiceException relayServiceException)
         {
@@ -188,11 +198,9 @@ internal sealed class GameCoordinator : MonoBehaviour
 
             RelayServerData relayServerData = new RelayServerData(clientAllocation, GameCoordinator.CONNECTION_TYPE);
 
-            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
+            NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
-            NetworkManager.Singleton.StartClient();
-
-            await LobbyManager.Instance.ConnectLobby(joinCode);
+            await LobbyManager.Instance?.ConnectLobby(joinCode);
         }
         catch (RelayServiceException relayServiceException)
         {

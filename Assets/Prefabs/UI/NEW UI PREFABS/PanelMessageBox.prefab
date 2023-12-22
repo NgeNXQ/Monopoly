@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6969755261550573596}
-  - component: {fileID: 6965988861075839969}
   - component: {fileID: 1841528531248137732}
   m_Layer: 0
   m_Name: ButtonConfirm
@@ -40,14 +39,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -100}
   m_SizeDelta: {x: 265, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &6965988861075839969
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 650833573330550613}
-  m_CullTransparentMesh: 1
 --- !u!114 &1841528531248137732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -101,7 +92,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7040575740426137744}
-  - component: {fileID: 3381552021112204336}
   - component: {fileID: 6317061640068324802}
   m_Layer: 0
   m_Name: ButtonConfirm
@@ -132,14 +122,6 @@ RectTransform:
   m_AnchoredPosition: {x: 115, y: -100}
   m_SizeDelta: {x: 200, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &3381552021112204336
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1219637303962896375}
-  m_CullTransparentMesh: 1
 --- !u!114 &6317061640068324802
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -299,7 +281,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 769482053308676067}
-  - component: {fileID: 3373883931764789969}
   - component: {fileID: 1551833361225710085}
   m_Layer: 0
   m_Name: ButtonCancel
@@ -330,14 +311,6 @@ RectTransform:
   m_AnchoredPosition: {x: -115, y: -100}
   m_SizeDelta: {x: 200, y: 55}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &3373883931764789969
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1778590204938767809}
-  m_CullTransparentMesh: 1
 --- !u!114 &1551833361225710085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1228,7 +1201,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 100
   m_TargetDisplay: 0
 --- !u!114 &6841060906353981454
 MonoBehaviour:

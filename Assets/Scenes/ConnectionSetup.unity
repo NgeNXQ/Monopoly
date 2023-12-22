@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 747975516}
   - component: {fileID: 747975515}
   m_Layer: 0
-  m_Name: MenuBackground2_0
+  m_Name: MenuBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -216,7 +216,7 @@ GameObject:
   - component: {fileID: 750819663}
   - component: {fileID: 750819664}
   m_Layer: 0
-  m_Name: UIManager
+  m_Name: UIManagerGlobal
   m_TagString: Untagged
   m_Icon: {fileID: 7250588514170254948, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -392,6 +392,55 @@ MonoBehaviour:
     mipBias: 0
     varianceClampScale: 0.9
     contrastAdaptiveSharpening: 0
+--- !u!1 &1129669957
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1129669958}
+  - component: {fileID: 1129669959}
+  m_Layer: 0
+  m_Name: UIManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 7250588514170254948, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1129669958
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1129669957}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1129669959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1129669957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 897b9d617665dc04ca5cb9a4ec8c3e9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  messageInitializingGameCoordinator: "\u041F\u0456\u0434\u043A\u043B\u044E\u0447\u0435\u043D\u043D\u044F
+    \u0434\u043E \u0456\u0433\u0440\u043E\u0432\u043E\u0433\u043E \u043A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u043E\u0440\u0430"
+  messageInitializationGameCoordinatorFailed: "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F
+    \u0437'\u0454\u0434\u043D\u0430\u0442\u0438\u0441\u044F \u0437 \u0456\u0433\u0440\u043E\u0432\u0438\u043C
+    \u043A\u043E\u043E\u0440\u0434\u0438\u043D\u0430\u0442\u043E\u0440\u043E\u043C"
 --- !u!1001 &1265814937
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -602,7 +651,6 @@ MonoBehaviour:
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: b3bc48bc1189b05449030108eae348c1, type: 2}
-      - {fileID: 11400000, guid: 9438bb64b2257654ca213151eab63044, type: 2}
     TickRate: 30
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0
@@ -759,3 +807,4 @@ SceneRoots:
   - {fileID: 747975516}
   - {fileID: 750819663}
   - {fileID: 1841032706}
+  - {fileID: 1129669958}
