@@ -9,11 +9,20 @@ public sealed class MonopolySet
 
     [SerializeField] private List<MonopolyNode> nodesInSet = new List<MonopolyNode>();
 
-    public int Level { get => this.nodesInSet.Max(node => node.Level); }
+    public int Level 
+    { 
+        get => this.nodesInSet.Max(node => node.Level); 
+    }
 
-    public Color ColorOfSet { get => this.colorOfSet; }
+    public Color ColorOfSet 
+    { 
+        get => this.colorOfSet; 
+    }
 
-    public IReadOnlyList<MonopolyNode> NodesInSet { get => this.nodesInSet; }
+    public IReadOnlyList<MonopolyNode> NodesInSet 
+    { 
+        get => this.nodesInSet; 
+    }
 
     public bool Contains(MonopolyNode monopolyNode)
     {

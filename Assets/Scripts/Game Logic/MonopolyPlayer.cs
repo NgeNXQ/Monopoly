@@ -21,13 +21,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     [Space]
     [Header("Visuals")]
+
     [Space]
-
-    [SerializeField] private Color playerColor;
-
     [SerializeField] private Image playerImageToken;
-
-    [SerializeField] private Sprite playerSpriteToken;
 
     #endregion
 
@@ -38,6 +34,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     private int turnsInJail;
 
     private bool isSkipTurn;
+
+    public string Nickname { get; private set; }
 
     public bool IsAbleToBuild { get; private set; }
 
@@ -51,24 +49,16 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     public MonopolyNode CurrentNode { get; private set; }
 
-    public Color PlayerColor { get => this.playerColor; }
+    public Color PlayerColor { get; private set; }
 
     public List<MonopolyNode> OwnedNodes { get; private set; }
 
     public ChanceNodeSO CurrentChanceNode { get; private set; }
 
-    private void Start()
-    {
-        this.OwnedNodes = new List<MonopolyNode>();
-        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
-
-        this.InitializeMonopolyPlayer();
-    }
-
     private void OnEnable()
     {
-        //UIManagerMonopoly.Instance.ButtonRollDiceClicked += this.RollDiceCallback;
-        //UIManagerMonopoly.Instance.PanelPayment.ButtonConfirmClicked += this.PayCallback;
+        UIManagerMonopolyGame.Instance.ButtonRollDiceClicked += this.HandleButtonRollDiceClicked;
+        //UIManagerMonopolyGame.Instance.PanelPayment.ButtonConfirmClicked += this.PayCallback;
 
         //UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked += this.AcceptPropertyOfferCallback;
         //UIManagerMonopoly.Instance.PanelOffer.ButtonDeclineClicked += this.DeclinePropertyOfferCallback;
@@ -82,7 +72,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void OnDisable()
     {
-        //UIManagerMonopoly.Instance.ButtonRollDiceClicked -= this.RollDiceCallback;
+        UIManagerMonopolyGame.Instance.ButtonRollDiceClicked -= this.HandleButtonRollDiceClicked;
+
         //UIManagerMonopoly.Instance.PanelPayment.ButtonConfirmClicked -= this.PayCallback;
 
         //UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked -= this.AcceptPropertyOfferCallback;
@@ -95,46 +86,20 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         //UIManagerGlobal.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.ClosePanelMessageBoxCallback;
     }
 
-    public override void OnNetworkSpawn()
+    public void InitializePlayer(string nickname, MonopolyPlayerVisuals monopolyPlayerVisuals)
     {
-        Debug.Log("In Spawn");
-
-        this.InitializeMonopolyPlayer();
-
-        //if (this.IsServer)
-        //    NetworkManager.Singleton.OnClientDisconnectCallback += Singleton_OnClientDisconnectCallback;
-
-        //if (!this.IsOwner)
-        //    return;
-
-        //base.OnNetworkSpawn();
-        //this.InitializePlayer();
-        //this.InitializePlayerClientRpc();
-    }
-
-    private void InitializeMonopolyPlayer()
-    {
+        this.Nickname = nickname;
         this.Balance = GameManager.Instance.StartingBalance;
-        this.playerImageToken.sprite = this.playerSpriteToken;
+        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+        this.PlayerColor = monopolyPlayerVisuals.ColorPlayerToken;
+        this.playerImageToken.sprite = monopolyPlayerVisuals.SpritePlayerToken;
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
+
+        this.OwnedNodes = new List<MonopolyNode>();
+        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+
+        UIManagerMonopolyGame.Instance.AddPlayerToList(this);
     }
-
-    //private void Singleton_OnClientDisconnectCallback(ulong obj)
-    //{
-    //    //if (this.OwnerClientId == )
-    //    {
-    //        // do all stuff
-    //    }
-    //}
-
-    //[ClientRpc]
-    //public void InitializePlayerClientRpc(ClientRpcParams clientRpcParams = default)
-    //{
-    //    if (!this.IsOwner)
-    //        this.InitializePlayer();
-    //}
-
-
 
     #region Monopoly
 
@@ -174,8 +139,11 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         IEnumerator PerformTurnCoroutine()
         {
-            yield return new WaitUntil(() => this.HasCompletedTurn);
-            GameManager.Instance.SwitchPlayerServerRpc();
+            WaitUntil waitUntil = new WaitUntil(() => this.HasCompletedTurn);
+
+            yield return waitUntil;
+
+            GameManager.Instance.SwitchPlayerServerRpc(GameManager.Instance.ServerParamsCurrentClient);
         }
     }
 
@@ -212,7 +180,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             }
 
             this.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
-            this.HandleLanding();
+            this.HasCompletedTurn = true;
+            //this.HandleLanding();
         }
 
         IEnumerator MovePlayerCoroutine(Vector3 targetPosition)
@@ -488,7 +457,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         }
     }
 
-    private void RollDiceCallback()
+    private void HandleButtonRollDiceClicked()
     {
         if (this.OwnerClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
             return;

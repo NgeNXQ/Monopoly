@@ -77,7 +77,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 #endif
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
-            GameCoordinator.Instance.InitializeLocalPlayer(PlayerPrefs.GetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS));
+            this.InitializeLocalPlayer(PlayerPrefs.GetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS));
         }
         catch
         {

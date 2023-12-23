@@ -33,7 +33,7 @@ public sealed class PanelPlayerLobbyUI : MonoBehaviour
 
     private string playerId;
 
-    public string PlayerNickname
+    public string PlayerNickname 
     {
         get => this.textLabelPlayerNickname.text;
         set => this.textLabelPlayerNickname.text = value;
@@ -86,7 +86,7 @@ public sealed class PanelPlayerLobbyUI : MonoBehaviour
     {
         if (UIManagerGlobal.Instance.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
-            if (this == null || !(bool)LobbyManager.Instance?.LocalLobby.Players.Any(player => player.Id.Equals(this.playerId, System.StringComparison.Ordinal)))
+            if (this == null || !(bool)LobbyManager.Instance?.LocalLobby?.Players.Any(player => player.Id.Equals(this.playerId, System.StringComparison.Ordinal)))
             {
                 UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
                 UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;

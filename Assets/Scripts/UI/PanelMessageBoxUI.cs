@@ -1,11 +1,9 @@
 ﻿using TMPro;
-using System;
 using UnityEngine;
-using Unity.Netcode;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, INetworkControlUI
+internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 {
     #region Setup
 
@@ -110,6 +108,8 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, INetworkCon
         Cancel
     }
 
+    private bool isShown;
+
     private Type messageBoxType;
 
     private DialogResult messageBoxDialogResult;
@@ -189,6 +189,12 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, INetworkCon
 
     public void Show(IControlUI.ButtonClickedCallback callback)
     {
+        if (this.isShown)
+        {
+            this.Hide();
+        }
+
+        this.isShown = true;
         this.callback = callback;
         this.panelTemplate.gameObject.SetActive(true);
 
@@ -205,6 +211,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, INetworkCon
 
     public void Hide()
     {
+        this.isShown = false;
         this.panelTemplate.gameObject.SetActive(false);
 
         switch (this.messageBoxType)
@@ -216,26 +223,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, INetworkCon
                 this.panelOKCancel.gameObject.SetActive(false);
                 break;
         }
-    }
-
-    public void ShowServerRpc(ServerRpcParams serverRpcParams)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void ShowClientRpc(ClientRpcParams clientRpcParams)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void HideServerRpc(ServerRpcParams serverRpcParams)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void HideClientRpc(ClientRpcParams clientRpcParams)
-    {
-        throw new NotImplementedException();
     }
 
     private void HandleButtonOKClicked()

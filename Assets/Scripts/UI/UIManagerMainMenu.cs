@@ -141,6 +141,9 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     [Header("Establishing Connection")]
 
     [Space]
+    [SerializeField] private string messageKicked;
+
+    [Space]
     [SerializeField] private string messageLobbyIsFull;
 
     [Space]
@@ -159,6 +162,14 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     #endregion
 
     public static UIManagerMainMenu Instance { get; private set; }
+
+    public string MessageKicked 
+    {
+        get
+        {
+            return this.messageKicked;
+        }
+    }
 
     private void Awake()
     {

@@ -56,10 +56,10 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
     [Space]
 
     [Space]
-    [SerializeField] private NetworkObject playerInfo;
+    [SerializeField] private Canvas canvasPanelPlayers;
 
     [Space]
-    [SerializeField] private NetworkObject panelPlayers;
+    [SerializeField] private PanelPlayerGameUI panelPlayerGame;
 
     #endregion
 
@@ -143,13 +143,25 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     public event IControlUI.ButtonClickedCallback ButtonRollDiceClicked;
 
-    public PanelInfoUI PanelInfo { get => PanelInfoUI.Instance; }
+    public PanelInfoUI PanelInfo 
+    { 
+        get => PanelInfoUI.Instance; 
+    }
 
-    public PanelOfferUI PanelOffer { get => PanelOfferUI.Instance; }
+    public PanelOfferUI PanelOffer 
+    { 
+        get => PanelOfferUI.Instance; 
+    }
 
-    public PanelPaymentUI PanelPayment { get => PanelPaymentUI.Instance; }
+    public PanelPaymentUI PanelPayment 
+    { 
+        get => PanelPaymentUI.Instance; 
+    }
 
-    public PanelMonopolyNodeUI PanelMonopolyNode { get => PanelMonopolyNodeUI.Instance; }
+    public PanelMonopolyNodeUI PanelMonopolyNode 
+    { 
+        get => PanelMonopolyNodeUI.Instance;
+    }
 
     #region Setup
 
@@ -188,11 +200,18 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         this.ButtonRollDiceClicked?.Invoke();
     }
 
-    //public void AddPlayer(FixedString32Bytes nickname, Color color)
-    //{
-    //    UIPlayerInfo info = NetworkObject.Instantiate(this.playerInfo, this.panelPlayers.transform).GetComponent<UIPlayerInfo>();
-    //    info.SetUpPlayerInfo(nickname, color);
-    //}
+    public void AddPlayerToList(MonopolyPlayer player)
+    {
+        PanelPlayerGameUI newPanelPlayer = GameObject.Instantiate(this.panelPlayerGame, this.canvasPanelPlayers.transform);
+        newPanelPlayer.InitializePanel(player);
+
+        newPanelPlayer.name = player.OwnerClientId.ToString();
+    }
+
+    public void RemovePlayerFromList()
+    {
+        //GameObject.Destroy(this.canvas.transform.GetChild(playerIndex).gameObject);
+    }
 
     #region Dice Animation
 
@@ -219,7 +238,7 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void ShowDiceAnimationServerRpc(ServerRpcParams serverRpcParams = default)
     {
-        this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherPlayers);
+        this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherClients);
     }
 
     [ClientRpc]

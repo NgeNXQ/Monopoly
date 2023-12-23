@@ -190,7 +190,7 @@ GameObject:
   - component: {fileID: 310468000744606967}
   - component: {fileID: -4276702159148105150}
   m_Layer: 0
-  m_Name: MonopolyPlayer1
+  m_Name: MonopolyPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

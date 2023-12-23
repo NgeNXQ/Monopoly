@@ -5,8 +5,6 @@ using UnityEngine.UI;
 using Unity.Services.Lobbies;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
-using Unity.Netcode;
-//using Unity.Netcode;
 
 internal sealed class UIManagerLobby : MonoBehaviour
 {
@@ -226,9 +224,6 @@ internal sealed class UIManagerLobby : MonoBehaviour
 
     private void AddPlayerToList(Player player)
     {
-        Debug.Log(LobbyManager.Instance.LocalLobby.Players.Count);
-        Debug.Log(LobbyManager.Instance.LocalLobby.Players.Last().Id);
-
         PanelPlayerLobbyUI newPanelPlayer = GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
         newPanelPlayer.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
         newPanelPlayer.name = player.Id;
@@ -297,15 +292,6 @@ internal sealed class UIManagerLobby : MonoBehaviour
             UIManagerGlobal.Instance.PanelMessageBox.Show(null);
 
             await LobbyManager.Instance.DisconnectLobby();
-        }
-    }
-
-    private void Update()
-    {
-        if (NetworkManager.Singleton.IsHost)
-        {
-            Debug.Log("LobbyManager: " + LobbyManager.Instance.LocalLobby.Players.Count);
-            Debug.Log("NetworkManager: " + NetworkManager.Singleton.ConnectedClients.Count);
         }
     }
 
