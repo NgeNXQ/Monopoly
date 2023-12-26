@@ -27,10 +27,10 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     public enum MonopolyScene : byte
     {
+        Bootstrap,
         MainMenu,
         GameLobby,
-        MonopolyGame,
-        ConnectionSetup
+        MonopolyGame
     }
 
     public static GameCoordinator Instance  { get; private set; }
@@ -85,7 +85,7 @@ internal sealed class GameCoordinator : MonoBehaviour
             return;
         }
 
-        await this.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
+        await this.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
     }
 
     private async void OnApplicationQuit()
@@ -93,20 +93,20 @@ internal sealed class GameCoordinator : MonoBehaviour
         if (LobbyManager.Instance.LocalLobby != null)
         {
             LobbyManager.Instance.StopAllCoroutines();
-            await LobbyManager.Instance.DisconnectLobby();
+            await LobbyManager.Instance.DisconnectFromLobbyAsync();
         }
     }
 
     #region Scenes Management
 
-    public async Task LoadScene(MonopolyScene scene)
-    {
-        await SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Single);
-    }
-
     public void LoadSceneNetwork(MonopolyScene scene)
     {
         NetworkManager.Singleton.SceneManager.LoadScene(scene.ToString(), LoadSceneMode.Single);
+    }
+
+    public async Task LoadSceneAsync(MonopolyScene scene)
+    {
+        await SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Single);
     }
 
     private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
@@ -135,31 +135,6 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     #region Establishing Connection
 
-    public void UpdateLocalPlayer(string newNickname)
-    {
-        this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value = newNickname;
-
-        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, newNickname);
-        PlayerPrefs.Save();
-    }
-
-    public void InitializeLocalPlayer(string nickname)
-    {
-        Player player = new Player(AuthenticationService.Instance.PlayerId)
-        {
-            Data = new Dictionary<string, PlayerDataObject>
-            {
-                { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
-                { LobbyManager.KEY_PLAYER_ACTIVE_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
-            }
-        };
-
-        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, nickname);
-        PlayerPrefs.Save();
-
-        this.LocalPlayer = player;
-    }
-
     public async Task HostLobbyAsync()
     {
         if (this.LocalPlayer == null)
@@ -175,7 +150,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 
             string relayCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
 
-            await LobbyManager.Instance?.HostLobby(relayCode);
+            await LobbyManager.Instance?.HostLobbyAsync(relayCode);
         }
         catch (RelayServiceException relayServiceException)
         {
@@ -200,7 +175,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 
             NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
-            await LobbyManager.Instance?.ConnectLobby(joinCode);
+            await LobbyManager.Instance?.ConnectLobbyAsync(joinCode);
         }
         catch (RelayServiceException relayServiceException)
         {
@@ -210,6 +185,31 @@ internal sealed class GameCoordinator : MonoBehaviour
         {
             this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
         }
+    }
+
+    public void UpdateLocalPlayer(string newNickname)
+    {
+        this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value = newNickname;
+
+        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, newNickname);
+        PlayerPrefs.Save();
+    }
+
+    public void InitializeLocalPlayer(string nickname)
+    {
+        Player player = new Player(AuthenticationService.Instance.PlayerId)
+        {
+            Data = new Dictionary<string, PlayerDataObject>
+            {
+                { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
+                { LobbyManager.KEY_PLAYER_ACTIVE_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
+            }
+        };
+
+        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, nickname);
+        PlayerPrefs.Save();
+
+        this.LocalPlayer = player;
     }
 
     #endregion

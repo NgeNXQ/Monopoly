@@ -6,47 +6,13 @@ using Unity.Services.Lobbies;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
 
-internal sealed class UIManagerLobby : MonoBehaviour
+internal sealed class UIManagerGameLobby : MonoBehaviour
 {
     #region Setup
 
-    [Space]
-    [Header("Setup")]
-    [Space]
-
-    #region Host Controls
-
-    [Space]
-    [Header("Host Controls")]
-    [Space]
-
-    [Space]
-    [SerializeField] private Canvas canvasHost;
-
-    [Space]
-    [SerializeField] private Button buttonStartGame;
-
-    #endregion
-
-    #region Client Controls
-
-    [Space]
-    [Header("Client Controls")]
-    [Space]
-
-    [Space]
-    [SerializeField] private Canvas canvasClient;
-
-    [Space]
-    [SerializeField] private Button buttonReady;
-
-    #endregion
-
     #region Shared Visuals
 
-    [Space]
     [Header("Shared Visuals")]
-    [Space]
 
     [Space]
     [SerializeField] private TMP_Text labelJoinCode;
@@ -61,20 +27,40 @@ internal sealed class UIManagerLobby : MonoBehaviour
 
     #region Shared Controls
 
-    [Space]
     [Header("Shared Controls")]
-    [Space]
 
     [Space]
     [SerializeField] private Button buttonDisconnect;
 
     #endregion
 
-    #region Messages
+    #region Host Controls
+
+    [Header("Host Controls")]
 
     [Space]
-    [Header("Messages")]
+    [SerializeField] private Canvas canvasHost;
+
     [Space]
+    [SerializeField] private Button buttonStartGame;
+
+    #endregion
+
+    #region Client Controls
+
+    [Header("Client Controls")]
+
+    [Space]
+    [SerializeField] private Canvas canvasClient;
+
+    [Space]
+    [SerializeField] private Button buttonReady;
+
+    #endregion
+
+    #region Messages
+
+    [Header("Messages")]
 
     [Space]
     [SerializeField] private string messageKicked;
@@ -87,9 +73,6 @@ internal sealed class UIManagerLobby : MonoBehaviour
 
     [Space]
     [SerializeField] private string messageDisconnecting;
-
-    [Space]
-    [SerializeField] private string messageTooManyRequests;
 
     [Space]
     [SerializeField] private string messageConfirmStartGame;
@@ -116,7 +99,7 @@ internal sealed class UIManagerLobby : MonoBehaviour
 
     #endregion
 
-    public static UIManagerLobby Instance { get; private set; }
+    public static UIManagerGameLobby Instance { get; private set; }
 
     public string MessageKicked 
     {
@@ -131,11 +114,6 @@ internal sealed class UIManagerLobby : MonoBehaviour
     public string MessageDisconnecting 
     {
         get => this.messageDisconnecting;
-    }
-
-    public string MessageTooManyRequests 
-    {
-        get => this.messageTooManyRequests;
     }
 
     public string MessageHostDisconnected 
@@ -181,6 +159,7 @@ internal sealed class UIManagerLobby : MonoBehaviour
         LobbyManager.Instance.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft += this.HandlePlayerLeft;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
+        LobbyManager.Instance.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
 
         this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGame);
         this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClicked);
@@ -191,36 +170,13 @@ internal sealed class UIManagerLobby : MonoBehaviour
         LobbyManager.Instance.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft -= this.HandlePlayerLeft;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
+        LobbyManager.Instance.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
 
         this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGame);
         this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
     }
 
     #region Updating GUI
-
-    private void HandleGameLobbyLoaded()
-    {
-        if (LobbyManager.Instance.IsHost)
-        {
-            this.canvasHost.gameObject.SetActive(true);
-        }
-        else
-        {
-            this.canvasClient.gameObject.SetActive(true);
-        }
-
-        this.InitializePlayersList(LobbyManager.Instance.LocalLobby.Players);
-    }
-
-    private void HandlePlayerLeft(List<int> leftPlayer)
-    {
-        this.RemovePlayerFromList(leftPlayer.FirstOrDefault());
-    }
-
-    private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayer)
-    {
-        this.AddPlayerToList(joinedPlayer.LastOrDefault().Player);
-    }
 
     private void AddPlayerToList(Player player)
     {
@@ -247,24 +203,51 @@ internal sealed class UIManagerLobby : MonoBehaviour
 
     #endregion
 
+    #region Lobby Callbacks
+
+    private void HandleGameLobbyLoaded()
+    {
+        if (LobbyManager.Instance.IsHost)
+        {
+            this.canvasHost.gameObject.SetActive(true);
+        }
+        else
+        {
+            this.canvasClient.gameObject.SetActive(true);
+        }
+
+        this.InitializePlayersList(LobbyManager.Instance.LocalLobby.Players);
+    }
+
+    private void HandleMonopolyGameFailedToLoad()
+    {
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessagePlayersFailedToLoad, PanelMessageBoxUI.Icon.Error);
+    }
+
+    private void HandlePlayerLeft(List<int> leftPlayer)
+    {
+        this.RemovePlayerFromList(leftPlayer.FirstOrDefault());
+    }
+
+    private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayer)
+    {
+        this.AddPlayerToList(joinedPlayer.LastOrDefault().Player);
+    }
+
+    #endregion
+
     #region Button Start Game
 
     private void HandleButtonStartGame()
     {
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageConfirmStartGame;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(this.InvokeButtonStartGameCallback);
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, this.messageConfirmStartGame, PanelMessageBoxUI.Icon.Question, this.CallbackButtonStartGame);
     }
 
-    private void InvokeButtonStartGameCallback()
+    private void CallbackButtonStartGame()
     {
-        if (UIManagerGlobal.Instance.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK) 
+        if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageLoadingGame;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
-            UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageLoadingGame, PanelMessageBoxUI.Icon.Loading);
 
             LobbyManager.Instance.StartGame();
         }
@@ -276,22 +259,16 @@ internal sealed class UIManagerLobby : MonoBehaviour
 
     private void HandleButtonDisconnectClicked()
     {
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageConfirmDisconnect;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(this.InvokeButtonDisconnectCallback);
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, this.messageConfirmDisconnect, PanelMessageBoxUI.Icon.Question, this.CallbackButtonDisconnectAsync);
     }
 
-    private async void InvokeButtonDisconnectCallback()
+    private async void CallbackButtonDisconnectAsync()
     {
-        if (UIManagerGlobal.Instance.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
+        if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerLobby.Instance.MessageDisconnecting;
-            UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageDisconnecting, PanelMessageBoxUI.Icon.Loading);
 
-            await LobbyManager.Instance.DisconnectLobby();
+            await LobbyManager.Instance.DisconnectFromLobbyAsync();
         }
     }
 

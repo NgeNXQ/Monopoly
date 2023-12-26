@@ -9463,7 +9463,7 @@ MonoBehaviour:
   delayBetweenTurns: 0.5
   delayBetweenNodes: 1
   playerMovementSpeed: 25
-  player: {fileID: 310468000744606967, guid: 075d89063a5c40347973aaa79cad57a2, type: 3}
+  player: {fileID: 6664082868912979496, guid: 075d89063a5c40347973aaa79cad57a2, type: 3}
   monopolyPlayersVisuals:
   - colorPlayerToken: {r: 1, g: 0, b: 0, a: 1}
     spritePlayerToken: {fileID: 21300000, guid: 7539f1d33877f3e4391098f024533393, type: 3}
@@ -10179,7 +10179,7 @@ GameObject:
   - component: {fileID: 6383472732039495840}
   - component: {fileID: 6758341332512467325}
   m_Layer: 0
-  m_Name: UIManager
+  m_Name: UIManagerLocal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11344,7 +11344,7 @@ MonoBehaviour:
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
+  AutoObjectParentSync: 0
 --- !u!114 &6322003529767590545
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -13,9 +13,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 {
     #region Setup
 
-    [Space]
-    [Header("Setup")]
-
     #region Main Menu Tab
 
     [Header("Main Menu Tab")]
@@ -57,7 +54,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Connection Tab
 
-    [Space]
     [Header("Connection Tab")]
 
     [Space]
@@ -91,12 +87,11 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Messages
 
-    [Space]
     [Header("Messages")]
 
-    #region General Information
+    #region General
 
-    [Header("General Information")]
+    [Header("General")]
 
     [Space]
     [SerializeField] private string messageEstablishingConnection;
@@ -105,7 +100,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Code Validation
 
-    [Space]
     [Header("Code Validation")]
 
     [Space]
@@ -118,7 +112,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Nickname Validation
 
-    [Space]
     [Header("Nickname Validation")]
 
     [Space]
@@ -137,7 +130,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Establishing Connection
 
-    [Space]
     [Header("Establishing Connection")]
 
     [Space]
@@ -163,7 +155,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     public static UIManagerMainMenu Instance { get; private set; }
 
-    public string MessageKicked 
+    public string MessageKicked
     {
         get
         {
@@ -187,10 +179,10 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     private void OnEnable()
     {
         this.buttonCancel.onClick.AddListener(this.HandleButtonCancelClicked);
-        this.buttonConnect.onClick.AddListener(this.HandleButtonConnectClicked);
+        this.buttonConnect.onClick.AddListener(this.HandleButtonConnectClickedAsync);
 
         this.buttonCloseGame.onClick.AddListener(this.HandleButtonCloseGameClicked);
-        this.buttonHostLobby.onClick.AddListener(this.HandleButtonHostLobbyClicked);
+        this.buttonHostLobby.onClick.AddListener(this.HandleButtonHostLobbyClickedAsync);
         this.buttonConnectLobby.onClick.AddListener(this.HandleButtonConnectLobbyClicked);
 
         GameCoordinator.Instance.OnEstablishingConnectionRelayFailed += this.HandleEstablishingConnectionRelayFailed;
@@ -200,10 +192,10 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     private void OnDisable()
     {
         this.buttonCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
-        this.buttonConnect.onClick.RemoveListener(this.HandleButtonConnectClicked);
+        this.buttonConnect.onClick.RemoveListener(this.HandleButtonConnectClickedAsync);
 
         this.buttonCloseGame.onClick.RemoveListener(this.HandleButtonCloseGameClicked);
-        this.buttonHostLobby.onClick.RemoveListener(this.HandleButtonHostLobbyClicked);
+        this.buttonHostLobby.onClick.RemoveListener(this.HandleButtonHostLobbyClickedAsync);
         this.buttonConnectLobby.onClick.RemoveListener(this.HandleButtonConnectLobbyClicked);
 
         GameCoordinator.Instance.OnEstablishingConnectionRelayFailed -= this.HandleEstablishingConnectionRelayFailed;
@@ -216,26 +208,21 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (String.IsNullOrWhiteSpace(this.textBoxNickname.text))
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Warning;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageNicknameEmpty;
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageNicknameEmpty, PanelMessageBoxUI.Icon.Warning);
         }
         else if (this.textBoxNickname.text.Length > this.nicknameMaxLength)
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageNicknameTooLong;
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageNicknameTooLong, PanelMessageBoxUI.Icon.Error);
         }
         else if (this.textBoxNickname.text.Length < this.nicknameMinLength)
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageNicknameTooShort;
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageNicknameTooShort, PanelMessageBoxUI.Icon.Error);
         }
         else
         {
             return true;
         }
 
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
         return false;
     }
 
@@ -243,21 +230,17 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (String.IsNullOrWhiteSpace(this.textBoxJoinCode.text))
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Warning;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageEmptyJoinCode;
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageEmptyJoinCode, PanelMessageBoxUI.Icon.Warning);
         }
         else if (this.textBoxJoinCode.text.Length != this.joinCodeLength)
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageInvalidLengthJoinCode;
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageInvalidLengthJoinCode, PanelMessageBoxUI.Icon.Error);
         }
         else
         {
             return true;
         }
 
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
         return false;
     }
 
@@ -267,9 +250,9 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region General Callbacks
 
-    private void InvokeCloseGameCallback()
+    private void CallbackCloseGame()
     {
-        if (UIManagerGlobal.Instance.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
+        if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
 #if UNITY_EDITOR
             EditorApplication.ExitPlaymode();
@@ -287,10 +270,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     private void HandleButtonCloseGameClicked()
     {
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageConfirmClosingGame;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(this.InvokeCloseGameCallback);
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, this.messageConfirmClosingGame, PanelMessageBoxUI.Icon.Question, this.CallbackCloseGame);
     }
 
     private void HandleButtonConnectLobbyClicked()
@@ -306,14 +286,11 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Connection Callbacks
 
-    private async void HandleButtonConnectClicked()
+    private async void HandleButtonConnectClickedAsync()
     {
         if (this.ValidateTextBoxJoinCode())
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageEstablishingConnection;
-            UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
@@ -321,14 +298,11 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         }
     }
 
-    private async void HandleButtonHostLobbyClicked()
+    private async void HandleButtonHostLobbyClickedAsync()
     {
         if (this.ValidateTextBoxNickname())
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageEstablishingConnection;
-            UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
@@ -348,23 +322,19 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         {
             case RelayExceptionReason.InvalidRequest:
             case RelayExceptionReason.JoinCodeNotFound:
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageInvalidJoinCode;
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageInvalidJoinCode, PanelMessageBoxUI.Icon.Error);
                 break;
             case RelayExceptionReason.NetworkError:
             case RelayExceptionReason.EntityNotFound:
             case RelayExceptionReason.RegionNotFound:
             case RelayExceptionReason.NoSuitableRelay:
             case RelayExceptionReason.AllocationNotFound:
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageGameCoordinatorIsDown;
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageGameCoordinatorIsDown, PanelMessageBoxUI.Icon.Error);
                 break;
             default:
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = relayServiceException.Message;
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, relayServiceException.Message, PanelMessageBoxUI.Icon.Error);
                 break;
         }
-
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
     }
 
     private void HandleEstablishingConnectionLobbyFailed(LobbyServiceException lobbyServiceException)
@@ -372,24 +342,20 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         switch (lobbyServiceException.Reason)
         {
             case LobbyExceptionReason.LobbyFull:
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageLobbyIsFull;
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageLobbyIsFull, PanelMessageBoxUI.Icon.Error);
                 break;
             case LobbyExceptionReason.LobbyNotFound:
             case LobbyExceptionReason.InvalidJoinCode:
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageInvalidJoinCode;
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageInvalidJoinCode, PanelMessageBoxUI.Icon.Error);
                 break;
             case LobbyExceptionReason.LobbyConflict:
             case LobbyExceptionReason.LobbyAlreadyExists:
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageFailedToJoinLobby;
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageFailedToJoinLobby, PanelMessageBoxUI.Icon.Error);
                 break;
             default:
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = lobbyServiceException.Message;
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, lobbyServiceException.Message, PanelMessageBoxUI.Icon.Error);
                 break;
         }
-
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
     }
 
     #endregion

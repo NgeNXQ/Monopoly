@@ -3,9 +3,8 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 
-public sealed class MonopolyNode : NetworkBehaviour
+public sealed class MonopolyNode : MonoBehaviour
 {
     #region In-editor setup (Visuals & Logic)
 

@@ -7,12 +7,12 @@ public sealed class MonopolyPlayerVisuals
 
     [SerializeField] private Sprite spritePlayerToken;
 
-    public Color ColorPlayerToken
+    public Color ColorPlayerToken 
     {
         get => this.colorPlayerToken;
     }
 
-    public Sprite SpritePlayerToken
+    public Sprite SpritePlayerToken 
     {
         get => this.spritePlayerToken;
     }

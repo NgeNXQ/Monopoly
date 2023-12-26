@@ -53,7 +53,7 @@ internal sealed class GameManager : NetworkBehaviour
     [Header("Player")]
 
     [Space]
-    [SerializeField] private MonopolyPlayer player;
+    [SerializeField] private GameObject player;
 
     #endregion
 
@@ -196,10 +196,10 @@ internal sealed class GameManager : NetworkBehaviour
         this.targetAllPlayers = new ulong[LobbyManager.Instance.LocalLobby.Players.Count];
         this.targetOtherPlayers = new List<ulong[]>(LobbyManager.Instance.LocalLobby.Players.Count);
 
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+        //UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
+        //UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
+        //UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers;
+        //UIManagerGlobal.Instance.PanelMessageBox.Show(null);
 
         if (NetworkManager.Singleton.IsHost)
         {
@@ -250,9 +250,22 @@ internal sealed class GameManager : NetworkBehaviour
         }
         else
         {
-            this.SpawnPlayersServerRpc(this.ServerParamsCurrentClient);
+            for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
+            {
+                this.player = GameObject.Instantiate(this.player);
+                this.player.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
+                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+
+                this.players.Add(this.player.GetComponent<MonopolyPlayer>());
+
+                string nickname = LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+                this.players.Last().InitializePlayer(nickname, this.monopolyPlayersVisuals[i]);
+            }
+
             this.CloseLoadingMessageBoxClientRpc(this.ClientParamsAllClients);
         }
+
+        this.StartTurnServerRpc(this.ServerParamsCurrentClient);
     }
 
     private void HandleClientDisconnectCallback(ulong clientId)
@@ -265,40 +278,7 @@ internal sealed class GameManager : NetworkBehaviour
     [ClientRpc]
     private void CloseLoadingMessageBoxClientRpc(ClientRpcParams clientRpcParams)
     {
-        UIManagerGlobal.Instance.PanelMessageBox.Hide();
-    }
-
-    #endregion
-
-    #region Spawning Players
-
-    [ServerRpc]
-    private void SpawnPlayersServerRpc(ServerRpcParams serverRpcParams)
-    {
-        for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
-        {
-            GameObject newPlayer = GameObject.Instantiate(this.player.gameObject);
-            this.players.Add(newPlayer.GetComponent<MonopolyPlayer>());
-
-            string nickname = LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-            this.players.Last().InitializePlayer(nickname, this.monopolyPlayersVisuals[i]);
-
-            newPlayer.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i]);
-
-            this.SpawnPlayerClientRpc(i, this.ClientParamsOtherClients);
-        }
-
-        this.StartTurnServerRpc(this.ServerParamsCurrentClient);
-    }
-
-    [ClientRpc]
-    private void SpawnPlayerClientRpc(int playersVisualsIndex, ClientRpcParams clientRpcParams)
-    {
-        GameObject newPlayer = GameObject.Instantiate(this.player.gameObject);
-        this.players.Add(newPlayer.GetComponent<MonopolyPlayer>());
-
-        string nickname = LobbyManager.Instance.LocalLobby.Players[playersVisualsIndex].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-        this.players.Last().InitializePlayer(nickname, this.monopolyPlayersVisuals[playersVisualsIndex]);
+        //UIManagerGlobal.Instance.PanelMessageBox.Hide();
     }
 
     #endregion

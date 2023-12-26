@@ -1,15 +1,11 @@
 using TMPro;
 using System.Linq;
 using UnityEngine;
-using Unity.Netcode;
 using UnityEngine.UI;
 
 public sealed class PanelPlayerLobbyUI : MonoBehaviour
 {
     #region Setup
-
-    [Space]
-    [Header("Setup")]
 
     #region Visuals
 
@@ -56,46 +52,34 @@ public sealed class PanelPlayerLobbyUI : MonoBehaviour
 
     private void HandleButtonKickPlayerClicked()
     {
-        if (NetworkManager.Singleton.IsHost)
+        if (LobbyManager.Instance.IsHost)
         {
             if (this.playerId == LobbyManager.Instance.LocalLobby.HostId)
             {
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Warning;
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerLobby.Instance.MessageCannotKickYourself;
-                UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageCannotKickYourself, PanelMessageBoxUI.Icon.Warning);
             }
             else
             {
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Question;
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OKCancel;
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = $"{UIManagerLobby.Instance.MessageConfirmKickPlayer} {this.PlayerNickname}?";
-                UIManagerGlobal.Instance.PanelMessageBox.Show(this.InvokeKickPlayerCallback);
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, $"{UIManagerGameLobby.Instance.MessageConfirmKickPlayer} {this.PlayerNickname}?", PanelMessageBoxUI.Icon.Question, this.InvokeKickPlayerCallback);
             }
         }
         else
         {
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-            UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerLobby.Instance.MessageCannotKickNotHost;
-            UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageCannotKickNotHost, PanelMessageBoxUI.Icon.Error);
         }
     }
 
     private async void InvokeKickPlayerCallback()
     {
-        if (UIManagerGlobal.Instance.PanelMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
+        if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
             if (this == null || !(bool)LobbyManager.Instance?.LocalLobby?.Players.Any(player => player.Id.Equals(this.playerId, System.StringComparison.Ordinal)))
             {
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-                UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerLobby.Instance.MessageCannotKickPlayerAlreadyLeft;
-                UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageCannotKickPlayerAlreadyLeft, PanelMessageBoxUI.Icon.Error);
             }
             else
             {
-                await LobbyManager.Instance?.KickFromLobby(this.playerId);
+                await LobbyManager.Instance?.KickFromLobbyAsync(this.playerId);
             }
         }
     }

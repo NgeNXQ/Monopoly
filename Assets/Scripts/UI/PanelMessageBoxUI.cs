@@ -108,15 +108,13 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         Cancel
     }
 
-    private bool isShown;
+    private IControlUI control;
 
     private Type messageBoxType;
 
     private DialogResult messageBoxDialogResult;
 
     private IControlUI.ButtonClickedCallback callback;
-
-    public static PanelMessageBoxUI Instance { get; private set; }
 
     public Type MessageBoxType 
     {
@@ -163,14 +161,13 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private void Awake()
     {
-        if (Instance != null)
-            throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
-
-        Instance = this;
+        GameObject.DontDestroyOnLoad(this);
     }
 
-    private void OnEnable()
+    private void Start()
     {
+        this.control = this;
+
         SceneManager.activeSceneChanged += this.HandleActiveSceneChanged;
 
         this.buttonConfirmPanelOK.onClick.AddListener(this.HandleButtonOKClicked);
@@ -178,7 +175,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.buttonCancelPanelOKCancel.onClick.AddListener(this.HandleButtonCancelClicked);
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         SceneManager.activeSceneChanged -= this.HandleActiveSceneChanged;
 
@@ -189,13 +186,9 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     public void Show(IControlUI.ButtonClickedCallback callback)
     {
-        if (this.isShown)
-        {
-            this.Hide();
-        }
-
-        this.isShown = true;
         this.callback = callback;
+        this.gameObject.SetActive(true);
+
         this.panelTemplate.gameObject.SetActive(true);
 
         switch (this.messageBoxType)
@@ -209,9 +202,10 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         }
     }
 
-    public void Hide()
+    void IControlUI.Hide()
     {
-        this.isShown = false;
+        this.gameObject.SetActive(false);
+
         this.panelTemplate.gameObject.SetActive(false);
 
         switch (this.messageBoxType)
@@ -227,22 +221,29 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private void HandleButtonOKClicked()
     {
-        this.Hide();
+        this.control.Hide();
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.OK;
 
         this.callback?.Invoke();
+
+        this.callback = null;
     }
 
     private void HandleButtonCancelClicked()
     {
-        this.Hide();
+        this.control.Hide();
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.Cancel;
 
         this.callback?.Invoke();
+
+        this.callback = null;
     }
 
     private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
     {
-        this.Hide();
+        if (this.messageBoxType == PanelMessageBoxUI.Type.None)
+        {
+            this.control.Hide();
+        }
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public sealed class MonopolyBoard : MonoBehaviour
 {
-    #region In-editor Setup (Logic)
+    #region Setup
 
     [Space]
     [Header("Special nodes")]
@@ -44,6 +44,8 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     public static MonopolyBoard Instance { get; private set; }
 
+    public int NumberOfNodes { get => this.nodes.Count; }
+
     public MonopolyNode NodeJail { get => this.jail; }
 
     public MonopolyNode NodeStart { get => this.start; }
@@ -52,14 +54,18 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     public MonopolyNode NodeFreeParking { get => this.freeParking; }
 
-    public int NumberOfNodes { get => this.nodes.Count; }
-
     public List<MonopolySet> Monopolies { get => this.monopolies; }
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance != null)
+            throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
 
+        Instance = this;
+    }
+
+    private void Start()
+    {
         this.nodes = new List<MonopolyNode>();
 
         foreach (Transform child in this.transform)

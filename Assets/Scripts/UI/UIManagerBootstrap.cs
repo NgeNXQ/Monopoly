@@ -4,12 +4,9 @@
 using UnityEditor;
 #endif
 
-internal sealed class UIManagerConnectionSetup : MonoBehaviour
+internal sealed class UIManagerBootstrap : MonoBehaviour
 {
     #region Setup
-
-    [Space]
-    [Header("Setup")]
 
     #region Messages
 
@@ -25,7 +22,7 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
 
     #endregion
 
-    public static UIManagerConnectionSetup Instance { get; private set; }
+    public static UIManagerBootstrap Instance { get; private set; }
 
     private void Awake()
     {
@@ -37,10 +34,7 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
 
     private void Start()
     {
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageInitializingGameCoordinator;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(null);
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageInitializingGameCoordinator, PanelMessageBoxUI.Icon.Loading);
     }
 
     private void OnEnable()
@@ -57,15 +51,12 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
 
     private void HandleAuthenticationFailed()
     {
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.OK;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Error;
-        UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = this.messageInitializationGameCoordinatorFailed;
-        UIManagerGlobal.Instance.PanelMessageBox.Show(this.InvokeAuthenticationFailedCallback);
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageInitializationGameCoordinatorFailed, PanelMessageBoxUI.Icon.Error, this.CallbackAuthenticationFailed);
     }
 
-    private async void InvokeAuthenticationFailedCallback()
+    private async void CallbackAuthenticationFailed()
     {
-        switch (UIManagerGlobal.Instance.PanelMessageBox.MessageBoxDialogResult)
+        switch (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult)
         {
             case PanelMessageBoxUI.DialogResult.OK:
                 {
@@ -78,7 +69,7 @@ internal sealed class UIManagerConnectionSetup : MonoBehaviour
                 break;
             case PanelMessageBoxUI.DialogResult.Cancel:
                 {
-                    await GameCoordinator.Instance.LoadScene(GameCoordinator.MonopolyScene.MainMenu);
+                    await GameCoordinator.Instance.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
                 }
                 break;
         }

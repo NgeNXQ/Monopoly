@@ -224,12 +224,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 97115298
+  GlobalObjectIdHash: 3971420131
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
+  ActiveSceneSynchronization: 1
   SceneMigrationSynchronization: 0
-  SpawnWithObservers: 0
+  SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
 --- !u!114 &310468000744606967
@@ -244,9 +244,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25889effd5ec28e4bbdd6d6159d780e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerColor: {r: 1, g: 0, b: 0, a: 1}
   playerImageToken: {fileID: 6923675600965488005}
-  playerSpriteToken: {fileID: 21300000, guid: 7539f1d33877f3e4391098f024533393, type: 3}
 --- !u!114 &-4276702159148105150
 MonoBehaviour:
   m_ObjectHideFlags: 0
