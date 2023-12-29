@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 public sealed class MonopolyNode : MonoBehaviour
 {
-    #region In-editor setup (Visuals & Logic)
+    #region Setup (Editor)
 
     [SerializeField] private Type type;
 

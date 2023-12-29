@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Unity.Netcode;
-using System.Threading;
 using Unity.Services.Core;
 using Unity.Services.Relay;
 using System.Threading.Tasks;
@@ -32,7 +31,7 @@ internal sealed class GameCoordinator : MonoBehaviour
         MonopolyGame
     }
 
-    public static GameCoordinator Instance  { get; private set; }
+    public static GameCoordinator Instance { get; private set; }
 
     public Player LocalPlayer { get; set; }
 
@@ -89,6 +88,39 @@ internal sealed class GameCoordinator : MonoBehaviour
         await this.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
     }
 
+    #region Updating Player
+
+    public void UpdateLocalPlayer(string newNickname)
+    {
+        newNickname = newNickname.Trim();
+
+        this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value = newNickname;
+
+        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, newNickname);
+        PlayerPrefs.Save();
+    }
+
+    public void InitializeLocalPlayer(string nickname)
+    {
+        nickname = nickname.Trim();
+
+        Player player = new Player(AuthenticationService.Instance.PlayerId)
+        {
+            Data = new Dictionary<string, PlayerDataObject>
+            {
+                { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
+                { LobbyManager.KEY_PLAYER_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
+            }
+        };
+
+        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, nickname);
+        PlayerPrefs.Save();
+
+        this.LocalPlayer = player;
+    }
+
+    #endregion
+
     #region Scenes Management
 
     public void LoadSceneNetwork(MonopolyScene scene)
@@ -106,7 +138,7 @@ internal sealed class GameCoordinator : MonoBehaviour
         switch (newActiveScene.name)
         {
             case nameof(GameCoordinator.MonopolyScene.MainMenu):
-                    this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
+                this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
                 break;
             case nameof(GameCoordinator.MonopolyScene.GameLobby):
                 {
@@ -130,23 +162,19 @@ internal sealed class GameCoordinator : MonoBehaviour
     public async Task HostLobbyAsync()
     {
         if (this.LocalPlayer == null)
-            throw new System.ArgumentNullException($"{nameof(this.LocalPlayer)} is null.");
-
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(LobbyManager.LOBBY_LOADING_TIMEOUT));
+            throw new System.InvalidOperationException($"{nameof(this.LocalPlayer)} is null.");
 
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(3600));
-
-            Allocation hostAllocation = await Task.Run(() => RelayService.Instance.CreateAllocationAsync(LobbyManager.MAX_PLAYERS), cancellationTokenSource.Token);
+            Allocation hostAllocation = await RelayService.Instance.CreateAllocationAsync(LobbyManager.MAX_PLAYERS);
 
             RelayServerData relayServerData = new RelayServerData(hostAllocation, GameCoordinator.CONNECTION_TYPE);
 
             NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
-            
-            string relayCode = await Task.Run(() => RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId), cancellationTokenSource.Token);
 
-            await LobbyManager.Instance?.HostLobbyAsync(relayCode, cancellationTokenSource.Token);
+            string relayCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
+
+            await LobbyManager.Instance?.HostLobbyAsync(relayCode);
         }
         catch (RelayServiceException relayServiceException)
         {
@@ -155,33 +183,23 @@ internal sealed class GameCoordinator : MonoBehaviour
         catch (LobbyServiceException lobbyServiceException)
         {
             this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
-        }
-        catch (OperationCanceledException operationCanceledException)
-        {
-            this.OnOperationCanceledException?.Invoke(operationCanceledException);
-        }
-        finally
-        { 
-            cancellationTokenSource.Dispose(); 
         }
     }
 
     public async Task ConnectLobbyAsync(string joinCode)
     {
         if (this.LocalPlayer == null)
-            throw new System.ArgumentNullException($"{nameof(this.LocalPlayer)} is null.");
-
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(LobbyManager.LOBBY_LOADING_TIMEOUT));
+            throw new System.InvalidOperationException($"{nameof(this.LocalPlayer)} is null.");
 
         try
         {
-            JoinAllocation clientAllocation = await Task.Run(() => RelayService.Instance.JoinAllocationAsync(joinCode), cancellationTokenSource.Token);
+            JoinAllocation clientAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
             RelayServerData relayServerData = new RelayServerData(clientAllocation, GameCoordinator.CONNECTION_TYPE);
 
             NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
-            await LobbyManager.Instance?.ConnectLobbyAsync(joinCode, cancellationTokenSource.Token);
+            await LobbyManager.Instance?.ConnectLobbyAsync(joinCode);
         }
         catch (RelayServiceException relayServiceException)
         {
@@ -191,39 +209,6 @@ internal sealed class GameCoordinator : MonoBehaviour
         {
             this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
         }
-        catch (OperationCanceledException operationCanceledException)
-        {
-            this.OnOperationCanceledException?.Invoke(operationCanceledException);
-        }
-        finally
-        {
-            cancellationTokenSource.Dispose();
-        }
-    }
-
-    public void UpdateLocalPlayer(string newNickname)
-    {
-        this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value = newNickname;
-
-        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, newNickname);
-        PlayerPrefs.Save();
-    }
-
-    public void InitializeLocalPlayer(string nickname)
-    {
-        Player player = new Player(AuthenticationService.Instance.PlayerId)
-        {
-            Data = new Dictionary<string, PlayerDataObject>
-            {
-                { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
-                { LobbyManager.KEY_PLAYER_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
-            }
-        };
-
-        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, nickname);
-        PlayerPrefs.Save();
-
-        this.LocalPlayer = player;
     }
 
     #endregion

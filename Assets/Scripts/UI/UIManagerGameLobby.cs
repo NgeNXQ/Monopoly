@@ -1,5 +1,4 @@
 using TMPro;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Services.Lobbies;
@@ -256,14 +255,20 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessagePlayersFailedToLoad, PanelMessageBoxUI.Icon.Error);
     }
 
-    private void HandlePlayerLeft(List<int> leftPlayer)
+    private void HandlePlayerLeft(List<int> leftPlayers)
     {
-        this.RemovePlayerFromList(leftPlayer.FirstOrDefault());
+        foreach (int playerIndex in leftPlayers)
+        {
+            this.RemovePlayerFromList(playerIndex);
+        }
     }
 
-    private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayer)
+    private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayers)
     {
-        this.AddPlayerToList(joinedPlayer.LastOrDefault().Player);
+        foreach (LobbyPlayerJoined newPlayer in joinedPlayers)
+        {
+            this.AddPlayerToList(newPlayer.Player);
+        }
     }
 
     #endregion

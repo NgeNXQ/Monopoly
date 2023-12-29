@@ -47,12 +47,10 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
 
     public void InitializePanel(MonopolyPlayer player)
     {
+        this.associatedPlayer = player;
         this.textPlayerName.text = player.Nickname;
         this.ImagePlayerColor.color = player.PlayerColor;
         this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {player.Balance}";
-
-        this.associatedPlayer = player;
-        this.gameObject.name = player.OwnerClientId.ToString();
     }
 
     [ClientRpc]

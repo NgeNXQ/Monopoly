@@ -52,6 +52,9 @@ internal sealed class GameManager : NetworkBehaviour
     [Space]
     [SerializeField] private GameObject player;
 
+    [Space]
+    [SerializeField] private GameObject playerPanel;
+
     #endregion
 
     #region Players Tokens
@@ -188,7 +191,7 @@ internal sealed class GameManager : NetworkBehaviour
     {
         LobbyManager.Instance.UpdateLocalPlayerData();
 
-        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, null, () => LobbyManager.Instance.HavePlayersLoaded);
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, stateCallback: () => LobbyManager.Instance.HavePlayersLoaded);
 
         this.players = new List<MonopolyPlayer>();
 
@@ -250,26 +253,30 @@ internal sealed class GameManager : NetworkBehaviour
         if (!LobbyManager.Instance.HavePlayersLoaded)
         {
             LobbyManager.Instance.OnMonopolyGameFailedToLoad?.Invoke();
-            GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.GameLobby);
         }
         else
         {
-            Debug.Log("initializing");
+            for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
+            {
+                this.player = GameObject.Instantiate(this.player);
+                this.player.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
+                
+                this.playerPanel = GameObject.Instantiate(this.playerPanel, UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
+                this.playerPanel.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
 
-            //for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
-            //{
-            //    this.player = GameObject.Instantiate(this.player);
-            //    this.player.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
-            //    this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+                MonopolyPlayer newPlayer = this.player.GetComponent<MonopolyPlayer>();
+                PanelPlayerGameUI newPanelPlayer = this.playerPanel.GetComponent<PanelPlayerGameUI>();
+                
+                this.players.Add(newPlayer);
+                newPanelPlayer.InitializePanel(newPlayer);
+                newPlayer.InitializePlayer(LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value, this.monopolyPlayersVisuals[i]);
 
-            //    this.players.Add(this.player.GetComponent<MonopolyPlayer>());
-
-            //    string nickname = LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-            //    this.players.Last().InitializePlayer(nickname, this.monopolyPlayersVisuals[i]);
-            //}
+                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+                this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+            }
         }
-
-        //this.StartTurnServerRpc(this.ServerParamsCurrentClient);
+        
+        this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
     }
 
     private void HandleClientDisconnectCallback(ulong clientId)
@@ -282,13 +289,7 @@ internal sealed class GameManager : NetworkBehaviour
     #endregion
 
     #region Monopoly Turn-based Game Loop
-
-    [ServerRpc]
-    private void StartTurnServerRpc(ServerRpcParams serverRpcParams)
-    {
-        this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
-    }
-
+    
     [ServerRpc(RequireOwnership = false)]
     public void SwitchPlayerServerRpc(ServerRpcParams serverRpcParams)
     {
@@ -310,7 +311,7 @@ internal sealed class GameManager : NetworkBehaviour
 
         this.SwitchPlayerClientRpc(this.currentPlayerIndex, this.ClientParamsAllClients);
 
-        this.StartTurnServerRpc(this.ServerParamsCurrentClient);
+        this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
     }
 
     [ClientRpc]
@@ -330,21 +331,12 @@ internal sealed class GameManager : NetworkBehaviour
 
         this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
         this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
-
-        this.RollDiceServerRpc(this.FirstDieValue, this.SecondDieValue);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void RollDiceServerRpc(int firstDieValue, int secondDieValue, ServerRpcParams serverRpcParams = default)
-    {
-        this.FirstDieValue = firstDieValue;
-        this.SecondDieValue = secondDieValue;
-
-        this.RollDiceClientRpc(firstDieValue, secondDieValue);
+        
+        this.RollDiceClientRpc(this.FirstDieValue, this.SecondDieValue, this.ClientParamsOtherClients);
     }
 
     [ClientRpc]
-    private void RollDiceClientRpc(int firstDieValue, int secondDieValue, ClientRpcParams clientRpcParams = default)
+    private void RollDiceClientRpc(int firstDieValue, int secondDieValue, ClientRpcParams clientRpcParams)
     {
         this.FirstDieValue = firstDieValue;
         this.SecondDieValue = secondDieValue;

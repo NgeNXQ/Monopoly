@@ -38,9 +38,7 @@ internal sealed class LobbyManager : MonoBehaviour
     public const string LOBBY_STATE_RETURNING = "Returning";
 
     private bool hasLeft;
-
-    private bool hasLoaded;
-
+    
     private string lobbyName 
     {
         get => $"LOBBY_{this.JoinCode}"; 
@@ -102,13 +100,12 @@ internal sealed class LobbyManager : MonoBehaviour
         this.OnGameLobbyFailedToLoad += this.HandleGameLobbyFailedToLoadAsync;
         this.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoadAsync;
 
+        this.LocalLobbyEventCallbacks.PlayerLeft += this.HandlePlayerLeft;
         this.LocalLobbyEventCallbacks.DataChanged += this.HandleDataChanged;
+        this.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
         this.LocalLobbyEventCallbacks.LobbyDeleted += this.HandleLobbyDeleted;
-        this.LocalLobbyEventCallbacks.PlayerLeft += this.HandlePlayerLeftAsync;
-        this.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoinedAsync;
+        this.LocalLobbyEventCallbacks.PlayerDataChanged += this.HandlePlayerDataChanged;
         this.LocalLobbyEventCallbacks.KickedFromLobby += this.HandleKickedFromLobbyAsync;
-
-        this.LocalLobbyEventCallbacks.PlayerDataChanged += this.HandlePlayerDataChangedAsync;
     }
 
     private void OnDisable()
@@ -120,13 +117,12 @@ internal sealed class LobbyManager : MonoBehaviour
         this.OnGameLobbyFailedToLoad -= this.HandleGameLobbyFailedToLoadAsync;
         this.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoadAsync;
 
+        this.LocalLobbyEventCallbacks.PlayerLeft -= this.HandlePlayerLeft;
         this.LocalLobbyEventCallbacks.DataChanged -= this.HandleDataChanged;
+        this.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
         this.LocalLobbyEventCallbacks.LobbyDeleted -= this.HandleLobbyDeleted;
-        this.LocalLobbyEventCallbacks.PlayerLeft -= this.HandlePlayerLeftAsync;
-        this.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoinedAsync;
+        this.LocalLobbyEventCallbacks.PlayerDataChanged -= this.HandlePlayerDataChanged;
         this.LocalLobbyEventCallbacks.KickedFromLobby -= this.HandleKickedFromLobbyAsync;
-
-        this.LocalLobbyEventCallbacks.PlayerDataChanged -= this.HandlePlayerDataChangedAsync;
     }
 
     private async void OnDestroy()
@@ -183,8 +179,6 @@ internal sealed class LobbyManager : MonoBehaviour
 
     private async void HandleGameLobbyLoadedAsync()
     {
-        this.hasLoaded = true;
-
         if (this.IsHost)
         {
             this.LocalLobby.Data[LobbyManager.KEY_LOBBY_STATE] = new DataObject(DataObject.VisibilityOptions.Member, LobbyManager.LOBBY_STATE_LOBBY);
@@ -203,9 +197,7 @@ internal sealed class LobbyManager : MonoBehaviour
 
     private async void HandleMonopolyGameLoadedAsync()
     {
-        this.hasLoaded = true;
-
-        GameCoordinator.Instance.LocalPlayer.Data[LobbyManager.KEY_PLAYER_SCENE].Value = GameCoordinator.MonopolyScene.MonopolyGame.ToString();
+        GameCoordinator.Instance.LocalPlayer.Data[LobbyManager.KEY_PLAYER_SCENE].Value = GameCoordinator.Instance.ActiveScene.ToString();
 
         UpdatePlayerOptions updatePlayerOptions = new UpdatePlayerOptions()
         {
@@ -224,8 +216,6 @@ internal sealed class LobbyManager : MonoBehaviour
     {
         if (this.IsHost)
         {
-            GameCoordinator.Instance.LocalPlayer.Data[LobbyManager.KEY_PLAYER_SCENE].Value = GameCoordinator.MonopolyScene.MonopolyGame.ToString();
-
             this.LocalLobby.Data[LobbyManager.KEY_LOBBY_STATE] = new DataObject(DataObject.VisibilityOptions.Member, LobbyManager.LOBBY_STATE_PENDING);
 
             UpdateLobbyOptions updateLobbyOptions = new UpdateLobbyOptions()
@@ -234,20 +224,9 @@ internal sealed class LobbyManager : MonoBehaviour
                 Data = this.LocalLobby.Data
             };
 
-            UpdatePlayerOptions updatePlayerOptions = new UpdatePlayerOptions()
-            {
-                Data = GameCoordinator.Instance.LocalPlayer.Data
-            };
-
             await Lobbies.Instance.UpdateLobbyAsync(this.LocalLobby.Id, updateLobbyOptions);
 
-            await Lobbies.Instance.UpdatePlayerAsync(this.LocalLobby.Id, GameCoordinator.Instance.LocalPlayer.Id, updatePlayerOptions);
-
-            GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.MonopolyGame);
-        }
-        else
-        {
-            await this.DisconnectFromLobbyAsync();
+            GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.GameLobby);
         }
     }
 
@@ -274,6 +253,17 @@ internal sealed class LobbyManager : MonoBehaviour
 
     #region Lobby Ping & Load & Update
 
+    private IEnumerator PingLobbyCoroutine()
+    {
+        WaitForSeconds waitForSeconds = new WaitForSeconds(LobbyManager.LOBBY_UPTIME);
+
+        while (this.LocalLobby != null)
+        {
+            Lobbies.Instance.SendHeartbeatPingAsync(this.LocalLobby.Id);
+            yield return waitForSeconds;
+        }
+    }
+
     public async void UpdateLocalPlayerData()
     {
         GameCoordinator.Instance.LocalPlayer.Data[LobbyManager.KEY_PLAYER_SCENE] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString());
@@ -286,94 +276,51 @@ internal sealed class LobbyManager : MonoBehaviour
         this.LocalLobby = await LobbyService.Instance.UpdatePlayerAsync(this.LocalLobby.Id, GameCoordinator.Instance.LocalPlayer.Id, updatePlayerOptions);
     }
 
-    //public IEnumerator LoadLobbyCoroutine()
-    //{
-    //    yield return new WaitForSeconds(LobbyManager.PLAYER_LOADING_TIMEOUT);
-
-    //    if (!this.hasLoaded)
-    //    {
-    //        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMainMenu.Instance.MessageFailedToLoad, PanelMessageBoxUI.Icon.Error);
-
-    //        this.OnGameLobbyFailedToLoad?.Invoke();
-    //    }
-    //}
-
-    //public IEnumerator LoadGameCoroutine()
-    //{
-    //    yield return new WaitForSeconds(LobbyManager.PLAYER_LOADING_TIMEOUT);
-
-    //    if (!this.hasLoaded)
-    //    {
-    //        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageFailedToConnect, PanelMessageBoxUI.Icon.Error);
-
-    //        this.OnMonopolyGameFailedToLoad?.Invoke();
-    //    }
-    //}
-
-    private IEnumerator PingLobbyCoroutine()
+    private void HandlePlayerLeft(List<int> leftPlayers)
     {
-        WaitForSeconds waitForSeconds = new WaitForSeconds(LobbyManager.LOBBY_UPTIME);
-
-        while (this.LocalLobby != null)
+        foreach (int playerIndex in leftPlayers)
         {
-            Lobbies.Instance.SendHeartbeatPingAsync(this.LocalLobby.Id);
-            yield return waitForSeconds;
+            this.LocalLobby.Players.RemoveAt(playerIndex);
         }
     }
 
-    private async void HandleDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> changedData)
+    private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayers)
     {
-        await this.RefreshLobbyAsync();
+        foreach (LobbyPlayerJoined newPlayer in joinedPlayers)
+        {
+            this.LocalLobby.Players.Add(newPlayer.Player);
+        }
+    }
+
+    private void HandleDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> changedLobbyData)
+    {
+        foreach (string key in changedLobbyData.Keys)
+        {
+            this.LocalLobby.Data[key] = changedLobbyData[key].Value;
+        }
 
         switch (this.LocalLobby.Data[LobbyManager.KEY_LOBBY_STATE].Value)
         {
             case LobbyManager.LOBBY_STATE_PENDING:
-                {
-                    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance.MessagePendingGame, PanelMessageBoxUI.Icon.Loading);
-                }
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance.MessagePendingGame, PanelMessageBoxUI.Icon.Loading, stateCallback: () => this.HavePlayersLoaded);
                 break;
             case LobbyManager.LOBBY_STATE_LOADING:
-                {
-                    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers ?? UIManagerGameLobby.Instance.MessagePendingGame, PanelMessageBoxUI.Icon.Loading);
-                }
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance?.MessageWaitingOtherPlayers ?? UIManagerGameLobby.Instance?.MessagePendingGame, PanelMessageBoxUI.Icon.Loading, stateCallback: () => this.HavePlayersLoaded);
                 break;
             case LobbyManager.LOBBY_STATE_RETURNING:
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance.MessagePlayersFailedToLoad ?? UIManagerGameLobby.Instance.MessageFailedToLoad, PanelMessageBoxUI.Icon.Loading);
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance?.MessagePlayersFailedToLoad ?? UIManagerGameLobby.Instance?.MessageFailedToLoad, PanelMessageBoxUI.Icon.Loading, stateCallback: () => this.HavePlayersLoaded);
                 break;
         }
     }
 
-    private async void HandlePlayerLeftAsync(List<int> leftPlayer)
+    private void HandlePlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changedPlayerData)
     {
-        await this.RefreshLobbyAsync();
-    }
-
-    private async void HandlePlayerJoinedAsync(List<LobbyPlayerJoined> joinedPlayer)
-    {
-        await this.RefreshLobbyAsync();
-    }
-
-    private async void HandlePlayerDataChangedAsync(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changedPlayer)
-    {
-        await this.RefreshLobbyAsync();
-    }
-
-    private async Task RefreshLobbyAsync()
-    {
-        await this.lobbyRefreshSemaphore.WaitAsync();
-
-        try
+        foreach (int playerIndex in changedPlayerData.Keys)
         {
-            await Awaitable.WaitForSecondsAsync(LobbyManager.LOBBY_REFRESH_RATE);
-            this.LocalLobby = await Lobbies.Instance.GetLobbyAsync(this.LocalLobby.Id);
-        }
-        catch
-        {
-            Debug.Log("Caught");
-        }
-        finally
-        {
-            this.lobbyRefreshSemaphore.Release();
+            foreach (string key in changedPlayerData[playerIndex].Keys)
+            {
+                this.LocalLobby.Players[playerIndex].Data[key] = changedPlayerData[playerIndex][key].Value;
+            }
         }
     }
 
@@ -402,7 +349,6 @@ internal sealed class LobbyManager : MonoBehaviour
         this.IsHost = false;
         this.hasLeft = false;
         this.LocalLobby = null;
-        this.hasLoaded = false;
     }
 
     public async Task DisconnectFromLobbyAsync()
@@ -435,11 +381,10 @@ internal sealed class LobbyManager : MonoBehaviour
         }
     }
 
-    public async Task HostLobbyAsync(string relayCode, CancellationToken cancellationToken)
+    public async Task HostLobbyAsync(string relayCode)
     {
         this.IsHost = true;
         this.hasLeft = false;
-        this.hasLoaded = false;
         this.JoinCode = relayCode;
 
         CreateLobbyOptions lobbyOptions = new CreateLobbyOptions()
@@ -455,16 +400,12 @@ internal sealed class LobbyManager : MonoBehaviour
         try
         {
             NetworkManager.Singleton?.StartHost();
-            this.LocalLobby = await Task.Run(() => LobbyService.Instance.CreateLobbyAsync(this.lobbyName, LobbyManager.MAX_PLAYERS, lobbyOptions), cancellationToken);
-            this.localLobbyEvents = await Task.Run(() => LobbyService.Instance.SubscribeToLobbyEventsAsync(this.LocalLobby.Id, this.LocalLobbyEventCallbacks), cancellationToken);
+            this.LocalLobby = await LobbyService.Instance.CreateLobbyAsync(this.lobbyName, LobbyManager.MAX_PLAYERS, lobbyOptions);
+            this.localLobbyEvents = await LobbyService.Instance.SubscribeToLobbyEventsAsync(this.LocalLobby.Id, this.LocalLobbyEventCallbacks);
         }
         catch (LobbyServiceException lobbyServiceException)
         {
             throw lobbyServiceException;
-        }
-        catch (OperationCanceledException operationCanceledException)
-        {
-            throw operationCanceledException;
         }
 
         if (this != null)
@@ -474,11 +415,10 @@ internal sealed class LobbyManager : MonoBehaviour
         }
     }
 
-    public async Task ConnectLobbyAsync(string joinCode, CancellationToken cancellationToken)
+    public async Task ConnectLobbyAsync(string joinCode)
     {
         this.IsHost = false;
         this.hasLeft = false;
-        this.hasLoaded = false;
         this.JoinCode = joinCode;
 
         JoinLobbyByIdOptions joinOptions = new JoinLobbyByIdOptions()
@@ -488,26 +428,14 @@ internal sealed class LobbyManager : MonoBehaviour
 
         try
         {
+            NetworkManager.Singleton?.StartClient();
             QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync(this.queryCurrentLobby);
-
-            //if (queryResponse.Results.Count < 1)
-            //{
-            //    throw new LobbyServiceException(LobbyExceptionReason.InvalidJoinCode, "The game has not found.");
-            //}
-            //else
-            //{
-                NetworkManager.Singleton?.StartClient();
-                this.LocalLobby = await Task.Run(() => LobbyService.Instance.JoinLobbyByIdAsync(queryResponse.Results.FirstOrDefault().Id, joinOptions), cancellationToken);
-                this.localLobbyEvents = await Task.Run(() => LobbyService.Instance.SubscribeToLobbyEventsAsync(this.LocalLobby.Id, this.LocalLobbyEventCallbacks), cancellationToken); 
-            //}
+            this.LocalLobby = await LobbyService.Instance.JoinLobbyByIdAsync(queryResponse.Results.FirstOrDefault().Id, joinOptions);
+            this.localLobbyEvents = await LobbyService.Instance.SubscribeToLobbyEventsAsync(this.LocalLobby.Id, this.LocalLobbyEventCallbacks);
         }
         catch (LobbyServiceException lobbyServiceException)
         {
             throw lobbyServiceException;
-        }
-        catch (OperationCanceledException operationCanceledException)
-        {
-            throw operationCanceledException;
         }
     }
 

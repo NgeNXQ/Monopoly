@@ -5,9 +5,9 @@ public sealed class MonopolyBoard : MonoBehaviour
 {
     #region Setup
 
-    [Space]
+    #region Special nodes
+
     [Header("Special nodes")]
-    [Space]
 
     [Space]
     [SerializeField] private MonopolyNode jail;
@@ -21,22 +21,30 @@ public sealed class MonopolyBoard : MonoBehaviour
     [Space]
     [SerializeField] private MonopolyNode freeParking;
 
+    #endregion
+
+    #region Monopolies
+
     [Space]
     [Header("Monopolies")]
-    [Space]
 
     [Space]
     [SerializeField] private List<MonopolySet> monopolies = new List<MonopolySet>();
 
+    #endregion
+
+    #region Chance nodes
+
     [Space]
     [Header("Chance nodes")]
+
     [Space]
+    [SerializeField] private List<ChanceNodeSO> taxNodes = new List<ChanceNodeSO>();
 
     [Space]
     [SerializeField] private List<ChanceNodeSO> chanceNodes = new List<ChanceNodeSO>();
 
-    [Space]
-    [SerializeField] private List<ChanceNodeSO> taxNodes = new List<ChanceNodeSO>();
+    #endregion
 
     #endregion
 
@@ -51,16 +59,18 @@ public sealed class MonopolyBoard : MonoBehaviour
     public MonopolyNode NodeStart { get => this.start; }
 
     public MonopolyNode NodeSendToJail { get => this.sendJail; }
+    
+    public List<MonopolySet> Monopolies { get => this.monopolies; }
 
     public MonopolyNode NodeFreeParking { get => this.freeParking; }
-
-    public List<MonopolySet> Monopolies { get => this.monopolies; }
 
     private void Awake()
     {
         if (Instance != null)
+        {
             throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
-
+        }
+        
         Instance = this;
     }
 
@@ -71,7 +81,9 @@ public sealed class MonopolyBoard : MonoBehaviour
         foreach (Transform child in this.transform)
         {
             if (child.TryGetComponent(out MonopolyNode monopolyNode))
+            {
                 this.nodes.Add(monopolyNode);
+            }
         }
     }
 
@@ -80,7 +92,9 @@ public sealed class MonopolyBoard : MonoBehaviour
         get
         {
             if (index < 0 || index >= this.nodes.Count)
+            {
                 throw new System.IndexOutOfRangeException($"{nameof(index)} is out of range.");
+            }
 
             return this.nodes[index];
         }
@@ -91,10 +105,40 @@ public sealed class MonopolyBoard : MonoBehaviour
         get
         {
             if (monopolyNode == null)
+            {
                 throw new System.NullReferenceException($"{nameof(monopolyNode)} is null.");
+            } 
 
             return this.nodes.IndexOf(monopolyNode);
         }
+    }
+
+    public ChanceNodeSO GetTaxNode()
+    {
+        return this.taxNodes[UnityEngine.Random.Range(0, this.taxNodes.Count)];
+    }
+
+    public ChanceNodeSO GetChanceNode()
+    {
+        return this.chanceNodes[UnityEngine.Random.Range(0, this.chanceNodes.Count)];
+    }
+
+    public MonopolySet GetMonopolySet(MonopolyNode monopolyNode)
+    {
+        if (monopolyNode == null)
+        {
+            throw new System.ArgumentNullException($"{nameof(monopolyNode)} is null.");
+        }
+
+        foreach (MonopolySet monopolySet in this.monopolies)
+        {
+            if (monopolySet.Contains(monopolyNode))
+            {
+                return monopolySet;
+            }
+        }
+
+        return null;
     }
 
     public int GetDistance(int fromNodeIndex, int toNodeIndex)
@@ -112,22 +156,4 @@ public sealed class MonopolyBoard : MonoBehaviour
 
         return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
     }
-
-    public MonopolySet GetMonopolySet(MonopolyNode monopolyNode)
-    {
-        if (monopolyNode == null)
-            throw new System.ArgumentNullException($"{nameof(monopolyNode)} is null.");
-
-        foreach (MonopolySet monopolySet in this.monopolies)
-        {
-            if (monopolySet.Contains(monopolyNode))
-                return monopolySet;
-        }
-
-        return null;
-    }
-
-    public ChanceNodeSO GetTaxNode() => this.taxNodes[UnityEngine.Random.Range(0, this.taxNodes.Count)];
-
-    public ChanceNodeSO GetChanceNode() => this.chanceNodes[UnityEngine.Random.Range(0, this.chanceNodes.Count)];
 }

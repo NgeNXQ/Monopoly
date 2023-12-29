@@ -294,11 +294,15 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (this.ValidateTextBoxJoinCode())
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading);
+            bool attemptedToConnect = false;
+
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => attemptedToConnect);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
             await GameCoordinator.Instance.ConnectLobbyAsync(this.textBoxJoinCode.text);
+
+            attemptedToConnect = true;
         }
     }
 
@@ -306,11 +310,15 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (this.ValidateTextBoxNickname())
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading);
+            bool attemptedToConnect = false;
+
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => attemptedToConnect);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
             await GameCoordinator.Instance.HostLobbyAsync();
+
+            attemptedToConnect = true;
         }
     }
 

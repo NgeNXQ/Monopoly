@@ -40,6 +40,10 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
     #region Currency
 
     [Space]
+    [Header("Currency")]
+    [Space]
+
+    [Space]
     [SerializeField] private char currency;
 
     public char Currency { get => this.currency; }
@@ -49,14 +53,11 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
     #region Panel Players
 
     [Space]
-    [Header("Panel \"Players\"")]
+    [Header("Panel Players")]
     [Space]
 
     [Space]
-    [SerializeField] private Canvas canvasPanelPlayers;
-
-    [Space]
-    [SerializeField] private PanelPlayerGameUI panelPlayerGame;
+    [SerializeField] private Canvas canvasPlayersList;
 
     #endregion
 
@@ -65,7 +66,7 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
     #region Messages
 
     [Space]
-    [Header("Tex \"Messages\"")]
+    [Header("Messages")]
     [Space]
 
     [Space]
@@ -150,6 +151,11 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         get => PanelOfferUI.Instance; 
     }
 
+    public Canvas CanvasPlayersList 
+    {
+        get => this.canvasPlayersList;
+    }
+
     public PanelPaymentUI PanelPayment 
     { 
         get => PanelPaymentUI.Instance; 
@@ -197,28 +203,15 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         this.ButtonRollDiceClicked?.Invoke();
     }
 
-    public void AddPlayerToList(MonopolyPlayer player)
-    {
-        PanelPlayerGameUI newPanelPlayer = GameObject.Instantiate(this.panelPlayerGame, this.canvasPanelPlayers.transform);
-        newPanelPlayer.InitializePanel(player);
-
-        newPanelPlayer.name = player.OwnerClientId.ToString();
-    }
-
-    public void RemovePlayerFromList()
-    {
-        //GameObject.Destroy(this.canvas.transform.GetChild(playerIndex).gameObject);
-    }
-
     #region Dice Animation
 
     public void ShowDiceAnimation()
     {
         this.ShowDiceAnimationAsync();
-        this.ShowDiceAnimationServerRpc();
+        this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherClients);
     }
 
-    private async void ShowDiceAnimationAsync()
+    public async void ShowDiceAnimationAsync()
     {
         this.imageDiePlaceholder1.gameObject.SetActive(true);
         this.imageDiePlaceholder2.gameObject.SetActive(true);
@@ -231,13 +224,7 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         this.imageDiePlaceholder1.gameObject.SetActive(false);
         this.imageDiePlaceholder2.gameObject.SetActive(false);
     }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void ShowDiceAnimationServerRpc(ServerRpcParams serverRpcParams = default)
-    {
-        this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherClients);
-    }
-
+    
     [ClientRpc]
     private void ShowDiceAnimationClientRpc(ClientRpcParams clientRpcParams)
     {

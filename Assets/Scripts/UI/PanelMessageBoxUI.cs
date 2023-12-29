@@ -106,7 +106,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private Func<bool> stateCallback;
 
-    private IControlUI.ButtonClickedCallback callback;
+    private IControlUI.ButtonClickedCallback actionCallback;
 
     public Type MessageBoxType 
     {
@@ -172,10 +172,15 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
     }
 
-    public void Show(IControlUI.ButtonClickedCallback callback = default, Func<bool> stateCallback = default)
+    public void Show(IControlUI.ButtonClickedCallback actionCallback = default, Func<bool> stateCallback = default)
     {
-        this.callback = callback;
+        if (actionCallback != null && stateCallback != null)
+        {
+            throw new InvalidOperationException($"{this.GetType().Name} cannot have 2 callbacks at the same time.");
+        }
+
         this.stateCallback = stateCallback;
+        this.actionCallback = actionCallback;
 
         this.gameObject.SetActive(true);
 
@@ -198,6 +203,13 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
                 this.panelOKCancel.gameObject.SetActive(true);
                 break;
         }
+    }
+    
+    private IEnumerator WaitStateCoroutine()
+    {
+        yield return new WaitUntil(this.stateCallback);
+
+        this.Hide();
     }
 
     public void Hide()
@@ -222,16 +234,9 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.control.Hide();
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.OK;
 
-        this.callback?.Invoke();
+        this.actionCallback?.Invoke();
 
-        this.callback = null;
-    }
-
-    private IEnumerator WaitStateCoroutine()
-    {
-        yield return new WaitUntil(this.stateCallback);
-
-        this.Hide();
+        this.actionCallback = null;
     }
 
     private void HandleButtonCancelClicked()
@@ -239,9 +244,9 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.control.Hide();
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.Cancel;
 
-        this.callback?.Invoke();
+        this.actionCallback?.Invoke();
 
-        this.callback = null;
+        this.actionCallback = null;
     }
 
     private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)

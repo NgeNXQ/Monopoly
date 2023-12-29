@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e651dbb3fbac04af2b8f5abf007ddc23, type: 3}
-  m_Name: Test
+  m_Name: UIElementsTemplates
   m_EditorClassIdentifier: 
   IsDefault: 0
   List:
   - Override: 0
-    Prefab: {fileID: 441632640811670737, guid: c2c2a802893fb964a907ff6bd37be6a2, type: 3}
+    Prefab: {fileID: 5784825573561046600, guid: c55e4465fded9754b8ea7a9bc3e4b98b, type: 3}
     SourcePrefabToOverride: {fileID: 0}
     SourceHashToOverride: 0
     OverridingTargetPrefab: {fileID: 0}

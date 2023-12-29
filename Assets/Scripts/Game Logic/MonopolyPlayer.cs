@@ -56,33 +56,22 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void OnEnable()
     {
+        if (this.OwnerClientId != NetworkManager.Singleton.LocalClientId)
+        {
+            return;
+        }
+
         UIManagerMonopolyGame.Instance.ButtonRollDiceClicked += this.HandleButtonRollDiceClicked;
-        //UIManagerMonopolyGame.Instance.PanelPayment.ButtonConfirmClicked += this.PayCallback;
-
-        //UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked += this.AcceptPropertyOfferCallback;
-        //UIManagerMonopoly.Instance.PanelOffer.ButtonDeclineClicked += this.DeclinePropertyOfferCallback;
-
-        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonUpgradeClicked += this.UpgradeNodeCallback;
-        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked += this.DowngradeNodeCallback;
-
-        //UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked += this.ClosePanelInfoCallback;
-        ////UIManagerGlobal.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked += this.ClosePanelMessageBoxCallback;
     }
 
     private void OnDisable()
     {
+        if (this.OwnerClientId != NetworkManager.Singleton.LocalClientId)
+        {
+            return;
+        }
+
         UIManagerMonopolyGame.Instance.ButtonRollDiceClicked -= this.HandleButtonRollDiceClicked;
-
-        //UIManagerMonopoly.Instance.PanelPayment.ButtonConfirmClicked -= this.PayCallback;
-
-        //UIManagerMonopoly.Instance.PanelOffer.ButtonAcceptClicked -= this.AcceptPropertyOfferCallback;
-        //UIManagerMonopoly.Instance.PanelOffer.ButtonDeclineClicked -= this.DeclinePropertyOfferCallback;
-
-        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonUpgradeClicked -= this.UpgradeNodeCallback;
-        //UIManagerMonopoly.Instance.PanelMonopolyNode.ButtonDowngradeClicked -= this.DowngradeNodeCallback;
-
-        //UIManagerMonopoly.Instance.PanelInfo.ButtonConfirmClicked -= this.ClosePanelInfoCallback;
-        ////UIManagerGlobal.Instance.PanelMessageBox.ButtonConfirmPanelOKClicked -= this.ClosePanelMessageBoxCallback;
     }
 
     public void InitializePlayer(string nickname, MonopolyPlayerVisuals monopolyPlayerVisuals)
@@ -96,8 +85,6 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         this.OwnedNodes = new List<MonopolyNode>();
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
-
-        UIManagerMonopolyGame.Instance.AddPlayerToList(this);
     }
 
     #region Monopoly
@@ -295,9 +282,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     {
         if (this.CurrentNode.Owner == null)
         {
-            UIManagerMonopolyGame.Instance.PanelOffer.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManagerMonopolyGame.Instance.PanelOffer.MonopolyTypeColor = this.CurrentNode.AffiliatedMonopoly.ColorOfSet;
-            UIManagerMonopolyGame.Instance.PanelOffer.Show();
+            //UIManagerMonopolyGame.Instance.PanelOffer.PictureSprite = this.CurrentNode.NodeSprite;
+            //UIManagerMonopolyGame.Instance.PanelOffer.MonopolyTypeColor = this.CurrentNode.AffiliatedMonopoly.ColorOfSet;
+            //UIManagerMonopolyGame.Instance.PanelOffer.Show();
         }
         else if (this.CurrentNode.Owner == this)
         {
@@ -305,9 +292,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         }
         else
         {
-            UIManagerMonopolyGame.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
-            UIManagerMonopolyGame.Instance.PanelPayment.DescriptionText = this.CurrentNode.PriceRent.ToString();
-            UIManagerMonopolyGame.Instance.PanelOffer.Show();
+            //UIManagerMonopolyGame.Instance.PanelPayment.PictureSprite = this.CurrentNode.NodeSprite;
+            //UIManagerMonopolyGame.Instance.PanelPayment.DescriptionText = this.CurrentNode.PriceRent.ToString();
+            //UIManagerMonopolyGame.Instance.PanelOffer.Show();
         }
     }
 
@@ -462,8 +449,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             return;
 
         UIManagerMonopolyGame.Instance.HideButtonRollDice();
+
         GameManager.Instance.RollDice();
-        UIManagerMonopolyGame.Instance.ShowDiceAnimation();
+        UIManagerMonopolyGame.Instance.ShowButtonRollDice();
 
         if (this.isInJail)
         {
@@ -508,14 +496,14 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             case ChanceNodeSO.Type.MoveForward:
                 {
                     GameManager.Instance.RollDice();
-                    UIManagerMonopolyGame.Instance.ShowDiceAnimation();
+                    UIManagerMonopolyGame.Instance.ShowDiceAnimationAsync();
                     this.Move(GameManager.Instance.TotalRollResult);
                 }
                 break;
             case ChanceNodeSO.Type.MoveBackwards:
                 {
                     GameManager.Instance.RollDice();
-                    UIManagerMonopolyGame.Instance.ShowDiceAnimation();
+                    UIManagerMonopolyGame.Instance.ShowDiceAnimationAsync();
                     this.Move(-GameManager.Instance.TotalRollResult);
                 }
                 break;

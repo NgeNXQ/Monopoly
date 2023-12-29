@@ -5520,7 +5520,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 0}
+  m_LocalScale: {x: 1.75, y: 1.75, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -9464,6 +9464,7 @@ MonoBehaviour:
   delayBetweenNodes: 1
   playerMovementSpeed: 25
   player: {fileID: 6664082868912979496, guid: 075d89063a5c40347973aaa79cad57a2, type: 3}
+  playerPanel: {fileID: 5784825573561046600, guid: c55e4465fded9754b8ea7a9bc3e4b98b, type: 3}
   monopolyPlayersVisuals:
   - colorPlayerToken: {r: 1, g: 0, b: 0, a: 1}
     spritePlayerToken: {fileID: 21300000, guid: 7539f1d33877f3e4391098f024533393, type: 3}
@@ -11442,8 +11443,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 682f9eb9555f3b148adf05f24465912c, type: 3}
   diceScreenTime: 1
   currency: 8372
-  canvasPanelPlayers: {fileID: 1761991747}
-  panelPlayerGame: {fileID: 4898906605269763668, guid: a5a879e782805cc40a58eb4c7357da22, type: 3}
+  canvasPlayersList: {fileID: 1761991747}
   messageAlreadyBuilt: 
   messageInsufficientFunds: 
   messageWaitingOtherPlayers: "\u041E\u0447\u0456\u043A\u0443\u0432\u0430\u043D\u043D\u044F

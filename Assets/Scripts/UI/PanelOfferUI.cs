@@ -1,13 +1,14 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelOfferUI : MonoBehaviour //, IControlUI, IButtonHandlerUI
+internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
 {
+    #region Setup
+
     #region Visuals
 
-    [Space]
     [Header("Visuals")]
-    [Space]
 
     [Space]
     [SerializeField] private RectTransform panel;
@@ -24,7 +25,6 @@ internal sealed class PanelOfferUI : MonoBehaviour //, IControlUI, IButtonHandle
 
     [Space]
     [Header("Controls")]
-    [Space]
 
     [Space]
     [SerializeField] private Button buttonAccept;
@@ -34,11 +34,19 @@ internal sealed class PanelOfferUI : MonoBehaviour //, IControlUI, IButtonHandle
 
     #endregion
 
+    #endregion
+
+    public enum DialogResult : byte
+    {
+        Accepted,
+        Declined
+    }
+
+    private IControlUI.ButtonClickedCallback actionCallback;
+
     public static PanelOfferUI Instance { get; private set; }
 
-    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonAcceptClicked;
-
-    //public event IButtonHandlerUI.ButtonClickedEventHandler ButtonDeclineClicked;
+    public DialogResult OfferDialogResult { get; private set; }
 
     public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
 
@@ -47,28 +55,52 @@ internal sealed class PanelOfferUI : MonoBehaviour //, IControlUI, IButtonHandle
     private void Awake()
     {
         if (Instance != null)
+        {
             throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
+        }
 
         Instance = this;
     }
 
     private void OnEnable()
     {
-        //this.buttonAccept.onClick.AddListener(this.HandleButtonAcceptClicked);
-        //this.buttonDecline.onClick.AddListener(this.HandleButtonDeclineClicked);
+        this.buttonAccept.onClick.AddListener(this.HandleButtonAcceptClicked);
+        this.buttonDecline.onClick.AddListener(this.HandleButtonDeclineClicked);
     }
 
     private void OnDisable()
     {
-        //this.buttonAccept.onClick.RemoveListener(this.HandleButtonAcceptClicked);
-        //this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
+        this.buttonAccept.onClick.RemoveListener(this.HandleButtonAcceptClicked);
+        this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
     }
 
-    public void Show() => this.panel.gameObject.SetActive(true);
+    public void Show(IControlUI.ButtonClickedCallback actionCallback, Func<bool> stateCallback = null)
+    {
+        this.actionCallback = actionCallback;
 
-    public void Hide() => this.panel.gameObject.SetActive(false);
+        this.panel.gameObject.SetActive(true);
+    }
 
-    //private void HandleButtonAcceptClicked() => this.ButtonAcceptClicked?.Invoke();
+    public void Hide()
+    {
+        this.panel.gameObject.SetActive(false);
+    }
 
-    //private void HandleButtonDeclineClicked() => this.ButtonDeclineClicked?.Invoke();
+    private void HandleButtonAcceptClicked()
+    {
+        this.Hide();
+
+        this.OfferDialogResult = PanelOfferUI.DialogResult.Accepted;
+
+        this.actionCallback?.Invoke();
+    }
+
+    private void HandleButtonDeclineClicked()
+    {
+        this.Hide();
+
+        this.OfferDialogResult = PanelOfferUI.DialogResult.Declined;
+
+        this.actionCallback?.Invoke();
+    }
 }
