@@ -6,9 +6,6 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 {
     #region Setup
 
-    [Space]
-    [Header("Setup")]
-
     #region Visuals
 
     #region Dice

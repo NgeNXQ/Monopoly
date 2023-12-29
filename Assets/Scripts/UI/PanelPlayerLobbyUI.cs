@@ -50,26 +50,7 @@ public sealed class PanelPlayerLobbyUI : MonoBehaviour
         this.buttonKickPlayer.onClick.RemoveListener(this.HandleButtonKickPlayerClicked);
     }
 
-    private void HandleButtonKickPlayerClicked()
-    {
-        if (LobbyManager.Instance.IsHost)
-        {
-            if (this.playerId == LobbyManager.Instance.LocalLobby.HostId)
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageCannotKickYourself, PanelMessageBoxUI.Icon.Warning);
-            }
-            else
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, $"{UIManagerGameLobby.Instance.MessageConfirmKickPlayer} {this.PlayerNickname}?", PanelMessageBoxUI.Icon.Question, this.InvokeKickPlayerCallback);
-            }
-        }
-        else
-        {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageCannotKickNotHost, PanelMessageBoxUI.Icon.Error);
-        }
-    }
-
-    private async void InvokeKickPlayerCallback()
+    private async void CallbackKickPlayer()
     {
         if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
@@ -81,6 +62,25 @@ public sealed class PanelPlayerLobbyUI : MonoBehaviour
             {
                 await LobbyManager.Instance?.KickFromLobbyAsync(this.playerId);
             }
+        }
+    }
+
+    private void HandleButtonKickPlayerClicked()
+    {
+        if (LobbyManager.Instance.IsHost)
+        {
+            if (this.playerId == LobbyManager.Instance.LocalLobby.HostId)
+            {
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageCannotKickYourself, PanelMessageBoxUI.Icon.Warning);
+            }
+            else
+            {
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, $"{UIManagerGameLobby.Instance.MessageConfirmKickPlayer} {this.PlayerNickname}?", PanelMessageBoxUI.Icon.Question, this.CallbackKickPlayer);
+            }
+        }
+        else
+        {
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageCannotKickNotHost, PanelMessageBoxUI.Icon.Error);
         }
     }
 }

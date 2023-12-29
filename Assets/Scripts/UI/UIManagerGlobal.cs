@@ -42,7 +42,7 @@ internal sealed class UIManagerGlobal : MonoBehaviour
         this.activeMessageBoxes = new Stack<PanelMessageBoxUI>();
     }
 
-    public void ShowMessageBox(PanelMessageBoxUI.Type type, string text, PanelMessageBoxUI.Icon icon = default, IControlUI.ButtonClickedCallback callback = default)
+    public void ShowMessageBox(PanelMessageBoxUI.Type type, string text, PanelMessageBoxUI.Icon icon = default, IControlUI.ButtonClickedCallback callback = default, Func<bool> stateCallback = default)
     {
         PanelMessageBoxUI messageBox = this.objectPoolMessageBox.GetPooledObject();
 
@@ -55,7 +55,7 @@ internal sealed class UIManagerGlobal : MonoBehaviour
             this.activeMessageBoxes.Push(messageBox);
         }
 
-        messageBox.Show(callback);
+        messageBox.Show(callback, stateCallback);
     }
 
     public void ShowTouchKeyboard(TouchScreenKeyboardType touchScreenKeyboardType)

@@ -1,21 +1,17 @@
 ﻿using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using UnityEngine.SceneManagement;
 
 internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 {
     #region Setup
 
-    [Space]
-    [Header("Setup")]
-    [Space]
-
     #region Panel Template
 
-    [Space]
     [Header("Panel Template")]
-    [Space]
 
     [Space]
     [SerializeField] private Canvas panelTemplate;
@@ -30,9 +26,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     #region Panel OK
 
-    [Space]
     [Header("Panel OK")]
-    [Space]
 
     [Space]
     [SerializeField] private RectTransform panelOK;
@@ -44,9 +38,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     #region Panel OK/Cancel
 
-    [Space]
     [Header("Panel OK/Cancel")]
-    [Space]
 
     [Space]
     [SerializeField] private RectTransform panelOKCancel;
@@ -61,9 +53,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     #region Assets
 
-    [Space]
     [Header("Assets")]
-    [Space]
 
     [Space]
     [SerializeField] private Sprite spriteError;
@@ -114,10 +104,13 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private DialogResult messageBoxDialogResult;
 
+    private Func<bool> stateCallback;
+
     private IControlUI.ButtonClickedCallback callback;
 
     public Type MessageBoxType 
     {
+        get => this.messageBoxType;
         set => this.messageBoxType = value;
     }
 
@@ -159,11 +152,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         get => this.messageBoxDialogResult;
     }
 
-    private void Awake()
-    {
-        GameObject.DontDestroyOnLoad(this);
-    }
-
     private void Start()
     {
         this.control = this;
@@ -184,9 +172,11 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
     }
 
-    public void Show(IControlUI.ButtonClickedCallback callback)
+    public void Show(IControlUI.ButtonClickedCallback callback = default, Func<bool> stateCallback = default)
     {
         this.callback = callback;
+        this.stateCallback = stateCallback;
+
         this.gameObject.SetActive(true);
 
         this.panelTemplate.gameObject.SetActive(true);
@@ -196,13 +186,21 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
             case Type.OK:
                 this.panelOK.gameObject.SetActive(true);
                 break;
+            case Type.None:
+                {
+                    if (stateCallback != null)
+                    {
+                        this.StartCoroutine(this.WaitStateCoroutine());
+                    }
+                }
+                break;
             case Type.OKCancel:
                 this.panelOKCancel.gameObject.SetActive(true);
                 break;
         }
     }
 
-    void IControlUI.Hide()
+    public void Hide()
     {
         this.gameObject.SetActive(false);
 
@@ -227,6 +225,13 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.callback?.Invoke();
 
         this.callback = null;
+    }
+
+    private IEnumerator WaitStateCoroutine()
+    {
+        yield return new WaitUntil(this.stateCallback);
+
+        this.Hide();
     }
 
     private void HandleButtonCancelClicked()

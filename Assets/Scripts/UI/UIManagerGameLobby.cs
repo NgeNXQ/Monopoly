@@ -69,10 +69,19 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     [SerializeField] private string messageLoadingGame;
 
     [Space]
+    [SerializeField] private string messagePendingGame;
+
+    [Space]
     [SerializeField] private string messageFailedToLoad;
 
     [Space]
     [SerializeField] private string messageDisconnecting;
+
+    [Space]
+    [SerializeField] private string messageTooFewPlayers;
+
+    [Space]
+    [SerializeField] private string messageFailedToConnect;
 
     [Space]
     [SerializeField] private string messageConfirmStartGame;
@@ -93,6 +102,9 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     [SerializeField] private string messageCannotKickYourself;
 
     [Space]
+    [SerializeField] private string messageNotAllPlayersLoaded;
+
+    [Space]
     [SerializeField] private string messageCannotKickPlayerAlreadyLeft;
 
     #endregion
@@ -106,6 +118,11 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
         get => this.messageKicked;
     }
 
+    public string MessagePendingGame 
+    {
+        get => this.messagePendingGame;
+    }
+
     public string MessageFailedToLoad 
     {
         get => this.messageFailedToLoad;
@@ -114,6 +131,16 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     public string MessageDisconnecting 
     {
         get => this.messageDisconnecting;
+    }
+
+    public string MessageTooFewPlayers 
+    {
+        get => this.messageTooFewPlayers;
+    }
+
+    public string MessageFailedToConnect 
+    {
+        get => this.messageFailedToConnect;
     }
 
     public string MessageHostDisconnected 
@@ -136,6 +163,11 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
         get => this.messageCannotKickYourself;
     }
 
+    public string MessageNotAllPlayersLoaded 
+    {
+        get => this.messageNotAllPlayersLoaded;
+    }
+
     public string MessageCannotKickPlayerAlreadyLeft 
     {
         get => this.messageCannotKickPlayerAlreadyLeft;
@@ -156,24 +188,24 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     private void OnEnable()
     {
+        this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGame);
+        this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClicked);
+
         LobbyManager.Instance.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft += this.HandlePlayerLeft;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
         LobbyManager.Instance.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
-
-        this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGame);
-        this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClicked);
     }
 
     private void OnDisable()
     {
+        this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGame);
+        this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
+
         LobbyManager.Instance.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft -= this.HandlePlayerLeft;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
         LobbyManager.Instance.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
-
-        this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGame);
-        this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
     }
 
     #region Updating GUI
@@ -247,9 +279,7 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     {
         if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageLoadingGame, PanelMessageBoxUI.Icon.Loading);
-
-            LobbyManager.Instance.StartGame();
+            LobbyManager.Instance.StartGameAsync();
         }
     }
 

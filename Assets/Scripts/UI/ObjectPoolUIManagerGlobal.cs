@@ -5,15 +5,6 @@ internal sealed class ObjectPoolUIManagerGlobal : MonoBehaviour
 {
     #region Setup
 
-    #region UI Manager Global
-
-    [Header("UI Manager Global")]
-
-    [Space]
-    [SerializeField] private UIManagerGlobal globalUIManager;
-
-    #endregion
-
     #region Panel Message Box
 
     [Header("Panel Message Box")]
@@ -38,7 +29,6 @@ internal sealed class ObjectPoolUIManagerGlobal : MonoBehaviour
             throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
 
         Instance = this;
-        GameObject.DontDestroyOnLoad(this);
     }
 
     private void Start()
@@ -47,7 +37,7 @@ internal sealed class ObjectPoolUIManagerGlobal : MonoBehaviour
 
         for (int i = 0; i < this.messageBoxPoolSize; ++i)
         {
-            PanelMessageBoxUI newMessageBox = GameObject.Instantiate(this.messageBox, this.globalUIManager.transform);
+            PanelMessageBoxUI newMessageBox = GameObject.Instantiate(this.messageBox, this.gameObject.transform.parent.transform);
             this.pooledMessageBoxes.AddLast(newMessageBox);
             newMessageBox.gameObject.SetActive(false);
         }
@@ -63,7 +53,7 @@ internal sealed class ObjectPoolUIManagerGlobal : MonoBehaviour
             }
         }
 
-        PanelMessageBoxUI newMessageBox = GameObject.Instantiate(this.messageBox, this.globalUIManager.transform);
+        PanelMessageBoxUI newMessageBox = GameObject.Instantiate(this.messageBox, this.gameObject.transform.parent.transform);
         this.pooledMessageBoxes.AddLast(newMessageBox);
         newMessageBox.gameObject.SetActive(false);
 

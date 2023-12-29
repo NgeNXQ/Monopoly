@@ -4,13 +4,12 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Services.Lobbies.Models;
+using Unity.Services.Lobbies;
 
 internal sealed class GameManager : NetworkBehaviour
 {
     #region Setup
-
-    [Space]
-    [Header("Setup")]
 
     #region Values
 
@@ -44,12 +43,10 @@ internal sealed class GameManager : NetworkBehaviour
 
     #region Visuals
 
-    [Space]
     [Header("Visuals")]
 
     #region Player
 
-    [Space]
     [Header("Player")]
 
     [Space]
@@ -59,7 +56,6 @@ internal sealed class GameManager : NetworkBehaviour
 
     #region Players Tokens
 
-    [Space]
     [Header("Players Visuals")]
 
     [Space]
@@ -188,20 +184,19 @@ internal sealed class GameManager : NetworkBehaviour
         Instance = this;
     }
 
-    private void Start()
+    private async void Start()
     {
+        LobbyManager.Instance.UpdateLocalPlayerData();
+
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, null, () => LobbyManager.Instance.HavePlayersLoaded);
+
         this.players = new List<MonopolyPlayer>();
 
         this.targetCurrentPlayer = new ulong[1];
         this.targetAllPlayers = new ulong[LobbyManager.Instance.LocalLobby.Players.Count];
         this.targetOtherPlayers = new List<ulong[]>(LobbyManager.Instance.LocalLobby.Players.Count);
-
-        //UIManagerGlobal.Instance.PanelMessageBox.MessageBoxType = PanelMessageBoxUI.Type.None;
-        //UIManagerGlobal.Instance.PanelMessageBox.MessageBoxIcon = PanelMessageBoxUI.Icon.Loading;
-        //UIManagerGlobal.Instance.PanelMessageBox.MessageBoxText = UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers;
-        //UIManagerGlobal.Instance.PanelMessageBox.Show(null);
-
-        if (NetworkManager.Singleton.IsHost)
+        
+        if (LobbyManager.Instance.IsHost)
         {
             for (int i = 0; i < NetworkManager.Singleton.ConnectedClients.Count; ++i)
             {
@@ -210,13 +205,22 @@ internal sealed class GameManager : NetworkBehaviour
                 this.targetOtherPlayers[i] = NetworkManager.Singleton.ConnectedClientsIds.Where((value, index) => index != i).ToArray();
             }
 
+            LobbyManager.Instance.LocalLobby.Data[LobbyManager.KEY_LOBBY_STATE] = new DataObject(DataObject.VisibilityOptions.Member, LobbyManager.LOBBY_STATE_PENDING);
+
+            UpdateLobbyOptions updateLobbyOptions = new UpdateLobbyOptions()
+            {
+                Data = LobbyManager.Instance.LocalLobby.Data
+            };
+
+            await Lobbies.Instance.UpdateLobbyAsync(LobbyManager.Instance.LocalLobby.Id, updateLobbyOptions);
+
             this.StartCoroutine(this.WaitOtherPlayersCoroutine());
         }
     }
 
     private void OnEnable()
     {
-        if (NetworkManager != null)
+        if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback += this.HandleClientDisconnectCallback;
         }
@@ -237,7 +241,7 @@ internal sealed class GameManager : NetworkBehaviour
     {
         float elapsedTime = 0f;
 
-        while (!LobbyManager.Instance.HavePlayersLoaded && elapsedTime < LobbyManager.PLAYER_LOADING_TIMEOUT)
+        while (!LobbyManager.Instance.HavePlayersLoaded && elapsedTime < LobbyManager.LOBBY_LOADING_TIMEOUT)
         {
             elapsedTime += Time.deltaTime;
             yield return null;
@@ -250,22 +254,22 @@ internal sealed class GameManager : NetworkBehaviour
         }
         else
         {
-            for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
-            {
-                this.player = GameObject.Instantiate(this.player);
-                this.player.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
-                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+            Debug.Log("initializing");
 
-                this.players.Add(this.player.GetComponent<MonopolyPlayer>());
+            //for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
+            //{
+            //    this.player = GameObject.Instantiate(this.player);
+            //    this.player.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
+            //    this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
 
-                string nickname = LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-                this.players.Last().InitializePlayer(nickname, this.monopolyPlayersVisuals[i]);
-            }
+            //    this.players.Add(this.player.GetComponent<MonopolyPlayer>());
 
-            this.CloseLoadingMessageBoxClientRpc(this.ClientParamsAllClients);
+            //    string nickname = LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+            //    this.players.Last().InitializePlayer(nickname, this.monopolyPlayersVisuals[i]);
+            //}
         }
 
-        this.StartTurnServerRpc(this.ServerParamsCurrentClient);
+        //this.StartTurnServerRpc(this.ServerParamsCurrentClient);
     }
 
     private void HandleClientDisconnectCallback(ulong clientId)
@@ -273,12 +277,6 @@ internal sealed class GameManager : NetworkBehaviour
         this.players.Remove(this.players.Where(player => player.OwnerClientId == clientId).FirstOrDefault());
 
         // clear all nodes and update visuals
-    }
-
-    [ClientRpc]
-    private void CloseLoadingMessageBoxClientRpc(ClientRpcParams clientRpcParams)
-    {
-        //UIManagerGlobal.Instance.PanelMessageBox.Hide();
     }
 
     #endregion

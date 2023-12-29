@@ -3,22 +3,16 @@ using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
 
-public sealed class PanelPlayerGameUI : MonoBehaviour
+public sealed class PanelPlayerGameUI : NetworkBehaviour
 {
     #region Setup
-
-    [Space]
-    [Header("Setup")]
 
     #region Visuals
 
     [Header("Visuals")]
 
     [Space]
-    [SerializeField] private Image ImageLeftPanel;
-
-    [Space]
-    [SerializeField] private Image ImageRightPanel;
+    [SerializeField] private Image ImagePlayerColor;
 
     [Space]
     [SerializeField] private TMP_Text textPlayerName;
@@ -54,7 +48,7 @@ public sealed class PanelPlayerGameUI : MonoBehaviour
     public void InitializePanel(MonopolyPlayer player)
     {
         this.textPlayerName.text = player.Nickname;
-        this.ImageLeftPanel.color = this.ImageRightPanel.color = player.PlayerColor;
+        this.ImagePlayerColor.color = player.PlayerColor;
         this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {player.Balance}";
 
         this.associatedPlayer = player;

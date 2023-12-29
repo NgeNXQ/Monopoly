@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
-// TODO: Implement lobby
 // TODO: Implement surrendering
 // TODO: Implement upgrading
 // TODO: Implement trading

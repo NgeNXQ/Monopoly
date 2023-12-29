@@ -87,10 +87,12 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Messages
 
+    [Space]
     [Header("Messages")]
 
     #region General
 
+    [Space]
     [Header("General")]
 
     [Space]
@@ -100,6 +102,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Code Validation
 
+    [Space]
     [Header("Code Validation")]
 
     [Space]
@@ -112,6 +115,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Nickname Validation
 
+    [Space]
     [Header("Nickname Validation")]
 
     [Space]
@@ -130,6 +134,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Establishing Connection
 
+    [Space]
     [Header("Establishing Connection")]
 
     [Space]
@@ -155,12 +160,9 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     public static UIManagerMainMenu Instance { get; private set; }
 
-    public string MessageKicked
+    public string MessageKicked 
     {
-        get
-        {
-            return this.messageKicked;
-        }
+        get => this.messageKicked;
     }
 
     private void Awake()
@@ -185,6 +187,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         this.buttonHostLobby.onClick.AddListener(this.HandleButtonHostLobbyClickedAsync);
         this.buttonConnectLobby.onClick.AddListener(this.HandleButtonConnectLobbyClicked);
 
+        GameCoordinator.Instance.OnOperationCanceledException += this.HandleOperationCanceledException;
         GameCoordinator.Instance.OnEstablishingConnectionRelayFailed += this.HandleEstablishingConnectionRelayFailed;
         GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed += this.HandleEstablishingConnectionLobbyFailed;
     }
@@ -198,6 +201,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         this.buttonHostLobby.onClick.RemoveListener(this.HandleButtonHostLobbyClickedAsync);
         this.buttonConnectLobby.onClick.RemoveListener(this.HandleButtonConnectLobbyClicked);
 
+        GameCoordinator.Instance.OnOperationCanceledException -= this.HandleOperationCanceledException;
         GameCoordinator.Instance.OnEstablishingConnectionRelayFailed -= this.HandleEstablishingConnectionRelayFailed;
         GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed -= this.HandleEstablishingConnectionLobbyFailed;
     }
@@ -356,6 +360,11 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, lobbyServiceException.Message, PanelMessageBoxUI.Icon.Error);
                 break;
         }
+    }
+
+    private void HandleOperationCanceledException(OperationCanceledException operationCanceledException) 
+    {
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageFailedToJoinLobby, PanelMessageBoxUI.Icon.Error);
     }
 
     #endregion

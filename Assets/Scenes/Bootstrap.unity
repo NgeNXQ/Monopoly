@@ -144,12 +144,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 159378838}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.75, y: -1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 750819663}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &159378841
 MonoBehaviour:
@@ -163,7 +163,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4c81b1a08349e64a948a3c9cd038f03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  globalUIManager: {fileID: 750819664}
   messageBox: {fileID: 1416989555905128461, guid: c0f73dbc90690b046ab5a681b1e6862f, type: 3}
   messageBoxPoolSize: 3
 --- !u!1 &747975514
@@ -281,7 +280,8 @@ Transform:
   m_LocalPosition: {x: -0.75, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 159378840}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &750819664
@@ -746,6 +746,5 @@ SceneRoots:
   - {fileID: 1840037634}
   - {fileID: 747975516}
   - {fileID: 750819663}
-  - {fileID: 159378840}
   - {fileID: 1841032706}
   - {fileID: 1129669958}

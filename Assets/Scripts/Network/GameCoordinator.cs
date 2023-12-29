@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Unity.Netcode;
+using System.Threading;
 using Unity.Services.Core;
 using Unity.Services.Relay;
 using System.Threading.Tasks;
@@ -21,8 +22,6 @@ internal sealed class GameCoordinator : MonoBehaviour
 {
     private const string CONNECTION_TYPE = "dtls";
 
-    public const int MAX_PLAYERS = 5;
-
     public const string KEY_NICKNAME_PLAYER_PREFS = "Nickname";
 
     public enum MonopolyScene : byte
@@ -40,6 +39,8 @@ internal sealed class GameCoordinator : MonoBehaviour
     public MonopolyScene ActiveScene { get; private set; }
 
     public event Action OnAuthenticationFailed;
+
+    public event Action<OperationCanceledException> OnOperationCanceledException;
 
     public event Action<RelayServiceException> OnEstablishingConnectionRelayFailed;
 
@@ -88,15 +89,6 @@ internal sealed class GameCoordinator : MonoBehaviour
         await this.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
     }
 
-    private async void OnApplicationQuit()
-    {
-        if (LobbyManager.Instance.LocalLobby != null)
-        {
-            LobbyManager.Instance.StopAllCoroutines();
-            await LobbyManager.Instance.DisconnectFromLobbyAsync();
-        }
-    }
-
     #region Scenes Management
 
     public void LoadSceneNetwork(MonopolyScene scene)
@@ -140,17 +132,21 @@ internal sealed class GameCoordinator : MonoBehaviour
         if (this.LocalPlayer == null)
             throw new System.ArgumentNullException($"{nameof(this.LocalPlayer)} is null.");
 
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(LobbyManager.LOBBY_LOADING_TIMEOUT));
+
         try
         {
-            Allocation hostAllocation = await RelayService.Instance.CreateAllocationAsync(GameCoordinator.MAX_PLAYERS);
+            await Task.Delay(TimeSpan.FromSeconds(3600));
+
+            Allocation hostAllocation = await Task.Run(() => RelayService.Instance.CreateAllocationAsync(LobbyManager.MAX_PLAYERS), cancellationTokenSource.Token);
 
             RelayServerData relayServerData = new RelayServerData(hostAllocation, GameCoordinator.CONNECTION_TYPE);
 
             NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
+            
+            string relayCode = await Task.Run(() => RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId), cancellationTokenSource.Token);
 
-            string relayCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
-
-            await LobbyManager.Instance?.HostLobbyAsync(relayCode);
+            await LobbyManager.Instance?.HostLobbyAsync(relayCode, cancellationTokenSource.Token);
         }
         catch (RelayServiceException relayServiceException)
         {
@@ -159,6 +155,14 @@ internal sealed class GameCoordinator : MonoBehaviour
         catch (LobbyServiceException lobbyServiceException)
         {
             this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
+        }
+        catch (OperationCanceledException operationCanceledException)
+        {
+            this.OnOperationCanceledException?.Invoke(operationCanceledException);
+        }
+        finally
+        { 
+            cancellationTokenSource.Dispose(); 
         }
     }
 
@@ -167,15 +171,17 @@ internal sealed class GameCoordinator : MonoBehaviour
         if (this.LocalPlayer == null)
             throw new System.ArgumentNullException($"{nameof(this.LocalPlayer)} is null.");
 
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(LobbyManager.LOBBY_LOADING_TIMEOUT));
+
         try
         {
-            JoinAllocation clientAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+            JoinAllocation clientAllocation = await Task.Run(() => RelayService.Instance.JoinAllocationAsync(joinCode), cancellationTokenSource.Token);
 
             RelayServerData relayServerData = new RelayServerData(clientAllocation, GameCoordinator.CONNECTION_TYPE);
 
             NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
 
-            await LobbyManager.Instance?.ConnectLobbyAsync(joinCode);
+            await LobbyManager.Instance?.ConnectLobbyAsync(joinCode, cancellationTokenSource.Token);
         }
         catch (RelayServiceException relayServiceException)
         {
@@ -184,6 +190,14 @@ internal sealed class GameCoordinator : MonoBehaviour
         catch (LobbyServiceException lobbyServiceException)
         {
             this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
+        }
+        catch (OperationCanceledException operationCanceledException)
+        {
+            this.OnOperationCanceledException?.Invoke(operationCanceledException);
+        }
+        finally
+        {
+            cancellationTokenSource.Dispose();
         }
     }
 
@@ -202,7 +216,7 @@ internal sealed class GameCoordinator : MonoBehaviour
             Data = new Dictionary<string, PlayerDataObject>
             {
                 { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
-                { LobbyManager.KEY_PLAYER_ACTIVE_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
+                { LobbyManager.KEY_PLAYER_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
             }
         };
 
