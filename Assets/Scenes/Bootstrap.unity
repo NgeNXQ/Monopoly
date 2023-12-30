@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 159378840}
   - component: {fileID: 159378841}
   m_Layer: 0
-  m_Name: ObjectPoolUIManagerGlobal
+  m_Name: ObjectPoolMessageBoxes
   m_TagString: Untagged
   m_Icon: {fileID: 7250588514170254948, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -296,7 +296,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d3b2d9cbb97a174189464f3c54c52f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objectPoolMessageBox: {fileID: 159378841}
+  objectPoolMessageBoxes: {fileID: 159378841}
+  messageKicked: "\u0412\u0430\u0441 \u0431\u0443\u043B\u043E \u0432\u0438\u0433\u043D\u0430\u043D\u043E! "
+  messageWaitingOthers: "\u041E\u0447\u0456\u043A\u0443\u0432\u0430\u043D\u043D\u044F
+    \u0437\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F \u0456\u043D\u0448\u0438\u0445
+    \u0433\u0440\u0430\u0432\u0446\u0456\u0432..."
+  messagePendingGameStart: "\u041E\u0447\u0456\u043A\u0443\u0432\u0430\u043D\u043D\u044F
+    \u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0433\u0440\u0438..."
 --- !u!1 &781959483
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
-internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
+internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionControlUI, IStateControlUI
 {
     #region Setup
 
@@ -97,17 +97,15 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         None,
         Cancel
     }
-
-    private IControlUI control;
-
+    
     private Type messageBoxType;
 
-    private DialogResult messageBoxDialogResult;
+    private Action actionCallback;
 
     private Func<bool> stateCallback;
 
-    private IControlUI.ButtonClickedCallback actionCallback;
-
+    private DialogResult messageBoxDialogResult;
+    
     public Type MessageBoxType 
     {
         get => this.messageBoxType;
@@ -154,8 +152,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private void Start()
     {
-        this.control = this;
-
         SceneManager.activeSceneChanged += this.HandleActiveSceneChanged;
 
         this.buttonConfirmPanelOK.onClick.AddListener(this.HandleButtonOKClicked);
@@ -172,16 +168,8 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
     }
 
-    public void Show(IControlUI.ButtonClickedCallback actionCallback = default, Func<bool> stateCallback = default)
+    public void Show()
     {
-        if (actionCallback != null && stateCallback != null)
-        {
-            throw new InvalidOperationException($"{this.GetType().Name} cannot have 2 callbacks at the same time.");
-        }
-
-        this.stateCallback = stateCallback;
-        this.actionCallback = actionCallback;
-
         this.gameObject.SetActive(true);
 
         this.panelTemplate.gameObject.SetActive(true);
@@ -193,7 +181,7 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
                 break;
             case Type.None:
                 {
-                    if (stateCallback != null)
+                    if (this.stateCallback != null)
                     {
                         this.StartCoroutine(this.WaitStateCoroutine());
                     }
@@ -203,13 +191,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
                 this.panelOKCancel.gameObject.SetActive(true);
                 break;
         }
-    }
-    
-    private IEnumerator WaitStateCoroutine()
-    {
-        yield return new WaitUntil(this.stateCallback);
-
-        this.Hide();
     }
 
     public void Hide()
@@ -229,9 +210,24 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         }
     }
 
+    public void Show(Action actionCallback = null)
+    {
+        this.actionCallback = actionCallback;
+
+        this.Show();
+    }
+
+    public void Show(Func<bool> stateCallback = null)
+    {
+        this.stateCallback = stateCallback;
+
+        this.Show();
+    }
+    
     private void HandleButtonOKClicked()
     {
-        this.control.Hide();
+        this.Hide();
+
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.OK;
 
         this.actionCallback?.Invoke();
@@ -241,7 +237,8 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
 
     private void HandleButtonCancelClicked()
     {
-        this.control.Hide();
+        this.Hide();
+
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.Cancel;
 
         this.actionCallback?.Invoke();
@@ -249,11 +246,18 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI
         this.actionCallback = null;
     }
 
+    private IEnumerator WaitStateCoroutine()
+    {
+        yield return new WaitUntil(this.stateCallback);
+
+        this.Hide();
+    }
+
     private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
     {
         if (this.messageBoxType == PanelMessageBoxUI.Type.None)
         {
-            this.control.Hide();
+            this.Hide();
         }
     }
 }

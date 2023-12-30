@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-internal sealed class ObjectPoolUIManagerGlobal : MonoBehaviour
+internal sealed class ObjectPoolMessageBoxes : MonoBehaviour
 {
     #region Setup
 
@@ -21,7 +21,7 @@ internal sealed class ObjectPoolUIManagerGlobal : MonoBehaviour
 
     private LinkedList<PanelMessageBoxUI> pooledMessageBoxes;
 
-    public static ObjectPoolUIManagerGlobal Instance { get; private set; }
+    public static ObjectPoolMessageBoxes Instance { get; private set; }
 
     private void Awake()
     {

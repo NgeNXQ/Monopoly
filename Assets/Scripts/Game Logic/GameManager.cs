@@ -3,9 +3,9 @@ using System.Linq;
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
+using Unity.Services.Lobbies;
 using System.Collections.Generic;
 using Unity.Services.Lobbies.Models;
-using Unity.Services.Lobbies;
 
 internal sealed class GameManager : NetworkBehaviour
 {
@@ -260,24 +260,39 @@ internal sealed class GameManager : NetworkBehaviour
             {
                 this.player = GameObject.Instantiate(this.player);
                 this.player.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
-                
-                this.playerPanel = GameObject.Instantiate(this.playerPanel, UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
-                this.playerPanel.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
+                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
 
                 MonopolyPlayer newPlayer = this.player.GetComponent<MonopolyPlayer>();
-                PanelPlayerGameUI newPanelPlayer = this.playerPanel.GetComponent<PanelPlayerGameUI>();
-                
-                this.players.Add(newPlayer);
-                newPanelPlayer.InitializePanel(newPlayer);
-                newPlayer.InitializePlayer(LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value, this.monopolyPlayersVisuals[i]);
 
-                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+                this.players.Add(newPlayer);
+
+                this.playerPanel = GameObject.Instantiate(this.playerPanel, UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
                 this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+
+
+
+
+                //this.playerPanel.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
+
+
+
+
+                //PanelPlayerGameUI newPanelPlayer = this.playerPanel.GetComponent<PanelPlayerGameUI>();
+
+
+                //newPlayer.InitializePlayer(LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value, this.monopolyPlayersVisuals[i]);
+
+                //newPanelPlayer.InitializePanel(newPlayer);
             }
         }
         
-        this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
+        //this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
     }
+
+    //private void InitializeVisualsClientRpc()
+    //{
+
+    //}
 
     private void HandleClientDisconnectCallback(ulong clientId)
     {

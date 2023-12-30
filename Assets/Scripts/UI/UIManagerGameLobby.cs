@@ -62,9 +62,6 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     [Header("Messages")]
 
     [Space]
-    [SerializeField] private string messageKicked;
-
-    [Space]
     [SerializeField] private string messageLoadingGame;
 
     [Space]
@@ -111,11 +108,6 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     #endregion
 
     public static UIManagerGameLobby Instance { get; private set; }
-
-    public string MessageKicked 
-    {
-        get => this.messageKicked;
-    }
 
     public string MessagePendingGame 
     {

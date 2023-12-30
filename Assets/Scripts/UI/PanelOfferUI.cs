@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
+internal sealed class PanelOfferUI : MonoBehaviour, IActionControlUI
 {
     #region Setup
 
@@ -42,7 +42,7 @@ internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
         Declined
     }
 
-    private IControlUI.ButtonClickedCallback actionCallback;
+    private Action actionCallback;
 
     public static PanelOfferUI Instance { get; private set; }
 
@@ -74,7 +74,7 @@ internal sealed class PanelOfferUI : MonoBehaviour, IControlUI
         this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
     }
 
-    public void Show(IControlUI.ButtonClickedCallback actionCallback, Func<bool> stateCallback = null)
+    public void Show(Action actionCallback = null)
     {
         this.actionCallback = actionCallback;
 

@@ -125,9 +125,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         IEnumerator PerformTurnCoroutine()
         {
-            WaitUntil waitUntil = new WaitUntil(() => this.HasCompletedTurn);
-
-            yield return waitUntil;
+            yield return new WaitUntil(() => this.HasCompletedTurn);
 
             GameManager.Instance.SwitchPlayerServerRpc(GameManager.Instance.ServerParamsCurrentClient);
         }
@@ -446,12 +444,12 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     private void HandleButtonRollDiceClicked()
     {
         if (this.OwnerClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
+        {
             return;
-
-        UIManagerMonopolyGame.Instance.HideButtonRollDice();
+        }
 
         GameManager.Instance.RollDice();
-        UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+        UIManagerMonopolyGame.Instance.ShowDiceAnimation();
 
         if (this.isInJail)
         {
@@ -496,14 +494,14 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             case ChanceNodeSO.Type.MoveForward:
                 {
                     GameManager.Instance.RollDice();
-                    UIManagerMonopolyGame.Instance.ShowDiceAnimationAsync();
+                    UIManagerMonopolyGame.Instance.ShowDiceAnimation();
                     this.Move(GameManager.Instance.TotalRollResult);
                 }
                 break;
             case ChanceNodeSO.Type.MoveBackwards:
                 {
                     GameManager.Instance.RollDice();
-                    UIManagerMonopolyGame.Instance.ShowDiceAnimationAsync();
+                    UIManagerMonopolyGame.Instance.ShowDiceAnimation();
                     this.Move(-GameManager.Instance.TotalRollResult);
                 }
                 break;

@@ -138,9 +138,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     [Header("Establishing Connection")]
 
     [Space]
-    [SerializeField] private string messageKicked;
-
-    [Space]
     [SerializeField] private string messageLobbyIsFull;
 
     [Space]
@@ -159,11 +156,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     #endregion
 
     public static UIManagerMainMenu Instance { get; private set; }
-
-    public string MessageKicked 
-    {
-        get => this.messageKicked;
-    }
 
     private void Awake()
     {
@@ -294,15 +286,15 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (this.ValidateTextBoxJoinCode())
         {
-            bool attemptedToConnect = false;
+            bool hasConnected = false;
 
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => attemptedToConnect);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => hasConnected);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
             await GameCoordinator.Instance.ConnectLobbyAsync(this.textBoxJoinCode.text);
 
-            attemptedToConnect = true;
+            hasConnected = true;
         }
     }
 
@@ -310,15 +302,15 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (this.ValidateTextBoxNickname())
         {
-            bool attemptedToConnect = false;
+            bool hasConnected = false;
 
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => attemptedToConnect);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => hasConnected);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
             await GameCoordinator.Instance.HostLobbyAsync();
 
-            attemptedToConnect = true;
+            hasConnected = true;
         }
     }
 

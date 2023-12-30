@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
 
@@ -139,7 +140,7 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     public static UIManagerMonopolyGame Instance { get; private set; }
 
-    public event IControlUI.ButtonClickedCallback ButtonRollDiceClicked;
+    public Action ButtonRollDiceClicked;
 
     public PanelInfoUI PanelInfo 
     { 
@@ -166,8 +167,6 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         get => PanelMonopolyNodeUI.Instance;
     }
 
-    #region Setup
-
     private void Awake()
     {
         if (Instance != null)
@@ -186,22 +185,25 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
     }
 
-    #endregion
+    #region Roll Dice
 
     public void ShowButtonRollDice()
     {
         this.buttonRollDice.gameObject.SetActive(true);
     }
 
-    public void HideButtonRollDice()
+    private void HideButtonRollDice()
     {
         this.buttonRollDice.gameObject.SetActive(false);
     }
 
     private void HandleButtonRollDiceClicked()
     {
+        this.HideButtonRollDice();
         this.ButtonRollDiceClicked?.Invoke();
     }
+
+    #endregion
 
     #region Dice Animation
 
@@ -211,7 +213,7 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherClients);
     }
 
-    public async void ShowDiceAnimationAsync()
+    private async void ShowDiceAnimationAsync()
     {
         this.imageDiePlaceholder1.gameObject.SetActive(true);
         this.imageDiePlaceholder2.gameObject.SetActive(true);
