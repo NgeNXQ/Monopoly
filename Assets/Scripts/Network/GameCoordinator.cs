@@ -33,18 +33,16 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     public static GameCoordinator Instance { get; private set; }
 
-    public Player LocalPlayer { get; set; }
-
-    public MonopolyScene ActiveScene { get; private set; }
-
     public event Action OnAuthenticationFailed;
-
-    public event Action<OperationCanceledException> OnOperationCanceledException;
 
     public event Action<RelayServiceException> OnEstablishingConnectionRelayFailed;
 
     public event Action<LobbyServiceException> OnEstablishingConnectionLobbyFailed;
 
+    public Player LocalPlayer { get; private set; }
+
+    public MonopolyScene ActiveScene { get; private set; }
+    
     private void Awake()
     {
         if (Instance != null)
@@ -162,7 +160,9 @@ internal sealed class GameCoordinator : MonoBehaviour
     public async Task HostLobbyAsync()
     {
         if (this.LocalPlayer == null)
+        {
             throw new System.InvalidOperationException($"{nameof(this.LocalPlayer)} is null.");
+        }
 
         try
         {
@@ -189,7 +189,9 @@ internal sealed class GameCoordinator : MonoBehaviour
     public async Task ConnectLobbyAsync(string joinCode)
     {
         if (this.LocalPlayer == null)
+        {
             throw new System.InvalidOperationException($"{nameof(this.LocalPlayer)} is null.");
+        }
 
         try
         {

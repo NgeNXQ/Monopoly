@@ -97,13 +97,13 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
         None,
         Cancel
     }
-    
+
     private Type messageBoxType;
 
     private Action actionCallback;
 
     private Func<bool> stateCallback;
-
+    
     private DialogResult messageBoxDialogResult;
     
     public Type MessageBoxType 
@@ -195,6 +195,9 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
 
     public void Hide()
     {
+        this.stateCallback = null;
+        this.actionCallback = null;
+
         this.gameObject.SetActive(false);
 
         this.panelTemplate.gameObject.SetActive(false);
@@ -226,24 +229,20 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
     
     private void HandleButtonOKClicked()
     {
-        this.Hide();
-
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.OK;
 
         this.actionCallback?.Invoke();
 
-        this.actionCallback = null;
+        this.Hide();
     }
 
     private void HandleButtonCancelClicked()
     {
-        this.Hide();
-
         this.messageBoxDialogResult = PanelMessageBoxUI.DialogResult.Cancel;
 
         this.actionCallback?.Invoke();
 
-        this.actionCallback = null;
+        this.Hide();
     }
 
     private IEnumerator WaitStateCoroutine()

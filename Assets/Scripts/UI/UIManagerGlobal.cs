@@ -4,38 +4,11 @@ using System.Collections.Generic;
 
 internal sealed class UIManagerGlobal : MonoBehaviour
 {
-    #region Setup
-
-    #region Object Pool Message Boxes
-
-    [Header("Object Pool Message Boxes")]
-
-    [Space]
-    [SerializeField] private ObjectPoolMessageBoxes objectPoolMessageBoxes;
-
-    #endregion
-
-    #region Messages
-
-    [Header("Messages")]
-
-    [Space]
-    [SerializeField] private string messageKicked;
-
-    #endregion
-
-    #endregion
-
     private TouchScreenKeyboard keyboard;
 
     private Stack<PanelMessageBoxUI> activeMessageBoxes;
 
     public static UIManagerGlobal Instance { get; private set; }
-
-    public string MessageKicked 
-    {
-        get => this.messageKicked;
-    }
 
     public PanelMessageBoxUI LastMessageBox 
     {
@@ -87,21 +60,21 @@ internal sealed class UIManagerGlobal : MonoBehaviour
             }
         }
 
-        PanelMessageBoxUI messageBox = this.objectPoolMessageBoxes.GetPooledObject();
+        PanelMessageBoxUI messageBox = ObjectPoolMessageBoxes.Instance?.GetPooledObject();
 
         messageBox.MessageBoxType = type;
         messageBox.MessageBoxIcon = icon;
         messageBox.MessageBoxText = text;
-        
+
+        this.activeMessageBoxes.Push(messageBox);
+
         if (actionCallback != null)
         {
             messageBox.Show(actionCallback);
-            this.activeMessageBoxes.Push(messageBox);
         }
-        else if (stateCallback != null) 
+        else if (stateCallback != null)
         {
             messageBox.Show(stateCallback);
-            this.activeMessageBoxes.Push(messageBox);
         }
         else
         {

@@ -22,6 +22,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Controls
 
+    [Space]
     [Header("Controls")]
 
     [Space]
@@ -40,6 +41,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Nickname settings
 
+    [Space]
     [Header("Settings Nickname")]
 
     [Space]
@@ -54,6 +56,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Connection Tab
 
+    [Space]
     [Header("Connection Tab")]
 
     [Space]
@@ -61,6 +64,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #region Controls
 
+    [Space]
     [Header("Controls")]
 
     [Space]
@@ -74,22 +78,13 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #endregion
 
-    #region Join Code settings
-
-    [Header("Settings Join Code")]
-
-    [Space]
-    [SerializeField] private int joinCodeLength;
-
-    #endregion
-
     #endregion
 
     #region Messages
 
     [Space]
     [Header("Messages")]
-
+    
     #region General
 
     [Space]
@@ -136,12 +131,21 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     [Space]
     [Header("Establishing Connection")]
+    
+    [Space]
+    [SerializeField] private string messageKicked;
 
     [Space]
     [SerializeField] private string messageLobbyIsFull;
 
     [Space]
+    [SerializeField] private string messageDisconnecting;
+
+    [Space]
     [SerializeField] private string messageInvalidJoinCode;
+
+    [Space]
+    [SerializeField] private string messageHostDisconnected;
 
     [Space]
     [SerializeField] private string messageFailedToJoinLobby;
@@ -155,7 +159,24 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     #endregion
 
+    private const int JOIN_CODE_LENGTH = 6;
+
     public static UIManagerMainMenu Instance { get; private set; }
+
+    public string MessageKicked 
+    {
+        get => this.messageKicked;
+    }
+
+    public string MessageDisconnecting 
+    {
+        get => this.messageDisconnecting;
+    }
+
+    public string MessageHostDisconnected 
+    {
+        get => this.messageHostDisconnected;
+    }
 
     private void Awake()
     {
@@ -178,8 +199,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         this.buttonCloseGame.onClick.AddListener(this.HandleButtonCloseGameClicked);
         this.buttonHostLobby.onClick.AddListener(this.HandleButtonHostLobbyClickedAsync);
         this.buttonConnectLobby.onClick.AddListener(this.HandleButtonConnectLobbyClicked);
-
-        GameCoordinator.Instance.OnOperationCanceledException += this.HandleOperationCanceledException;
+        
         GameCoordinator.Instance.OnEstablishingConnectionRelayFailed += this.HandleEstablishingConnectionRelayFailed;
         GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed += this.HandleEstablishingConnectionLobbyFailed;
     }
@@ -193,7 +213,6 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         this.buttonHostLobby.onClick.RemoveListener(this.HandleButtonHostLobbyClickedAsync);
         this.buttonConnectLobby.onClick.RemoveListener(this.HandleButtonConnectLobbyClicked);
 
-        GameCoordinator.Instance.OnOperationCanceledException -= this.HandleOperationCanceledException;
         GameCoordinator.Instance.OnEstablishingConnectionRelayFailed -= this.HandleEstablishingConnectionRelayFailed;
         GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed -= this.HandleEstablishingConnectionLobbyFailed;
     }
@@ -228,7 +247,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageEmptyJoinCode, PanelMessageBoxUI.Icon.Warning);
         }
-        else if (this.textBoxJoinCode.text.Length != this.joinCodeLength)
+        else if (this.textBoxJoinCode.text.Length != UIManagerMainMenu.JOIN_CODE_LENGTH)
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageInvalidLengthJoinCode, PanelMessageBoxUI.Icon.Error);
         }
@@ -281,20 +300,16 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     #endregion
 
     #region Connection Callbacks
-
+    
     private async void HandleButtonConnectClickedAsync()
     {
         if (this.ValidateTextBoxJoinCode())
         {
-            bool hasConnected = false;
-
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => hasConnected);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
             await GameCoordinator.Instance.ConnectLobbyAsync(this.textBoxJoinCode.text);
-
-            hasConnected = true;
         }
     }
 
@@ -302,15 +317,11 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     {
         if (this.ValidateTextBoxNickname())
         {
-            bool hasConnected = false;
-
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading, stateCallback: () => hasConnected);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageEstablishingConnection, PanelMessageBoxUI.Icon.Loading);
 
             GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
 
             await GameCoordinator.Instance.HostLobbyAsync();
-
-            hasConnected = true;
         }
     }
 
@@ -354,17 +365,13 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
                 break;
             case LobbyExceptionReason.LobbyConflict:
             case LobbyExceptionReason.LobbyAlreadyExists:
+            case LobbyExceptionReason.LobbyEventServiceConnectionError:
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageFailedToJoinLobby, PanelMessageBoxUI.Icon.Error);
                 break;
             default:
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, lobbyServiceException.Message, PanelMessageBoxUI.Icon.Error);
                 break;
         }
-    }
-
-    private void HandleOperationCanceledException(OperationCanceledException operationCanceledException) 
-    {
-        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageFailedToJoinLobby, PanelMessageBoxUI.Icon.Error);
     }
 
     #endregion

@@ -26,6 +26,7 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     #region Shared Controls
 
+    [Space]
     [Header("Shared Controls")]
 
     [Space]
@@ -35,6 +36,7 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     #region Host Controls
 
+    [Space]
     [Header("Host Controls")]
 
     [Space]
@@ -47,6 +49,7 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     #region Client Controls
 
+    [Space]
     [Header("Client Controls")]
 
     [Space]
@@ -59,7 +62,11 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     #region Messages
 
+    [Space]
     [Header("Messages")]
+
+    [Space]
+    [SerializeField] private string messageKicked;
 
     [Space]
     [SerializeField] private string messageLoadingGame;
@@ -109,6 +116,11 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     public static UIManagerGameLobby Instance { get; private set; }
 
+    public string MessageKicked 
+    {
+        get => this.messageKicked;
+    }
+
     public string MessagePendingGame 
     {
         get => this.messagePendingGame;
@@ -135,8 +147,8 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     }
 
     public string MessageHostDisconnected 
-    { 
-        get => this.messageHostDisconnected; 
+    {
+        get => this.messageHostDisconnected;
     }
 
     public string MessageCannotKickNotHost 
@@ -148,7 +160,7 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     {
         get => this.messageConfirmKickPlayer;
     }
-
+    
     public string MessageCannotKickYourself 
     {
         get => this.messageCannotKickYourself;
@@ -179,24 +191,26 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     private void OnEnable()
     {
-        this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGame);
+        this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGameClicked);
         this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClicked);
 
         LobbyManager.Instance.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
+        LobbyManager.Instance.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
+
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft += this.HandlePlayerLeft;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
-        LobbyManager.Instance.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
     }
 
     private void OnDisable()
     {
-        this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGame);
+        this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGameClicked);
         this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
 
         LobbyManager.Instance.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
+        LobbyManager.Instance.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
+
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft -= this.HandlePlayerLeft;
         LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
-        LobbyManager.Instance.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
     }
 
     #region Updating GUI
@@ -267,11 +281,6 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     #region Button Start Game
 
-    private void HandleButtonStartGame()
-    {
-        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, this.messageConfirmStartGame, PanelMessageBoxUI.Icon.Question, this.CallbackButtonStartGame);
-    }
-
     private void CallbackButtonStartGame()
     {
         if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
@@ -280,6 +289,11 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
         }
     }
 
+    private void HandleButtonStartGameClicked()
+    {
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, this.messageConfirmStartGame, PanelMessageBoxUI.Icon.Question, this.CallbackButtonStartGame);
+    }
+    
     #endregion
 
     #region Button Disconnect

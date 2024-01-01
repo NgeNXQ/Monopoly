@@ -259,40 +259,26 @@ internal sealed class GameManager : NetworkBehaviour
             for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
             {
                 this.player = GameObject.Instantiate(this.player);
-                this.player.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
-                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+                //this.player.GetComponent<MonopolyPlayer>().InitializePlayer(LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value, this.monopolyPlayersVisuals[i]);
 
-                MonopolyPlayer newPlayer = this.player.GetComponent<MonopolyPlayer>();
-
-                this.players.Add(newPlayer);
+                this.players.Add(this.player.GetComponent<MonopolyPlayer>());
 
                 this.playerPanel = GameObject.Instantiate(this.playerPanel, UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
+                //this.playerPanel.GetComponent<PanelPlayerGameUI>().InitializePanel(this.players.Last());
+                
+                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
                 this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
-
-
-
-
-                //this.playerPanel.name = LobbyManager.Instance.LocalLobby.Players[i].Id;
-
-
-
-
-                //PanelPlayerGameUI newPanelPlayer = this.playerPanel.GetComponent<PanelPlayerGameUI>();
-
-
-                //newPlayer.InitializePlayer(LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value, this.monopolyPlayersVisuals[i]);
-
-                //newPanelPlayer.InitializePanel(newPlayer);
             }
         }
         
         //this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
     }
 
-    //private void InitializeVisualsClientRpc()
-    //{
+    [ClientRpc]
+    private void InitializeVisualsClientRpc(ClientRpcParams clientRpcParams)
+    {
 
-    //}
+    }
 
     private void HandleClientDisconnectCallback(ulong clientId)
     {

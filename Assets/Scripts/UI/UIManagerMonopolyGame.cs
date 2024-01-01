@@ -11,9 +11,7 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     #region Dice
 
-    [Space]
-    [Header("Button  \"Roll Dice\"")]
-    [Space]
+    [Header("Button Roll Dice")]
 
     [Space]
     [SerializeField] private Button buttonRollDice;
@@ -42,7 +40,6 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     [Space]
     [Header("Currency")]
-    [Space]
 
     [Space]
     [SerializeField] private char currency;
@@ -55,7 +52,6 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     [Space]
     [Header("Panel Players")]
-    [Space]
 
     [Space]
     [SerializeField] private Canvas canvasPlayersList;
@@ -68,7 +64,6 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     [Space]
     [Header("Messages")]
-    [Space]
 
     [Space]
     [SerializeField] private string messageAlreadyBuilt;
