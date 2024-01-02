@@ -10,13 +10,13 @@ using Unity.Services.Lobbies.Models;
 
 internal sealed class LobbyManager : MonoBehaviour
 {
-    private const float LOBBY_UPTIME = 25.0F;
+    private const float LOBBY_UPTIME = 25.0f;
 
     public const int MIN_PLAYERS = 1;
 
     public const int MAX_PLAYERS = 5;
 
-    public const float LOBBY_LOADING_TIMEOUT = 1.0F;
+    public const float LOBBY_LOADING_TIMEOUT = 15.0f;
 
     public const string KEY_PLAYER_SCENE = "Scene";
 
@@ -149,6 +149,8 @@ internal sealed class LobbyManager : MonoBehaviour
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageTooFewPlayers, PanelMessageBoxUI.Icon.Warning);
             return;
         }
+
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance.MessagePendingGame, PanelMessageBoxUI.Icon.Loading);
 
         this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_LOADING, true);
 
@@ -366,10 +368,11 @@ internal sealed class LobbyManager : MonoBehaviour
         switch (this.LocalLobby.Data[LobbyManager.KEY_LOBBY_STATE].Value)
         {
             case LobbyManager.LOBBY_STATE_LOADING:
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance?.MessagePendingGame ?? UIManagerMonopolyGame.Instance?.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, stateCallback: () => this.HavePlayersLoaded);
-                break;
             case LobbyManager.LOBBY_STATE_PENDING:
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance?.MessagePendingGame ?? UIManagerMonopolyGame.Instance?.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, stateCallback: () => this.HavePlayersLoaded);
+                break;
+            case LobbyManager.LOBBY_STATE_RETURNING:
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance?.MessageFailedToConnect ?? UIManagerMonopolyGame.Instance?.MessagePlayersFailedToLoad, PanelMessageBoxUI.Icon.Loading);
                 break;
         }
     }
@@ -410,7 +413,7 @@ internal sealed class LobbyManager : MonoBehaviour
     {
         if (this.IsHost)
         {
-            this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_PENDING, true);
+            this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_RETURNING, true);
 
             GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.GameLobby);
         }

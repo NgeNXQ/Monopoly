@@ -6561,10 +6561,10 @@ MonoBehaviour:
     - {fileID: 602765363}
     - {fileID: 1615115}
     - {fileID: 1665471080}
-  chanceNodes:
-  - {fileID: 11400000, guid: 5ed3c18c48983c243aae156ec6dab7be, type: 2}
   taxNodes:
   - {fileID: 11400000, guid: 62eeb4007f1360248bec6f4f24171940, type: 2}
+  chanceNodes:
+  - {fileID: 11400000, guid: 5ed3c18c48983c243aae156ec6dab7be, type: 2}
 --- !u!1001 &1589430797
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11340,7 +11340,7 @@ MonoBehaviour:
   GlobalObjectIdHash: 153163248
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 0
-  ActiveSceneSynchronization: 1
+  ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0

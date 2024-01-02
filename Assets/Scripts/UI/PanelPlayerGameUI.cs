@@ -24,6 +24,7 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
 
     #region Controls
 
+    [Space]
     [Header("Controls")]
 
     [Space]
@@ -45,12 +46,14 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
         this.buttonInteract.onClick.RemoveListener(this.HandleBttonInteractClicked);
     }
 
-    public void InitializePanel(MonopolyPlayer player)
+    public override void OnNetworkSpawn()
     {
-        this.associatedPlayer = player;
-        this.textPlayerName.text = player.Nickname;
-        this.ImagePlayerColor.color = player.PlayerColor;
-        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {player.Balance}";
+        base.OnNetworkSpawn();
+
+        this.associatedPlayer = GameManager.Instance.CurrentPlayer;
+        this.textPlayerName.text = GameManager.Instance.CurrentPlayer.Nickname;
+        this.ImagePlayerColor.color = GameManager.Instance.CurrentPlayer.PlayerColor;
+        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {GameManager.Instance.CurrentPlayer.Balance}";
     }
 
     [ClientRpc]

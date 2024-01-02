@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Netcode;
+using UnityEngine;
 
 [System.Serializable]
 public sealed class MonopolyPlayerVisuals

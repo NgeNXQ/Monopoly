@@ -3,9 +3,11 @@ using System.Linq;
 using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
-using Unity.Services.Lobbies;
 using System.Collections.Generic;
-using Unity.Services.Lobbies.Models;
+
+using System.Diagnostics;
+using System.Reflection;
+using System.Collections.ObjectModel;
 
 internal sealed class GameManager : NetworkBehaviour
 {
@@ -43,10 +45,12 @@ internal sealed class GameManager : NetworkBehaviour
 
     #region Visuals
 
+    [Space]
     [Header("Visuals")]
 
     #region Player
 
+    [Space]
     [Header("Player")]
 
     [Space]
@@ -59,6 +63,7 @@ internal sealed class GameManager : NetworkBehaviour
 
     #region Players Tokens
 
+    [Space]
     [Header("Players Visuals")]
 
     [Space]
@@ -72,8 +77,6 @@ internal sealed class GameManager : NetworkBehaviour
 
     private int rolledDoubles;
 
-    private int currentPlayerIndex;
-
     private ulong[] targetAllPlayers;
 
     private ulong[] targetCurrentPlayer;
@@ -82,12 +85,16 @@ internal sealed class GameManager : NetworkBehaviour
 
     private List<MonopolyPlayer> players;
 
+    public ReadOnlyCollection<MonopolyPlayerVisuals> MonopolyPlayersVisuals;
+
     public static GameManager Instance { get; private set; }
 
     public MonopolyPlayer CurrentPlayer 
     {
-        get => this.players[this.currentPlayerIndex];
+        get => this.players[this.CurrentPlayerIndex];
     }
+
+    public int CurrentPlayerIndex { get; private set; }
 
     public int CircleBonus 
     {
@@ -150,7 +157,7 @@ internal sealed class GameManager : NetworkBehaviour
         {
             return new ClientRpcParams
             {
-                Send = new ClientRpcSendParams { TargetClientIds = this.targetOtherPlayers[this.currentPlayerIndex] }
+                Send = new ClientRpcSendParams { TargetClientIds = this.targetOtherPlayers[this.CurrentPlayerIndex] }
             };
         }
     }
@@ -159,7 +166,7 @@ internal sealed class GameManager : NetworkBehaviour
     {
         get
         {
-            this.targetCurrentPlayer[0] = NetworkManager.Singleton.ConnectedClientsIds[this.currentPlayerIndex];
+            this.targetCurrentPlayer[0] = NetworkManager.Singleton.ConnectedClientsIds[this.CurrentPlayerIndex];
 
             return new ClientRpcParams
             {
@@ -182,23 +189,27 @@ internal sealed class GameManager : NetworkBehaviour
     private void Awake()
     {
         if (Instance != null)
+        {
             throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
+        }
 
         Instance = this;
     }
 
-    private async void Start()
+    private void Start()
     {
-        LobbyManager.Instance.UpdateLocalPlayerData();
-
         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, stateCallback: () => LobbyManager.Instance.HavePlayersLoaded);
-
+        
         this.players = new List<MonopolyPlayer>();
+
+        this.MonopolyPlayersVisuals = new ReadOnlyCollection<MonopolyPlayerVisuals>(this.monopolyPlayersVisuals);
 
         this.targetCurrentPlayer = new ulong[1];
         this.targetAllPlayers = new ulong[LobbyManager.Instance.LocalLobby.Players.Count];
         this.targetOtherPlayers = new List<ulong[]>(LobbyManager.Instance.LocalLobby.Players.Count);
-        
+
+        LobbyManager.Instance.UpdateLocalPlayerData();
+
         if (LobbyManager.Instance.IsHost)
         {
             for (int i = 0; i < NetworkManager.Singleton.ConnectedClients.Count; ++i)
@@ -208,14 +219,7 @@ internal sealed class GameManager : NetworkBehaviour
                 this.targetOtherPlayers[i] = NetworkManager.Singleton.ConnectedClientsIds.Where((value, index) => index != i).ToArray();
             }
 
-            LobbyManager.Instance.LocalLobby.Data[LobbyManager.KEY_LOBBY_STATE] = new DataObject(DataObject.VisibilityOptions.Member, LobbyManager.LOBBY_STATE_PENDING);
-
-            UpdateLobbyOptions updateLobbyOptions = new UpdateLobbyOptions()
-            {
-                Data = LobbyManager.Instance.LocalLobby.Data
-            };
-
-            await Lobbies.Instance.UpdateLobbyAsync(LobbyManager.Instance.LocalLobby.Id, updateLobbyOptions);
+            LobbyManager.Instance?.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_PENDING, true);
 
             this.StartCoroutine(this.WaitOtherPlayersCoroutine());
         }
@@ -252,44 +256,35 @@ internal sealed class GameManager : NetworkBehaviour
 
         if (!LobbyManager.Instance.HavePlayersLoaded)
         {
-            LobbyManager.Instance.OnMonopolyGameFailedToLoad?.Invoke();
+            LobbyManager.Instance?.OnMonopolyGameFailedToLoad?.Invoke();
         }
         else
         {
-            for (int i = 0; i < NetworkManager.Singleton.ConnectedClientsIds.Count; ++i)
+            for (int i = 0; i < NetworkManager.Singleton?.ConnectedClientsIds.Count; ++i)
             {
+                this.CurrentPlayerIndex = i;
+
                 this.player = GameObject.Instantiate(this.player);
-                //this.player.GetComponent<MonopolyPlayer>().InitializePlayer(LobbyManager.Instance.LocalLobby.Players[i].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value, this.monopolyPlayersVisuals[i]);
+                //this.playerPanel = GameObject.Instantiate(this.playerPanel, UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
 
                 this.players.Add(this.player.GetComponent<MonopolyPlayer>());
 
-                this.playerPanel = GameObject.Instantiate(this.playerPanel, UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
-                //this.playerPanel.GetComponent<PanelPlayerGameUI>().InitializePanel(this.players.Last());
-                
-                this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
-                this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+                this.player.GetComponent<NetworkObject>().SpawnAsPlayerObject(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+                //this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
             }
         }
         
         //this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
     }
 
-    [ClientRpc]
-    private void InitializeVisualsClientRpc(ClientRpcParams clientRpcParams)
-    {
-
-    }
-
     private void HandleClientDisconnectCallback(ulong clientId)
     {
         this.players.Remove(this.players.Where(player => player.OwnerClientId == clientId).FirstOrDefault());
-
-        // clear all nodes and update visuals
     }
 
     #endregion
 
-    #region Monopoly Turn-based Game Loop
+    #region Turn-based Game Loop
     
     [ServerRpc(RequireOwnership = false)]
     public void SwitchPlayerServerRpc(ServerRpcParams serverRpcParams)
@@ -307,23 +302,23 @@ internal sealed class GameManager : NetworkBehaviour
         else
         {
             this.rolledDoubles = 0;
-            this.currentPlayerIndex = ++this.currentPlayerIndex % this.players.Count;
+            this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % this.players.Count;
         }
 
-        this.SwitchPlayerClientRpc(this.currentPlayerIndex, this.ClientParamsAllClients);
+        this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsOtherClients);
 
         this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
     }
 
     [ClientRpc]
-    private void SwitchPlayerClientRpc(int currentPlayerIndex, ClientRpcParams clientRpcParams)
+    private void SwitchPlayerClientRpc(int CurrentPlayerIndex, ClientRpcParams clientRpcParams)
     {
-        this.currentPlayerIndex = currentPlayerIndex;
+        this.CurrentPlayerIndex = CurrentPlayerIndex;
     }
 
     #endregion
 
-    #region Rolling Dice & Sync
+    #region Rolling Dice & Syncing
 
     public void RollDice()
     {
@@ -344,4 +339,17 @@ internal sealed class GameManager : NetworkBehaviour
     }
 
     #endregion
+    
+    private void FixedUpdate()
+    {
+        StackTrace stackTrace = new StackTrace();
+
+        for (int i = 0; i < stackTrace.FrameCount; i++)
+        {
+            StackFrame frame = stackTrace.GetFrame(i);
+            MethodBase method = frame.GetMethod();
+
+            UnityEngine.Debug.Log($"Method: {method.DeclaringType}.{method.Name}, Line: {frame.GetFileLineNumber()}");
+        }
+    }
 }

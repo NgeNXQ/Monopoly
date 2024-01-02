@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
@@ -13,12 +13,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 {
     #region Setup
 
-    [Space]
-    [Header("Setup")]
-
     #region Visuals
 
-    [Space]
     [Header("Visuals")]
 
     [Space]
@@ -74,17 +70,18 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         UIManagerMonopolyGame.Instance.ButtonRollDiceClicked -= this.HandleButtonRollDiceClicked;
     }
 
-    public void InitializePlayer(string nickname, MonopolyPlayerVisuals monopolyPlayerVisuals)
+    public override void OnNetworkSpawn()
     {
-        this.Nickname = nickname;
-        this.Balance = GameManager.Instance.StartingBalance;
-        this.CurrentNode = MonopolyBoard.Instance.NodeStart;
-        this.PlayerColor = monopolyPlayerVisuals.ColorPlayerToken;
-        this.playerImageToken.sprite = monopolyPlayerVisuals.SpritePlayerToken;
-        this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
+        base.OnNetworkSpawn();
 
         this.OwnedNodes = new List<MonopolyNode>();
+
+        this.Balance = GameManager.Instance.StartingBalance;
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+        this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
+        this.PlayerColor = GameManager.Instance.MonopolyPlayersVisuals[GameManager.Instance.CurrentPlayerIndex].ColorPlayerToken;
+        this.playerImageToken.sprite = GameManager.Instance.MonopolyPlayersVisuals[GameManager.Instance.CurrentPlayerIndex].SpritePlayerToken;
+        this.Nickname = LobbyManager.Instance.LocalLobby.Players[GameManager.Instance.CurrentPlayerIndex].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
     }
 
     #region Monopoly
