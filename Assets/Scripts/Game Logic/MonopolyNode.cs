@@ -98,6 +98,11 @@ public sealed class MonopolyNode : MonoBehaviour
         }
     }
 
+    //private void Start()
+    //{
+    //    GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
+    //}
+
     #region UpdateOwner
 
     public void UpdateOwner(MonopolyPlayer owner)

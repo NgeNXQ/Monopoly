@@ -74,8 +74,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        this.OwnedNodes = new List<MonopolyNode>();
+        GameManager.Instance.Players.Add(this);
 
+        this.OwnedNodes = new List<MonopolyNode>();
         this.Balance = GameManager.Instance.StartingBalance;
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
@@ -105,27 +106,33 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     [ClientRpc]
     public void PerformTurnClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.HasBuilt = false;
-        this.IsAbleToBuild = true;
-        this.HasCompletedTurn = false;
+        Debug.Log("PerformTurnClientRpc");
 
-        this.StartCoroutine(PerformTurnCoroutine());
-
-        if (this.isSkipTurn)
-        {
-            this.isSkipTurn = false;
-            this.HasCompletedTurn = true;
-            return;
-        }
+        Debug.Log(GameManager.Instance.ClientParamsOtherClients.Send.TargetClientIds.FirstOrDefault());
 
         UIManagerMonopolyGame.Instance.ShowButtonRollDice();
 
-        IEnumerator PerformTurnCoroutine()
-        {
-            yield return new WaitUntil(() => this.HasCompletedTurn);
+        //this.HasBuilt = false;
+        //this.IsAbleToBuild = true;
+        //this.HasCompletedTurn = false;
 
-            GameManager.Instance.SwitchPlayerServerRpc(GameManager.Instance.ServerParamsCurrentClient);
-        }
+        //this.StartCoroutine(PerformTurnCoroutine());
+
+        //if (this.isSkipTurn)
+        //{
+        //    this.isSkipTurn = false;
+        //    this.HasCompletedTurn = true;
+        //    return;
+        //}
+
+        //UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+
+        //IEnumerator PerformTurnCoroutine()
+        //{
+        //    yield return new WaitUntil(() => this.HasCompletedTurn);
+
+        //    GameManager.Instance.SwitchPlayerServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+        //}
     }
 
     private void Move(int steps)
@@ -440,31 +447,36 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void HandleButtonRollDiceClicked()
     {
-        if (this.OwnerClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
+        if (this.OwnerClientId != NetworkManager.Singleton.LocalClientId)
         {
             return;
         }
 
-        GameManager.Instance.RollDice();
-        UIManagerMonopolyGame.Instance.ShowDiceAnimation();
+        GameManager.Instance.SwitchPlayerServerRpc();
 
-        if (this.isInJail)
-        {
-            if (GameManager.Instance.HasRolledDouble || ++this.turnsInJail >= GameManager.Instance.MaxTurnsInJail)
-            {
-                this.turnsInJail = 0;
-                this.isInJail = false;
-                this.Move(GameManager.Instance.TotalRollResult);
-            }
-            else
-            {
-                this.HasCompletedTurn = true;
-            }
-        }
-        else
-        {
-            this.Move(GameManager.Instance.TotalRollResult);
-        }
+        //GameManager.Instance.RollDice();
+        //UIManagerMonopolyGame.Instance.ShowDiceAnimation();
+
+
+
+
+        //if (this.isInJail)
+        //{
+        //    if (GameManager.Instance.HasRolledDouble || ++this.turnsInJail >= GameManager.Instance.MaxTurnsInJail)
+        //    {
+        //        this.turnsInJail = 0;
+        //        this.isInJail = false;
+        //        this.Move(GameManager.Instance.TotalRollResult);
+        //    }
+        //    else
+        //    {
+        //        this.HasCompletedTurn = true;
+        //    }
+        //}
+        //else
+        //{
+        //    this.Move(GameManager.Instance.TotalRollResult);
+        //}
     }
 
     private void ClosePanelInfoCallback()

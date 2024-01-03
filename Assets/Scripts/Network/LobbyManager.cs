@@ -73,10 +73,16 @@ internal sealed class LobbyManager : MonoBehaviour
 
     public bool HasHostLeft { get; private set; }
 
+    public bool HavePlayersLoaded 
+    {
+        get
+        {
+            return this.LocalLobby != null ? this.LocalLobby.Players.All(player => player.Data[LobbyManager.KEY_PLAYER_SCENE].Value.Equals(GameCoordinator.Instance.ActiveScene.ToString(), StringComparison.Ordinal)) : false;
+        }
+    }
+
     public bool HasLocalPlayerLeft { get; private set; }
     
-    public bool HavePlayersLoaded { get; private set; }
-
     public LobbyEventCallbacks LocalLobbyEventCallbacks { get; private set; }
 
     private void Awake()
@@ -93,7 +99,7 @@ internal sealed class LobbyManager : MonoBehaviour
         this.LocalLobbyEventCallbacks = new LobbyEventCallbacks();
         
         this.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
-        this.OnMonopolyGameLoaded += this.HandleMonopolyGameLoaded;
+        //this.OnMonopolyGameLoaded += this.HandleMonopolyGameLoaded;
         this.OnGameLobbyFailedToLoad += this.HandleGameLobbyFailedToLoadAsync;
         this.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
 
@@ -110,7 +116,7 @@ internal sealed class LobbyManager : MonoBehaviour
         this.LocalLobbyEventCallbacks = new LobbyEventCallbacks();
 
         this.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
-        this.OnMonopolyGameLoaded -= this.HandleMonopolyGameLoaded;
+        //this.OnMonopolyGameLoaded -= this.HandleMonopolyGameLoaded;
         this.OnGameLobbyFailedToLoad -= this.HandleGameLobbyFailedToLoadAsync;
         this.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
 
@@ -124,7 +130,10 @@ internal sealed class LobbyManager : MonoBehaviour
 
     private async void OnDestroy()
     {
-        this.StopAllCoroutines();
+        if (this.IsHost)
+        {
+            this.StopCoroutine(this.PingLobbyCoroutine());
+        }
 
         if (this.LocalLobby != null)
         {
@@ -136,8 +145,6 @@ internal sealed class LobbyManager : MonoBehaviour
 
     public void StartGameAsync()
     {
-        this.HavePlayersLoaded = this.LocalLobby.Players.All(player => player.Data[LobbyManager.KEY_PLAYER_SCENE].Value.Equals(GameCoordinator.Instance.ActiveScene.ToString(), StringComparison.Ordinal));
-
         if (!this.HavePlayersLoaded)
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerGameLobby.Instance.MessageNotAllPlayersLoaded, PanelMessageBoxUI.Icon.Warning);
@@ -277,6 +284,10 @@ internal sealed class LobbyManager : MonoBehaviour
         {
             throw lobbyServiceException;
         }
+        catch (NullReferenceException nullReferenceException)
+        {
+            throw new LobbyServiceException(LobbyExceptionReason.InvalidJoinCode, "Invalid Join Code.", nullReferenceException);
+        }
     }
 
     public async Task KickFromLobbyAsync(string playerId)
@@ -386,8 +397,6 @@ internal sealed class LobbyManager : MonoBehaviour
                 this.LocalLobby.Players[playerIndex].Data[key] = changedPlayerData[playerIndex][key].Value;
             }
         }
-
-        this.HavePlayersLoaded = this.LocalLobby.Players.All(player => player.Data[LobbyManager.KEY_PLAYER_SCENE].Value.Equals(GameCoordinator.Instance.ActiveScene.ToString(), StringComparison.Ordinal));
     }
 
     #endregion
@@ -401,13 +410,13 @@ internal sealed class LobbyManager : MonoBehaviour
             this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_LOBBY, false);
         }
 
-        this.UpdateLocalPlayerData();
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
     }
 
-    private void HandleMonopolyGameLoaded()
-    {
-        this.UpdateLocalPlayerData();
-    }
+    //private void HandleMonopolyGameLoaded()
+    //{
+    //    this.UpdateLocalPlayerData();
+    //}
 
     private void HandleMonopolyGameFailedToLoad()
     {

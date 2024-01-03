@@ -10177,6 +10177,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6758341332512467324}
+  - component: {fileID: 6758341332512467326}
   - component: {fileID: 6758341332512467325}
   m_Layer: 0
   m_Name: UIManagerLocal
@@ -11338,13 +11339,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GlobalObjectIdHash: 153163248
-  AlwaysReplicateAsRoot: 0
+  AlwaysReplicateAsRoot: 1
   SynchronizeTransform: 0
-  ActiveSceneSynchronization: 0
+  ActiveSceneSynchronization: 1
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
-  AutoObjectParentSync: 0
+  AutoObjectParentSync: 1
 --- !u!114 &6322003529767590545
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11444,6 +11445,7 @@ MonoBehaviour:
   diceScreenTime: 1
   currency: 8372
   canvasPlayersList: {fileID: 1761991747}
+  messageWon: 
   messageAlreadyBuilt: 
   messageInsufficientFunds: 
   messageWaitingOtherPlayers: "\u041E\u0447\u0456\u043A\u0443\u0432\u0430\u043D\u043D\u044F
@@ -11456,6 +11458,26 @@ MonoBehaviour:
   messageCannotDowngradeMinLevel: 
   messageOnlyEvenBuildingAllowed: 
   messageCompleteMonopolyRequired: 
+--- !u!114 &6758341332512467326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3454039538471924270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 81211614
+  AlwaysReplicateAsRoot: 1
+  SynchronizeTransform: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 0
 --- !u!1 &6975658640967943749
 GameObject:
   m_ObjectHideFlags: 0

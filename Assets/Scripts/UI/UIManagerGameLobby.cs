@@ -187,6 +187,8 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     private void Start()
     {
         this.labelJoinCode.text = LobbyManager.Instance.JoinCode;
+
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
     }
 
     private void OnEnable()

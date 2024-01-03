@@ -21,6 +21,10 @@ internal sealed class GameCoordinator : MonoBehaviour
 {
     private const string CONNECTION_TYPE = "dtls";
 
+    private const int INIT_GAME_LOBBY_COUNT = 2;
+
+    private const int INIT_MONOPOLY_GAME_COUNT = 3;
+
     public const string KEY_NICKNAME_PLAYER_PREFS = "Nickname";
 
     public enum MonopolyScene : byte
@@ -30,6 +34,12 @@ internal sealed class GameCoordinator : MonoBehaviour
         GameLobby,
         MonopolyGame
     }
+
+    private Scene activeScene;
+
+    private int initializationCount;
+
+    private LinkedList<GameObject> initializedObjects;
 
     public static GameCoordinator Instance { get; private set; }
 
@@ -64,6 +74,8 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     private async void Start()
     {
+        this.initializedObjects = new LinkedList<GameObject>();
+
         try
         {
 #if UNITY_EDITOR
@@ -117,6 +129,21 @@ internal sealed class GameCoordinator : MonoBehaviour
         this.LocalPlayer = player;
     }
 
+    public void SetupInitializedObjects(int count)
+    {
+        this.initializationCount = count;
+    }
+
+    public void UpdateInitializedObjects(GameObject gameObject)
+    {
+        this.initializedObjects.AddLast(gameObject);
+
+        if (this.initializedObjects.Count == this.initializationCount)
+        {
+            LobbyManager.Instance?.UpdateLocalPlayerData();
+        }
+    }
+
     #endregion
 
     #region Scenes Management
@@ -133,6 +160,10 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
     {
+        this.initializedObjects?.Clear();
+
+        this.activeScene = SceneManager.GetActiveScene();
+
         switch (newActiveScene.name)
         {
             case nameof(GameCoordinator.MonopolyScene.MainMenu):
@@ -141,13 +172,17 @@ internal sealed class GameCoordinator : MonoBehaviour
             case nameof(GameCoordinator.MonopolyScene.GameLobby):
                 {
                     this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
-                    LobbyManager.Instance.OnGameLobbyLoaded?.Invoke();
+
+                    this.SetupInitializedObjects(GameCoordinator.INIT_GAME_LOBBY_COUNT);
+                    LobbyManager.Instance?.OnGameLobbyLoaded?.Invoke();
                 }
                 break;
             case nameof(GameCoordinator.MonopolyScene.MonopolyGame):
                 {
                     this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
-                    LobbyManager.Instance.OnMonopolyGameLoaded?.Invoke();
+
+                    this.SetupInitializedObjects(GameCoordinator.INIT_MONOPOLY_GAME_COUNT);
+                    LobbyManager.Instance?.OnMonopolyGameLoaded?.Invoke();
                 }
                 break;
         }

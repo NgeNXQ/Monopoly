@@ -50,6 +50,9 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
+        this.transform.SetParent(UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
+        this.transform.localScale = Vector3.one;
+
         this.associatedPlayer = GameManager.Instance.CurrentPlayer;
         this.textPlayerName.text = GameManager.Instance.CurrentPlayer.Nickname;
         this.ImagePlayerColor.color = GameManager.Instance.CurrentPlayer.PlayerColor;

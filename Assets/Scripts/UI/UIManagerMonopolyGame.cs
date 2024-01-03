@@ -66,6 +66,9 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
     [Header("Messages")]
 
     [Space]
+    [SerializeField] private string messageWon;
+
+    [Space]
     [SerializeField] private string messageAlreadyBuilt;
 
     [Space]
@@ -88,6 +91,11 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     [Space]
     [SerializeField] private string messageCompleteMonopolyRequired;
+
+    public string MessageWon 
+    {
+        get => this.messageWon;
+    }
 
     public string MessageAlreadyBuilt 
     { 
@@ -170,6 +178,11 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
+    }
+
     private void OnEnable()
     {
         this.buttonRollDice.onClick.AddListener(this.HandleButtonRollDiceClicked);
@@ -187,14 +200,10 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
         this.buttonRollDice.gameObject.SetActive(true);
     }
 
-    private void HideButtonRollDice()
-    {
-        this.buttonRollDice.gameObject.SetActive(false);
-    }
-
     private void HandleButtonRollDiceClicked()
     {
-        this.HideButtonRollDice();
+        this.buttonRollDice.gameObject.SetActive(false);
+
         this.ButtonRollDiceClicked?.Invoke();
     }
 
@@ -204,12 +213,26 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
 
     public void ShowDiceAnimation()
     {
-        this.ShowDiceAnimationAsync();
+        Debug.Log(nameof(ShowDiceAnimation));
+
+        //this.ShowDiceAnimationAsync();
+        //this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherClients);
+
+        this.ShowDiceAnimationServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+    }
+
+    [ServerRpc]
+    private void ShowDiceAnimationServerRpc(ServerRpcParams serverRpcParams)
+    {
+        Debug.Log(nameof(ShowDiceAnimationServerRpc));
+
         this.ShowDiceAnimationClientRpc(GameManager.Instance.ClientParamsOtherClients);
     }
 
     private async void ShowDiceAnimationAsync()
     {
+        Debug.Log(nameof(ShowDiceAnimationAsync));
+
         this.imageDiePlaceholder1.gameObject.SetActive(true);
         this.imageDiePlaceholder2.gameObject.SetActive(true);
 
@@ -225,7 +248,9 @@ internal sealed class UIManagerMonopolyGame : MonoBehaviour
     [ClientRpc]
     private void ShowDiceAnimationClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.ShowDiceAnimationAsync();
+        Debug.Log(nameof(ShowDiceAnimationClientRpc));
+
+        //this.ShowDiceAnimationAsync();
     }
 
     #endregion

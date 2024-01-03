@@ -4,9 +4,6 @@ using UnityEngine;
 using Unity.Netcode;
 using System.Collections;
 using System.Collections.Generic;
-
-using System.Diagnostics;
-using System.Reflection;
 using System.Collections.ObjectModel;
 
 internal sealed class GameManager : NetworkBehaviour
@@ -79,23 +76,23 @@ internal sealed class GameManager : NetworkBehaviour
 
     private ulong[] targetAllPlayers;
 
+    private ulong[] targetOtherPlayers;
+
     private ulong[] targetCurrentPlayer;
-
-    private List<ulong[]> targetOtherPlayers;
-
-    private List<MonopolyPlayer> players;
-
-    public ReadOnlyCollection<MonopolyPlayerVisuals> MonopolyPlayersVisuals;
-
+    
     public static GameManager Instance { get; private set; }
 
     public MonopolyPlayer CurrentPlayer 
     {
-        get => this.players[this.CurrentPlayerIndex];
+        get => this.Players[this.CurrentPlayerIndex];
     }
 
-    public int CurrentPlayerIndex { get; private set; }
+    public List<MonopolyPlayer> Players { get; private set; }
 
+    public ReadOnlyCollection<MonopolyPlayerVisuals> MonopolyPlayersVisuals;
+
+    public int CurrentPlayerIndex { get; private set; }
+    
     public int CircleBonus 
     {
         get => this.circleBonus;
@@ -157,7 +154,7 @@ internal sealed class GameManager : NetworkBehaviour
         {
             return new ClientRpcParams
             {
-                Send = new ClientRpcSendParams { TargetClientIds = this.targetOtherPlayers[this.CurrentPlayerIndex] }
+                Send = new ClientRpcSendParams { TargetClientIds = this.targetOtherPlayers }
             };
         }
     }
@@ -200,29 +197,22 @@ internal sealed class GameManager : NetworkBehaviour
     {
         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerMonopolyGame.Instance.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, stateCallback: () => LobbyManager.Instance.HavePlayersLoaded);
         
-        this.players = new List<MonopolyPlayer>();
+        this.Players = new List<MonopolyPlayer>();
 
         this.MonopolyPlayersVisuals = new ReadOnlyCollection<MonopolyPlayerVisuals>(this.monopolyPlayersVisuals);
 
         this.targetCurrentPlayer = new ulong[1];
         this.targetAllPlayers = new ulong[LobbyManager.Instance.LocalLobby.Players.Count];
-        this.targetOtherPlayers = new List<ulong[]>(LobbyManager.Instance.LocalLobby.Players.Count);
-
-        LobbyManager.Instance.UpdateLocalPlayerData();
+        this.targetOtherPlayers = new ulong[LobbyManager.Instance.LocalLobby.Players.Count - 1];
 
         if (LobbyManager.Instance.IsHost)
         {
-            for (int i = 0; i < NetworkManager.Singleton.ConnectedClients.Count; ++i)
-            {
-                this.targetAllPlayers[i] = NetworkManager.Singleton.ConnectedClientsIds[i];
-                this.targetOtherPlayers.Add(new ulong[NetworkManager.Singleton.ConnectedClients.Count]);
-                this.targetOtherPlayers[i] = NetworkManager.Singleton.ConnectedClientsIds.Where((value, index) => index != i).ToArray();
-            }
-
             LobbyManager.Instance?.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_PENDING, true);
 
             this.StartCoroutine(this.WaitOtherPlayersCoroutine());
         }
+
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
     }
 
     private void OnEnable()
@@ -242,7 +232,12 @@ internal sealed class GameManager : NetworkBehaviour
         
     }
 
-    #region Loading & Disconnect Callbacks
+    #region Init & Callbacks
+
+    private async void CallbackWonTheGameAsync()
+    {
+        await LobbyManager.Instance.DisconnectFromLobbyAsync();
+    }
 
     private IEnumerator WaitOtherPlayersCoroutine()
     {
@@ -260,59 +255,96 @@ internal sealed class GameManager : NetworkBehaviour
         }
         else
         {
-            for (int i = 0; i < NetworkManager.Singleton?.ConnectedClientsIds.Count; ++i)
-            {
-                this.CurrentPlayerIndex = i;
-
-                this.player = GameObject.Instantiate(this.player);
-                //this.playerPanel = GameObject.Instantiate(this.playerPanel, UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
-
-                this.players.Add(this.player.GetComponent<MonopolyPlayer>());
-
-                this.player.GetComponent<NetworkObject>().SpawnAsPlayerObject(NetworkManager.Singleton.ConnectedClientsIds[i], true);
-                //this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
-            }
+            this.InitializeGameServerRpc(this.ServerParamsCurrentClient);
         }
-        
-        //this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
     }
 
     private void HandleClientDisconnectCallback(ulong clientId)
     {
-        this.players.Remove(this.players.Where(player => player.OwnerClientId == clientId).FirstOrDefault());
+        this.targetAllPlayers = this.targetAllPlayers.Where(val => val != clientId).ToArray();
+        this.targetOtherPlayers = this.targetOtherPlayers.Where(val => val != clientId).ToArray();
+
+        this.Players.Remove(this.Players.Where(player => player.OwnerClientId == clientId).FirstOrDefault());
+
+        if (this.Players.Count == 1)
+        {
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy, actionCallback: this.CallbackWonTheGameAsync);
+        }
+    }
+
+    [ServerRpc]
+    private void InitializeGameServerRpc(ServerRpcParams serverRpcParams)
+    {
+        this.targetAllPlayers = NetworkManager.Singleton.ConnectedClientsIds.ToArray();
+        this.targetOtherPlayers = NetworkManager.Singleton.ConnectedClientsIds.Where((value) => value != NetworkManager.Singleton.LocalClientId).ToArray();
+
+        for (int i = 0; i < NetworkManager.Singleton?.ConnectedClientsIds.Count; ++i)
+        {
+            this.CurrentPlayerIndex = i;
+
+            this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsOtherClients);
+            this.InitializeNetworkClientRpc(this.targetAllPlayers, NetworkManager.Singleton.ConnectedClientsIds.Where((value) => value != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray(), this.ClientParamsCurrentClient);
+
+            this.player = GameObject.Instantiate(this.player);
+            this.playerPanel = GameObject.Instantiate(this.playerPanel);
+
+            this.player.GetComponent<NetworkObject>().SpawnAsPlayerObject(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+            this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+        }
+
+        this.CurrentPlayerIndex = 0;
+
+        this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsOtherClients);
+
+        this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
+    }
+
+    [ClientRpc]
+    private void InitializeNetworkClientRpc(ulong[] targetAllPlayers, ulong[] targetOtherPlayers,  ClientRpcParams clientRpcParams)
+    {
+        this.targetAllPlayers = targetAllPlayers;
+        this.targetOtherPlayers = targetOtherPlayers;
     }
 
     #endregion
 
     #region Turn-based Game Loop
-    
-    [ServerRpc(RequireOwnership = false)]
-    public void SwitchPlayerServerRpc(ServerRpcParams serverRpcParams)
-    {
-        if (this.HasRolledDouble)
-        {
-            ++this.rolledDoubles;
 
-            if (this.rolledDoubles >= this.MaxDoublesInRow)
-            {
-                this.rolledDoubles = 0;
-                this.CurrentPlayer.HandleSendJailLanding();
-            }
-        }
-        else
-        {
-            this.rolledDoubles = 0;
-            this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % this.players.Count;
-        }
+    [ServerRpc(RequireOwnership = false)]
+    public void SwitchPlayerServerRpc(ServerRpcParams serverRpcParams = default)
+    {
+        Debug.Log("SwitchPlayerServerRpc");
+
+        //if (this.HasRolledDouble)
+        //{
+        //    ++this.rolledDoubles;
+
+        //    if (this.rolledDoubles >= this.MaxDoublesInRow)
+        //    {
+        //        this.rolledDoubles = 0;
+        //        this.CurrentPlayer.HandleSendJailLanding();
+        //    }
+        //}
+        //else
+        //{
+        //    this.rolledDoubles = 0;
+        //    this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % this.Players.Count;
+        //}
+
+        this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % this.Players.Count;
+
+        Debug.Log(GameManager.Instance.ClientParamsOtherClients.Send.TargetClientIds.FirstOrDefault());
 
         this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsOtherClients);
 
-        this.CurrentPlayer.PerformTurnClientRpc(ClientParamsCurrentClient);
+        this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
     }
 
     [ClientRpc]
     private void SwitchPlayerClientRpc(int CurrentPlayerIndex, ClientRpcParams clientRpcParams)
     {
+        Debug.Log("SwitchPlayerClientRpc");
+
         this.CurrentPlayerIndex = CurrentPlayerIndex;
     }
 
@@ -339,17 +371,4 @@ internal sealed class GameManager : NetworkBehaviour
     }
 
     #endregion
-    
-    private void FixedUpdate()
-    {
-        StackTrace stackTrace = new StackTrace();
-
-        for (int i = 0; i < stackTrace.FrameCount; i++)
-        {
-            StackFrame frame = stackTrace.GetFrame(i);
-            MethodBase method = frame.GetMethod();
-
-            UnityEngine.Debug.Log($"Method: {method.DeclaringType}.{method.Name}, Line: {frame.GetFileLineNumber()}");
-        }
-    }
 }

@@ -54,13 +54,13 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     public int NumberOfNodes { get => this.nodes.Count; }
 
+    public List<MonopolySet> Monopolies { get => this.monopolies; }
+
     public MonopolyNode NodeJail { get => this.jail; }
 
     public MonopolyNode NodeStart { get => this.start; }
 
     public MonopolyNode NodeSendToJail { get => this.sendJail; }
-    
-    public List<MonopolySet> Monopolies { get => this.monopolies; }
 
     public MonopolyNode NodeFreeParking { get => this.freeParking; }
 
@@ -85,6 +85,8 @@ public sealed class MonopolyBoard : MonoBehaviour
                 this.nodes.Add(monopolyNode);
             }
         }
+
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
     }
 
     public MonopolyNode this[int index]
