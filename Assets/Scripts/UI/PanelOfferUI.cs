@@ -46,11 +46,17 @@ internal sealed class PanelOfferUI : MonoBehaviour, IActionControlUI
 
     public static PanelOfferUI Instance { get; private set; }
 
+    public Sprite PictureSprite 
+    { 
+        set => this.imagePicture.sprite = value; 
+    }
+
+    public Color MonopolyTypeColor 
+    { 
+        set => this.imageMonopolyType.color = value; 
+    }
+
     public DialogResult OfferDialogResult { get; private set; }
-
-    public Sprite PictureSprite { set => this.imagePicture.sprite = value; }
-
-    public Color MonopolyTypeColor { set => this.imageMonopolyType.color = value; }
 
     private void Awake()
     {
@@ -74,9 +80,9 @@ internal sealed class PanelOfferUI : MonoBehaviour, IActionControlUI
         this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
     }
 
-    public void Show(Action actionCallback = null)
+    public void Show(Action callback = default)
     {
-        this.actionCallback = actionCallback;
+        this.actionCallback = callback;
 
         this.panel.gameObject.SetActive(true);
     }

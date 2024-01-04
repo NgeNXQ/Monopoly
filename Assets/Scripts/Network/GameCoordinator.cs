@@ -21,7 +21,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 {
     private const string CONNECTION_TYPE = "dtls";
 
-    private const int INIT_GAME_LOBBY_COUNT = 2;
+    private const int INIT_GAME_LOBBY_COUNT = 3;
 
     private const int INIT_MONOPOLY_GAME_COUNT = 3;
 

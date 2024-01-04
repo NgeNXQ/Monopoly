@@ -4,7 +4,7 @@ using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
-public sealed class MonopolyNode : MonoBehaviour
+public sealed class MonopolyNode : NetworkBehaviour
 {
     #region Setup (Editor)
 
@@ -32,8 +32,6 @@ public sealed class MonopolyNode : MonoBehaviour
 
     [SerializeField] private List<int> pricing = new List<int>();
 
-    [SerializeField] private string description;
-
     #endregion
 
     public enum Type : byte
@@ -49,36 +47,36 @@ public sealed class MonopolyNode : MonoBehaviour
         FreeParking
     }
 
-    public const int PROPERTY_MAX_LEVEL = 7;
+    public const int PROPERTY_MAX_LEVEL = 6;
 
     public const int PROPERTY_MIN_LEVEL = 0;
 
-    public Type NodeType { get => this.type; }
-
-    public MonopolyPlayer Owner { get; private set; }
-
-    public int Level { get; private set; }
-
-    public bool IsMortgaged { get => this.Level == 0; }
-
-    public Sprite NodeSprite { get => this.spriteLogo; }
-
-    public int PriceRent { get => this.pricing[this.Level]; }
-
-    public int PriceUpgrade { get => this.pricing[this.Level + 1]; }
-
-    public MonopolySet AffiliatedMonopoly { get; private set; }
-
-    public bool IsDowngradable
-    {
-        get
-        {
-            bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.Level <= this.Level);
-            return isEquallySpread && this.Level >= 0;
-        }
+    public Type NodeType 
+    { 
+        get => this.type; 
     }
 
-    public bool IsUpgradable
+    public int PriceRent 
+    { 
+        get => this.pricing[this.Level]; 
+    }
+
+    public bool IsMortgaged 
+    {
+        get => this.Level == 0;
+    }
+
+    public int PriceUpgrade 
+    {
+        get => this.pricing[(this.Level + 1) % this.pricing.Count];
+    }
+
+    public Sprite NodeSprite 
+    {
+        get => this.spriteLogo;
+    }
+
+    public bool IsUpgradable 
     {
         get
         {
@@ -87,31 +85,42 @@ public sealed class MonopolyNode : MonoBehaviour
         }
     }
 
-    private void Awake()
+    public bool IsDowngradable 
     {
-        this.imageLogo.sprite = this.spriteLogo;
-        
-        if (this.NodeType == MonopolyNode.Type.Property || this.NodeType == MonopolyNode.Type.Transport || this.NodeType == MonopolyNode.Type.Gambling)
+        get
         {
-            this.AffiliatedMonopoly = MonopolyBoard.Instance.GetMonopolySet(this);
-            this.imageMonopolyType.color = this.AffiliatedMonopoly.ColorOfSet;
+            bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.Level <= this.Level);
+            return isEquallySpread && this.Level >= 0;
         }
     }
 
-    //private void Start()
-    //{
-    //    GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
-    //}
+    public int Level { get; private set; }
 
-    #region UpdateOwner
+    public MonopolyPlayer Owner { get; private set; }
 
-    public void UpdateOwner(MonopolyPlayer owner)
+    public MonopolySet AffiliatedMonopoly { get; private set; }
+    
+    private void Awake()
     {
-        this.UpdateOwner();
-        this.SyncUpdateOwnerServerRpc();
+        this.imageLogo.sprite = this.spriteLogo;
+
+        switch (this.NodeType)
+        {
+            case MonopolyNode.Type.Property:
+            case MonopolyNode.Type.Gambling:
+            case MonopolyNode.Type.Transport:
+                {
+                    this.Level = 1;
+                    this.AffiliatedMonopoly = MonopolyBoard.Instance.GetMonopolySet(this);
+                    this.imageMonopolyType.color = this.AffiliatedMonopoly.ColorOfSet;
+                }
+                break;
+        }
     }
 
-    private void UpdateOwner()
+    #region Ownership
+
+    public void UpdateOwner()
     {
         this.Level = 1;
         this.imageOwner.gameObject.SetActive(true);
@@ -131,16 +140,42 @@ public sealed class MonopolyNode : MonoBehaviour
         //}
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void SyncUpdateOwnerServerRpc(ServerRpcParams serverRpcParams = default)
+    public void ResetOwnership()
     {
-        this.SyncUpdateOwnerClientRpc();
+        this.Level = 1;
+        this.Owner = null;
+        this.imageOwner.color = Color.white;
+        this.imageOwner.gameObject.SetActive(false);
+        this.imageLevel1.gameObject.SetActive(false);
+        this.imageLevel2.gameObject.SetActive(false);
+        this.imageLevel3.gameObject.SetActive(false);
+        this.imageLevel4.gameObject.SetActive(false);
+        this.imageLevel5.gameObject.SetActive(false);
+        this.imageMortgageStatus.gameObject.SetActive(false);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void UpdateOwnerServerRpc(ServerRpcParams serverRpcParams)
+    {
+        this.UpdateOwnerClientRpc(GameManager.Instance.ClientParamsHostOtherClients);
     }
 
     [ClientRpc]
-    private void SyncUpdateOwnerClientRpc(ClientRpcParams clientRpcParams = default)
+    private void UpdateOwnerClientRpc(ClientRpcParams clientRpcParams)
     {
         this.UpdateOwner();
+    }
+    
+    [ServerRpc(RequireOwnership = false)]
+    public void ResetOwnershipServerRpc(ServerRpcParams serverRpcParams)
+    {
+        this.ResetOwnershipClientRpc(GameManager.Instance.ClientParamsHostOtherClients);
+    }
+
+    [ClientRpc]
+    private void ResetOwnershipClientRpc(ClientRpcParams clientRpcParams)
+    {
+        this.ResetOwnership();
     }
 
     #endregion
@@ -151,16 +186,14 @@ public sealed class MonopolyNode : MonoBehaviour
     {
         this.Level = ++this.Level % this.pricing.Count;
 
-        UpdateVisuals();
-        UpdateVisualsServerRpc();
+        this.UpdateVisuals();
     }
 
     public void Downgrade()
     {
         this.Level = --this.Level % this.pricing.Count;
 
-        UpdateVisuals();
-        UpdateVisualsServerRpc();
+        this.UpdateVisuals();
     }
 
     private void UpdateVisuals()
@@ -215,15 +248,27 @@ public sealed class MonopolyNode : MonoBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void UpdateVisualsServerRpc(ServerRpcParams serverRpcParams = default)
+    public void UpgradeServerRpc(ServerRpcParams serverRpcParams)
     {
-        this.UpdateVisualsClientRpc();
+        this.UpgradeClientRpc(GameManager.Instance.ClientParamsHostOtherClients);
     }
 
     [ClientRpc]
-    private void UpdateVisualsClientRpc(ClientRpcParams clientRpcParams = default)
+    private void UpgradeClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.UpdateVisuals();
+        this.Upgrade();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void DowngradeServerRpc(ServerRpcParams serverRpcParams)
+    {
+        this.DowngradeClientRpc(GameManager.Instance.ClientParamsHostOtherClients);
+    }
+
+    [ClientRpc]
+    private void DowngradeClientRpc(ClientRpcParams clientRpcParams)
+    {
+        this.Downgrade();
     }
 
     #endregion

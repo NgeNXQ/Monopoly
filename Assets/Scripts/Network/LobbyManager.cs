@@ -20,10 +20,16 @@ internal sealed class LobbyManager : MonoBehaviour
 
     public const string KEY_PLAYER_SCENE = "Scene";
 
+    public const string KEY_PLAYER_STATUS = "Status";
+
     public const string KEY_PLAYER_NICKNAME = "Nickname";
 
-    public const string KEY_LOBBY_STATE = "State";
+    public const string PLAYER_STATUS_READY = "Ready";
 
+    public const string PLAYER_STATUS_NOT_READY = "Not Ready";
+
+    public const string KEY_LOBBY_STATE = "State";
+    
     public const string LOBBY_STATE_GAME = "Game";
 
     public const string LOBBY_STATE_LOBBY = "Lobby";

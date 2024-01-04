@@ -33,10 +33,10 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     #endregion
 
-    #region Chance nodes
+    #region Chance & Tax nodes
 
     [Space]
-    [Header("Chance nodes")]
+    [Header("Chance & Tax nodes")]
 
     [Space]
     [SerializeField] private List<ChanceNodeSO> taxNodes = new List<ChanceNodeSO>();

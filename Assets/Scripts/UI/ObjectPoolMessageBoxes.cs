@@ -26,14 +26,26 @@ internal sealed class ObjectPoolMessageBoxes : MonoBehaviour
     private void Awake()
     {
         if (Instance != null)
+        {
             throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
+        }
 
         Instance = this;
     }
 
     private void Start()
     {
-        this.pooledMessageBoxes =  new LinkedList<PanelMessageBoxUI>();
+        this.InitializeObjectPool();
+    }
+
+    private void InitializeObjectPool()
+    {
+        if (this.pooledMessageBoxes != null)
+        {
+            return;
+        }
+
+        this.pooledMessageBoxes = new LinkedList<PanelMessageBoxUI>();
 
         for (int i = 0; i < this.messageBoxPoolSize; ++i)
         {
@@ -45,17 +57,23 @@ internal sealed class ObjectPoolMessageBoxes : MonoBehaviour
 
     public PanelMessageBoxUI GetPooledObject()
     {
+        if (this.pooledMessageBoxes == null)
+        {
+            this.InitializeObjectPool();
+        }
+
         foreach (PanelMessageBoxUI messageBox in this.pooledMessageBoxes)
         {
             if (!messageBox.gameObject.activeInHierarchy)
             {
+                messageBox.gameObject.SetActive(true);
                 return messageBox;
             }
         }
 
         PanelMessageBoxUI newMessageBox = GameObject.Instantiate(this.messageBox, this.gameObject.transform.parent.transform);
         this.pooledMessageBoxes.AddLast(newMessageBox);
-        newMessageBox.gameObject.SetActive(false);
+        newMessageBox.gameObject.SetActive(true);
 
         return newMessageBox;
     }

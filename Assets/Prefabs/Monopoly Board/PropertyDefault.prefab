@@ -844,7 +844,6 @@ MonoBehaviour:
   imageLevel4: {fileID: 923918583967032545}
   imageLevel5: {fileID: 3531002776111831584}
   pricing: 
-  description: 
 --- !u!114 &7982305199546684485
 MonoBehaviour:
   m_ObjectHideFlags: 0

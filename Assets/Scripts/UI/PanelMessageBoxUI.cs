@@ -170,8 +170,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
 
     public void Show()
     {
-        this.gameObject.SetActive(true);
-
         this.panelTemplate.gameObject.SetActive(true);
 
         switch (this.messageBoxType)
@@ -197,8 +195,6 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
     {
         this.stateCallback = null;
         this.actionCallback = null;
-
-        this.gameObject.SetActive(false);
 
         this.panelTemplate.gameObject.SetActive(false);
 

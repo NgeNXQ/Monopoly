@@ -48,8 +48,6 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        base.OnNetworkSpawn();
-
         this.transform.SetParent(UIManagerMonopolyGame.Instance.CanvasPlayersList.transform);
         this.transform.localScale = Vector3.one;
 
@@ -57,16 +55,69 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
         this.textPlayerName.text = GameManager.Instance.CurrentPlayer.Nickname;
         this.ImagePlayerColor.color = GameManager.Instance.CurrentPlayer.PlayerColor;
         this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {GameManager.Instance.CurrentPlayer.Balance}";
+
+        if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
+        {
+            this.associatedPlayer.OnBalanceUpdated += this.HandleBalanceUpdated;
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
+        {
+            this.associatedPlayer.OnBalanceUpdated -= this.HandleBalanceUpdated;
+        }
+    }
+
+    #region GUI Callbacks
+
+    private void HandleBttonInteractClicked()
+    {
+        if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
+        {
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, UIManagerMonopolyGame.Instance.MessageConfirmSurrender, PanelMessageBoxUI.Icon.Question, actionCallback: this.CallbackSurrender);
+        }
+        else
+        {
+            Debug.Log("Trading placeholder");
+        }
+    }
+
+    private void CallbackSurrender()
+    {
+        if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
+        {
+            this.associatedPlayer.Surrender();
+        }
+    }
+
+    #endregion
+
+    #region Updating Balance
+
+    private void UpdateBalance()
+    {
+        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance}";
+    }
+
+    private void HandleBalanceUpdated()
+    {
+        this.UpdateBalance();
+        this.UpdateBalanceServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+    }
+
+    [ServerRpc]
+    public void UpdateBalanceServerRpc(ServerRpcParams serverRpcParams)
+    {
+        this.UpdateBalanceClientRpc(GameManager.Instance.ClientParamsHostOtherClients);
     }
 
     [ClientRpc]
     public void UpdateBalanceClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance}";
+        this.UpdateBalance();
     }
 
-    private void HandleBttonInteractClicked()
-    {
-        Debug.Log("Pressed");
-    }
+    #endregion
 }

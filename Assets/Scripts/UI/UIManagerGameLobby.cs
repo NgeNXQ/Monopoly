@@ -187,8 +187,6 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     private void Start()
     {
         this.labelJoinCode.text = LobbyManager.Instance.JoinCode;
-
-        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
     }
 
     private void OnEnable()
@@ -219,24 +217,21 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     private void AddPlayerToList(Player player)
     {
-        PanelPlayerLobbyUI newPanelPlayer = GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
+        PanelPlayerLobbyUI newPanelPlayer = ObjectPoolPanelPlayerLobby.Instance?.GetPooledObject();
         newPanelPlayer.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
         newPanelPlayer.name = player.Id;
     }
 
     private void RemovePlayerFromList(int playerIndex)
     {
-        GameObject.Destroy(this.canvaslPlayersList.transform.GetChild(playerIndex).gameObject);
+        this.canvaslPlayersList.transform.GetChild(playerIndex).gameObject.SetActive(false);
     }
 
     private void InitializePlayersList(List<Player> players)
     {
         foreach (Player player in players)
         {
-            this.panelPlayerLobby.PlayerNickname = player.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
-
-            PanelPlayerLobbyUI newPanelPlayer = GameObject.Instantiate(this.panelPlayerLobby, this.canvaslPlayersList.transform);
-            newPanelPlayer.name = player.Id;
+            this.AddPlayerToList(player);
         }
     }
 

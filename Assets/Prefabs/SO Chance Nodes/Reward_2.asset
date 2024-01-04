@@ -10,9 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6bad80e586dabd04296e86dd5a772d62, type: 3}
-  m_Name: Reward
+  m_Name: Reward_2
   m_EditorClassIdentifier: 
   type: 0
-  description: Reward
   penalty: 0
-  reward: 500
+  reward: 750
+  description: "\u0413\u043E\u043B\u044C\u0446\u043C\u0430\u043D \u043F\u043E\u0440\u0443\u0448\u0438\u0432
+    \u0437\u0430\u043A\u043E\u043D \u0443 \u0441\u043F\u0440\u0430\u0432\u0456 \u0437
+    \u0441\u043E\u043D\u0446\u0435\u043C. \u0412\u0456\u043D \u0437\u0430\u043F\u043B\u0430\u0442\u0438\u0432
+    \u0432\u0430\u043C 750"
