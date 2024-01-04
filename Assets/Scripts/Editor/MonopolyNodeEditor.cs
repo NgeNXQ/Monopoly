@@ -49,7 +49,11 @@ public sealed class MonopolyNodeEditor : Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("MonopolyNode \"Values\"", EditorStyles.boldLabel);
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricing"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricePurchase"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("priceUpgrade"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricesRent"));
         }
 
         if (monopolyNode.NodeType == MonopolyNode.Type.Gambling)
@@ -64,7 +68,9 @@ public sealed class MonopolyNodeEditor : Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("MonopolyNode \"Values\"", EditorStyles.boldLabel);
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricing"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricePurchase"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricesRent"));
         }
 
         if (monopolyNode.NodeType == MonopolyNode.Type.Transport)
@@ -79,7 +85,9 @@ public sealed class MonopolyNodeEditor : Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("MonopolyNode \"Values\"", EditorStyles.boldLabel);
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricing"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricePurchase"));
+            EditorGUILayout.Space();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pricesRent"));
         }
 
         serializedObject.ApplyModifiedProperties();

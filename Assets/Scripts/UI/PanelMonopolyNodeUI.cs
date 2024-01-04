@@ -1,4 +1,5 @@
 ﻿using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +13,9 @@ internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IActionControlUI
 
     [Space]
     [SerializeField] private RectTransform panel;
+    
+    [Space]
+    [SerializeField] private TMP_Text textPrice;
 
     [Space]
     [SerializeField] private Image imagePicture;
@@ -47,6 +51,11 @@ internal sealed class PanelMonopolyNodeUI : MonoBehaviour, IActionControlUI
     public static PanelMonopolyNodeUI Instance { get; private set; }
 
     public DialogResult MonopolyNodeDialogResult { get; private set; }
+
+    public string PriceText 
+    {
+        set => this.textPrice.text = value;
+    }
 
     public Color MonopolyColor 
     {

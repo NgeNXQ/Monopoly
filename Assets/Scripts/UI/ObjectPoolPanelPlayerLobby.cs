@@ -7,7 +7,6 @@ internal sealed class ObjectPoolPanelPlayerLobby : MonoBehaviour
 
     #region Parent Object
 
-    [Space]
     [Header("Parent Object")]
 
     [Space]
@@ -17,6 +16,7 @@ internal sealed class ObjectPoolPanelPlayerLobby : MonoBehaviour
 
     #region Panel Message Box
 
+    [Space]
     [Header("Panel Player Lobby")]
 
     [Space]
@@ -60,6 +60,8 @@ internal sealed class ObjectPoolPanelPlayerLobby : MonoBehaviour
             this.pooledPanelsPlayer.AddLast(newPanelPlayer);
             newPanelPlayer.gameObject.SetActive(false);
         }
+
+        GameCoordinator.Instance.UpdateInitializedObjects(this.GetType());
     }
 
     public PanelPlayerLobbyUI GetPooledObject()

@@ -7,8 +7,6 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 {
     #region Setup
 
-    #region Visuals
-
     #region Currency
 
     [Header("Currency")]
@@ -46,15 +44,13 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     #endregion
     
-    #region Panel Players
+    #region Panel Players List
 
     [Space]
-    [Header("Panel Players")]
+    [Header("Panels Players List")]
 
     [Space]
     [SerializeField] private Canvas canvasPlayersList;
-
-    #endregion
 
     #endregion
 
@@ -95,7 +91,13 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     [Space]
     [SerializeField] private string messageCompleteMonopolyRequired;
-    
+
+    #endregion
+
+    #endregion
+
+    #region Messages
+
     public string MessageWon 
     {
         get => this.messageWon;
@@ -107,8 +109,8 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     }
 
     public string MessageAlreadyBuilt 
-    { 
-        get => this.messageAlreadyBuilt; 
+    {
+        get => this.messageAlreadyBuilt;
     }
 
     public string MessageConfirmSurrender 
@@ -117,45 +119,45 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     }
 
     public string MessageInsufficientFunds 
-    { 
-        get => this.messageInsufficientFunds; 
+    {
+        get => this.messageInsufficientFunds;
     }
-    
+
     public string MessageWaitingOtherPlayers 
-    { 
-        get => this.messageWaitingOtherPlayers; 
+    {
+        get => this.messageWaitingOtherPlayers;
     }
 
     public string MessagePlayersFailedToLoad 
-    { 
-        get => this.messagePlayersFailedToLoad; 
+    {
+        get => this.messagePlayersFailedToLoad;
     }
 
     public string MessageCannotUpgradeMaxLevel 
-    { 
-        get => this.messageCannotUpgradeMaxLevel; 
+    {
+        get => this.messageCannotUpgradeMaxLevel;
     }
 
     public string MessageCannotDowngradeMinLevel 
-    { 
-        get => this.messageCannotDowngradeMinLevel; 
+    {
+        get => this.messageCannotDowngradeMinLevel;
     }
 
     public string MessageOnlyEvenBuildingAllowed 
-    { 
-        get => this.messageOnlyEvenBuildingAllowed; 
+    {
+        get => this.messageOnlyEvenBuildingAllowed;
     }
 
     public string MessageCompleteMonopolyRequired 
-    { 
-        get => this.messageCompleteMonopolyRequired; 
+    {
+        get => this.messageCompleteMonopolyRequired;
     }
-
-    #endregion
 
     #endregion
 
     public static UIManagerMonopolyGame Instance { get; private set; }
+
+    public char Currency { get => this.currency; }
 
     public Action ButtonRollDiceClicked;
 
@@ -166,7 +168,7 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     public PanelOfferUI PanelOffer 
     { 
-        get => PanelOfferUI.Instance; 
+        get => PanelOfferUI.Instance;
     }
 
     public Canvas CanvasPlayersList 
@@ -174,17 +176,20 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         get => this.canvasPlayersList;
     }
 
-    public PanelPaymentUI PanelPayment 
-    { 
-        get => PanelPaymentUI.Instance; 
-    }
-
     public PanelMonopolyNodeUI PanelMonopolyNode 
     { 
         get => PanelMonopolyNodeUI.Instance;
     }
 
-    public char Currency { get => this.currency; }
+    public PanelPaymentChanceUI PanelPaymentChance 
+    {
+        get => PanelPaymentChanceUI.Instance;
+    }
+
+    public PanelPaymentPropertyUI PanelPaymentProperty 
+    {
+        get => PanelPaymentPropertyUI.Instance;
+    }
 
     private void Awake()
     {
@@ -196,7 +201,7 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     private void Start()
     {
-        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.GetType());
     }
 
     private void OnEnable()
@@ -209,26 +214,56 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
     }
 
-    public void ShowOffer(Sprite pictureSprite, Color monopolyColor, Action callback)
+    #region Panels 
+
+    #region Panel Info
+
+    public void ShowInfo(string descriptionText, Action callback = default)
+    {
+        this.PanelInfo.DescriptionText = descriptionText;
+
+        this.PanelInfo.Show(callback);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ShowInfoServerRpc(string descriptionText, ServerRpcParams serverRpcParams)
+    {
+        this.ShowInfoClientRpc(descriptionText, GameManager.Instance.ClientParamsHostOtherClients);
+    }
+
+    [ClientRpc]
+    private void ShowInfoClientRpc(string descriptionText, ClientRpcParams clientRpcParams)
+    {
+        this.ShowInfo(descriptionText);
+    }
+
+    #endregion
+
+    #region Panel Offer
+
+    public void ShowOffer(Sprite pictureSprite, Color monopolyColor, int price, Action callback)
     {
         this.PanelOffer.PictureSprite = pictureSprite;
         this.PanelOffer.MonopolyTypeColor = monopolyColor;
+        this.PanelOffer.PriceText = $"{this.Currency} {price}";
 
         this.PanelOffer.Show(callback);
     }
 
-    public void ShowPayment(Sprite pictureSprite, string descriptionText, Action callback)
+    public void HideOffer()
     {
-        this.PanelPayment.PictureSprite = pictureSprite;
-        this.PanelPayment.DescriptionText = descriptionText;
-
-        this.PanelOffer.Show(callback);
+        this.PanelOffer.Hide();
     }
 
-    public void ShowMonopolyNode(Sprite pictureSprite, Color monopolyColor, Action callback)
+    #endregion
+
+    #region Panel Monopoly Node
+
+    public void ShowMonopolyNode(Sprite pictureSprite, Color monopolyColor, int price, Action callback)
     {
         this.PanelMonopolyNode.PictureSprite = pictureSprite;
         this.PanelMonopolyNode.MonopolyColor = monopolyColor;
+        this.PanelMonopolyNode.PriceText = $"+- {this.Currency} {price}";
 
         this.PanelMonopolyNode.Show(callback);
     }
@@ -237,6 +272,44 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     {
         this.PanelMonopolyNode.Hide();
     }
+
+    #endregion
+
+    #region Panel Payment Chance
+
+    public void ShowPaymentChance(string descriptionText, Action callback)
+    {
+        this.PanelPaymentChance.DescriptionText = descriptionText;
+
+        this.PanelOffer.Show(callback);
+    }
+
+    public void HidePaymentChance()
+    {
+        this.PanelOffer.Hide();
+    }
+
+    #endregion
+
+    #region Panel Payment Property
+
+    public void ShowPaymentProperty(Sprite pictureSprite, Color monopolyColor, int price, Action callback)
+    {
+        this.PanelPaymentProperty.PictureSprite = pictureSprite;
+        this.PanelPaymentProperty.MonopolyColor = monopolyColor;
+        this.PanelPaymentProperty.PriceText = $"+- {this.Currency} {price}";
+
+        this.PanelPaymentProperty.Show(callback);
+    }
+
+    public void HidePaymentProperty()
+    {
+        this.PanelPaymentProperty.Hide();
+    }
+
+    #endregion
+
+    #endregion
 
     #region Button Roll Dice
 

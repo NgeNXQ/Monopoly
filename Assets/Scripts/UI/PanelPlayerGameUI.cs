@@ -96,14 +96,14 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
 
     #region Updating Balance
 
-    private void UpdateBalance()
+    private void UpdateBalanceLocally()
     {
         this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance}";
     }
 
     private void HandleBalanceUpdated()
     {
-        this.UpdateBalance();
+        this.UpdateBalanceLocally();
         this.UpdateBalanceServerRpc(GameManager.Instance.ServerParamsCurrentClient);
     }
 
@@ -116,7 +116,7 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
     [ClientRpc]
     public void UpdateBalanceClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.UpdateBalance();
+        this.UpdateBalanceLocally();
     }
 
     #endregion

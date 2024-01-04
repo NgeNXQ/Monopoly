@@ -1,9 +1,9 @@
-﻿using System;
-using TMPro;
+﻿using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelPaymentUI : MonoBehaviour, IActionControlUI
+internal sealed class PanelPaymentPropertyUI : MonoBehaviour, IActionControlUI
 {
     #region Setup
 
@@ -15,10 +15,13 @@ internal sealed class PanelPaymentUI : MonoBehaviour, IActionControlUI
     [SerializeField] private RectTransform panel;
 
     [Space]
+    [SerializeField] private TMP_Text textPrice;
+
+    [Space]
     [SerializeField] private Image imagePicture;
 
     [Space]
-    [SerializeField] private TMP_Text textDescription;
+    [SerializeField] private Image imageMonopoly;
 
     #endregion
 
@@ -31,7 +34,7 @@ internal sealed class PanelPaymentUI : MonoBehaviour, IActionControlUI
     [SerializeField] private Button buttonConfirm;
 
     #endregion
-
+   
     #endregion
 
     public enum DialogResult : byte
@@ -39,20 +42,25 @@ internal sealed class PanelPaymentUI : MonoBehaviour, IActionControlUI
         Confirmed
     }
 
-    private Action actionCallback;
+    private Action callback;
 
-    public static PanelPaymentUI Instance { get; private set; }
-    
+    public static PanelPaymentPropertyUI Instance { get; private set; }
+
+    public string PriceText 
+    {
+        set => this.textPrice.text = value;
+    }
+
+    public Color MonopolyColor 
+    {
+        set => this.imageMonopoly.color = value;
+    }
+
     public Sprite PictureSprite 
-    { 
-        set => this.imagePicture.sprite = value; 
+    {
+        set => this.imagePicture.sprite = value;
     }
-
-    public string DescriptionText 
-    { 
-        set => this.textDescription.text = value; 
-    }
-
+    
     public DialogResult PaymentDialogResult { get; private set; }
 
     private void Awake()
@@ -74,25 +82,25 @@ internal sealed class PanelPaymentUI : MonoBehaviour, IActionControlUI
     {
         this.buttonConfirm.onClick.RemoveListener(this.HandleButtonConfirmClicked);
     }
-    
+
     public void Show(Action actionCallback = null)
     {
-        this.actionCallback = actionCallback;
+        this.callback = actionCallback;
 
         this.panel.gameObject.SetActive(true);
     }
 
     public void Hide()
     {
+        this.callback = null;
+
         this.panel.gameObject.SetActive(false);
     }
 
     private void HandleButtonConfirmClicked()
     {
-        this.Hide();
+        this.PaymentDialogResult = PanelPaymentPropertyUI.DialogResult.Confirmed;
 
-        this.PaymentDialogResult = PanelPaymentUI.DialogResult.Confirmed;
-
-        this.actionCallback?.Invoke();
+        this.callback?.Invoke();
     }
 }

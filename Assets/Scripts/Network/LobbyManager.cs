@@ -105,7 +105,7 @@ internal sealed class LobbyManager : MonoBehaviour
         this.LocalLobbyEventCallbacks = new LobbyEventCallbacks();
         
         this.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
-        //this.OnMonopolyGameLoaded += this.HandleMonopolyGameLoaded;
+        this.OnMonopolyGameLoaded += this.HandleMonopolyGameLoaded;
         this.OnGameLobbyFailedToLoad += this.HandleGameLobbyFailedToLoadAsync;
         this.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
 
@@ -122,7 +122,7 @@ internal sealed class LobbyManager : MonoBehaviour
         this.LocalLobbyEventCallbacks = new LobbyEventCallbacks();
 
         this.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
-        //this.OnMonopolyGameLoaded -= this.HandleMonopolyGameLoaded;
+        this.OnMonopolyGameLoaded -= this.HandleMonopolyGameLoaded;
         this.OnGameLobbyFailedToLoad -= this.HandleGameLobbyFailedToLoadAsync;
         this.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
 
@@ -415,14 +415,15 @@ internal sealed class LobbyManager : MonoBehaviour
         {
             this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_LOBBY, false);
         }
-
-        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
     }
 
-    //private void HandleMonopolyGameLoaded()
-    //{
-    //    this.UpdateLocalPlayerData();
-    //}
+    private void HandleMonopolyGameLoaded()
+    {
+        if (this.IsHost)
+        {
+            this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_LOBBY, true);
+        }
+    }
 
     private void HandleMonopolyGameFailedToLoad()
     {

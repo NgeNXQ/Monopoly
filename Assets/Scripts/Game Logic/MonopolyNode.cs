@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System.Linq;
+﻿using System.Linq;
+using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -30,7 +30,11 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     [SerializeField] private Image imageLevel5;
 
-    [SerializeField] private List<int> pricing = new List<int>();
+    [SerializeField] private int pricePurchase;
+
+    [SerializeField] private int priceUpgrade;
+
+    [SerializeField] private List<int> pricesRent = new List<int>();
 
     #endregion
 
@@ -53,12 +57,12 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public Type NodeType 
     { 
-        get => this.type; 
+        get => this.type;
     }
-
+    
     public int PriceRent 
     { 
-        get => this.pricing[this.Level]; 
+        get => this.pricesRent[this.Level]; 
     }
 
     public bool IsMortgaged 
@@ -68,7 +72,15 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public int PriceUpgrade 
     {
-        get => this.pricing[(this.Level + 1) % this.pricing.Count];
+        get
+        {
+            return this.type == MonopolyNode.Type.Transport || this.type == MonopolyNode.Type.Gambling ? this.pricePurchase : this.priceUpgrade;
+        }
+    }
+
+    public int PricePurchase 
+    {
+        get => this.pricePurchase;
     }
 
     public Sprite NodeSprite 
@@ -94,7 +106,7 @@ public sealed class MonopolyNode : NetworkBehaviour
         }
     }
 
-    public int Level { get; private set; }
+    public int Level { get; private set; } = 1;
 
     public MonopolyPlayer Owner { get; private set; }
 
@@ -122,36 +134,52 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public void UpdateOwner()
     {
+        this.UpdateOwnerLocally();
+        this.UpdateOwnerServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+    }
+
+    public void ResetOwnership()
+    {
+        this.ResetOwnershipLocally();
+        this.ResetOwnershipServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+    }
+
+    private void UpdateOwnerLocally()
+    {
         this.Level = 1;
         this.imageOwner.gameObject.SetActive(true);
         this.Owner = GameManager.Instance.CurrentPlayer;
         this.imageOwner.color = GameManager.Instance.CurrentPlayer.PlayerColor;
 
-        //if (this.NodeType == MonopolyNode.Type.Gambling || this.NodeType == MonopolyNode.Type.Transport)
-        //{
-        //    if (this.Owner.HasPartialMonopoly(this, out MonopolySet monopolySet))
-        //    {
-        //        foreach (MonopolyNode node in monopolySet.NodesInSet)
-        //        {
-        //            if (node.Owner == this.Owner)
-        //                this.Upgrade();
-        //        }
-        //    }
-        //}
+        if (this.NodeType != MonopolyNode.Type.Gambling || this.NodeType != MonopolyNode.Type.Transport)
+        {
+            return;
+        }
+
+        if (this.Owner.HasPartialMonopoly(this, out MonopolySet monopolySet))
+        {
+            foreach (MonopolyNode node in monopolySet.NodesInSet)
+            {
+                if (node.Owner == this.Owner)
+                {
+                    this.Upgrade();
+                }
+            }
+        }
     }
 
-    public void ResetOwnership()
+    private void ResetOwnershipLocally()
     {
         this.Level = 1;
         this.Owner = null;
         this.imageOwner.color = Color.white;
-        this.imageOwner.gameObject.SetActive(false);
-        this.imageLevel1.gameObject.SetActive(false);
-        this.imageLevel2.gameObject.SetActive(false);
-        this.imageLevel3.gameObject.SetActive(false);
-        this.imageLevel4.gameObject.SetActive(false);
-        this.imageLevel5.gameObject.SetActive(false);
-        this.imageMortgageStatus.gameObject.SetActive(false);
+        this.imageOwner?.gameObject?.SetActive(false);
+        this.imageLevel1?.gameObject?.SetActive(false);
+        this.imageLevel2?.gameObject?.SetActive(false);
+        this.imageLevel3?.gameObject?.SetActive(false);
+        this.imageLevel4?.gameObject?.SetActive(false);
+        this.imageLevel5?.gameObject?.SetActive(false);
+        this.imageMortgageStatus?.gameObject?.SetActive(false);
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -163,7 +191,7 @@ public sealed class MonopolyNode : NetworkBehaviour
     [ClientRpc]
     private void UpdateOwnerClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.UpdateOwner();
+        this.UpdateOwnerLocally();
     }
     
     [ServerRpc(RequireOwnership = false)]
@@ -175,7 +203,7 @@ public sealed class MonopolyNode : NetworkBehaviour
     [ClientRpc]
     private void ResetOwnershipClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.ResetOwnership();
+        this.ResetOwnershipLocally();
     }
 
     #endregion
@@ -184,19 +212,30 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public void Upgrade()
     {
-        this.Level = ++this.Level % this.pricing.Count;
-
-        this.UpdateVisuals();
+        this.UpgradeLocally();
+        this.UpgradeServerRpc(GameManager.Instance.ServerParamsCurrentClient);
     }
 
     public void Downgrade()
     {
-        this.Level = --this.Level % this.pricing.Count;
-
-        this.UpdateVisuals();
+        this.DowngradeLocally();
+        this.DowngradeServerRpc(GameManager.Instance.ServerParamsCurrentClient);
     }
 
-    private void UpdateVisuals()
+    private void UpdateVisualsSpecial()
+    {
+        switch (this.Level)
+        {
+            case 0:
+                this.imageMortgageStatus.gameObject.SetActive(true);
+                break;
+            default:
+                this.imageMortgageStatus.gameObject.SetActive(false);
+                break;
+        }
+    }
+
+    private void UpdateVisualsDefault()
     {
         switch (this.Level)
         {
@@ -247,6 +286,52 @@ public sealed class MonopolyNode : NetworkBehaviour
         }
     }
 
+    private void UpgradeLocally()
+    {
+        int previousLevel = this.Level;
+
+        this.Level = ++this.Level % this.pricesRent.Count;
+
+        if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
+        {
+            this.UpdateVisualsDefault();
+        }
+        else
+        {
+            if (!this.IsMortgaged)
+            {
+                this.UpdateVisualsSpecial();
+            }
+            else
+            {
+                this.Level = previousLevel;
+            }
+        }
+    }
+
+    private void DowngradeLocally()
+    {
+        int previousLevel = this.Level;
+
+        this.Level = --this.Level % this.pricesRent.Count;
+
+        if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
+        {
+            this.UpdateVisualsDefault();
+        }
+        else
+        {
+            if (!this.IsMortgaged)
+            {
+                this.UpdateVisualsSpecial();
+            }
+            else
+            {
+                this.Level = previousLevel;
+            }
+        }
+    }
+
     [ServerRpc(RequireOwnership = false)]
     public void UpgradeServerRpc(ServerRpcParams serverRpcParams)
     {
@@ -256,7 +341,7 @@ public sealed class MonopolyNode : NetworkBehaviour
     [ClientRpc]
     private void UpgradeClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.Upgrade();
+        this.UpgradeLocally();
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -268,7 +353,7 @@ public sealed class MonopolyNode : NetworkBehaviour
     [ClientRpc]
     private void DowngradeClientRpc(ClientRpcParams clientRpcParams)
     {
-        this.Downgrade();
+        this.DowngradeLocally();
     }
 
     #endregion

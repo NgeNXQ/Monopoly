@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +13,9 @@ internal sealed class PanelOfferUI : MonoBehaviour, IActionControlUI
 
     [Space]
     [SerializeField] private RectTransform panel;
+
+    [Space]
+    [SerializeField] private TMP_Text textPrice;
 
     [Space]
     [SerializeField] private Image imagePicture;
@@ -42,9 +46,14 @@ internal sealed class PanelOfferUI : MonoBehaviour, IActionControlUI
         Declined
     }
 
-    private Action actionCallback;
+    private Action callback;
 
     public static PanelOfferUI Instance { get; private set; }
+
+    public string PriceText 
+    {
+        set => this.textPrice.text = value;
+    }
 
     public Sprite PictureSprite 
     { 
@@ -53,7 +62,7 @@ internal sealed class PanelOfferUI : MonoBehaviour, IActionControlUI
 
     public Color MonopolyTypeColor 
     { 
-        set => this.imageMonopolyType.color = value; 
+        set => this.imageMonopolyType.color = value;
     }
 
     public DialogResult OfferDialogResult { get; private set; }
@@ -80,33 +89,31 @@ internal sealed class PanelOfferUI : MonoBehaviour, IActionControlUI
         this.buttonDecline.onClick.RemoveListener(this.HandleButtonDeclineClicked);
     }
 
-    public void Show(Action callback = default)
+    public void Show(Action actionCallback = default)
     {
-        this.actionCallback = callback;
+        this.callback = actionCallback;
 
         this.panel.gameObject.SetActive(true);
     }
 
     public void Hide()
     {
+        this.callback = null;
+
         this.panel.gameObject.SetActive(false);
     }
 
     private void HandleButtonAcceptClicked()
     {
-        this.Hide();
-
         this.OfferDialogResult = PanelOfferUI.DialogResult.Accepted;
 
-        this.actionCallback?.Invoke();
+        this.callback?.Invoke();
     }
 
     private void HandleButtonDeclineClicked()
     {
-        this.Hide();
-
         this.OfferDialogResult = PanelOfferUI.DialogResult.Declined;
 
-        this.actionCallback?.Invoke();
+        this.callback?.Invoke();
     }
 }

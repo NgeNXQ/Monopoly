@@ -116,6 +116,8 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     public static UIManagerGameLobby Instance { get; private set; }
 
+    #region Messages 
+
     public string MessageKicked 
     {
         get => this.messageKicked;
@@ -176,6 +178,8 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
         get => this.messageCannotKickPlayerAlreadyLeft;
     }
 
+    #endregion
+
     private void Awake()
     {
         if (Instance != null)
@@ -187,6 +191,8 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     private void Start()
     {
         this.labelJoinCode.text = LobbyManager.Instance.JoinCode;
+
+        GameCoordinator.Instance.UpdateInitializedObjects(this.GetType());
     }
 
     private void OnEnable()

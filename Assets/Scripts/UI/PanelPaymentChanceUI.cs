@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-internal sealed class PanelInfoUI : MonoBehaviour, IActionControlUI
+internal sealed class PanelPaymentChanceUI : MonoBehaviour, IActionControlUI
 {
     #region Setup
 
@@ -38,14 +38,14 @@ internal sealed class PanelInfoUI : MonoBehaviour, IActionControlUI
 
     private Action callback;
 
-    public static PanelInfoUI Instance { get; private set; }
+    public static PanelPaymentChanceUI Instance { get; private set; }
 
     public string DescriptionText 
     { 
         set => this.textDescription.text = value; 
     }
 
-    public DialogResult InfoDialogResult { get; private set; }
+    public DialogResult PaymentDialogResult { get; private set; }
 
     private void Awake()
     {
@@ -66,7 +66,7 @@ internal sealed class PanelInfoUI : MonoBehaviour, IActionControlUI
     {
         this.buttonConfirm.onClick.RemoveListener(this.HandleButtonConfirmClicked);
     }
-
+    
     public void Show(Action actionCallback = null)
     {
         this.callback = actionCallback;
@@ -83,10 +83,8 @@ internal sealed class PanelInfoUI : MonoBehaviour, IActionControlUI
 
     private void HandleButtonConfirmClicked()
     {
-        this.InfoDialogResult = PanelInfoUI.DialogResult.Confirmed;
+        this.PaymentDialogResult = PanelPaymentChanceUI.DialogResult.Confirmed;
 
         this.callback?.Invoke();
-
-        this.Hide();
     }
 }

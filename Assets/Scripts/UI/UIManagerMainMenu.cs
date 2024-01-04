@@ -188,7 +188,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     private void Start()
     {
-        this.textBoxNickname.text = PlayerPrefs.GetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS);
+        this.textBoxNickname.text = PlayerPrefs.GetString(LobbyManager.KEY_PLAYER_NICKNAME);
     }
 
     private void OnEnable()

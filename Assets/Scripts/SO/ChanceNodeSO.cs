@@ -47,9 +47,9 @@ public sealed class ChanceNodeSO : ScriptableObject
             switch (this.type)
             {
                 case ChanceNodeSO.Type.Reward:
-                    return $"{this.description} {this.Reward}";
+                    return $"{this.description} {UIManagerMonopolyGame.Instance.Currency}{this.Reward}";
                 case ChanceNodeSO.Type.Penalty:
-                    return $"{this.description} {this.Penalty}";
+                    return $"{this.description} {UIManagerMonopolyGame.Instance.Currency}{this.Penalty}";
                 default:
                     return this.description;
             }

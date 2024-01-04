@@ -19,14 +19,6 @@ using ParrelSync;
 
 internal sealed class GameCoordinator : MonoBehaviour
 {
-    private const string CONNECTION_TYPE = "dtls";
-
-    private const int INIT_GAME_LOBBY_COUNT = 3;
-
-    private const int INIT_MONOPOLY_GAME_COUNT = 3;
-
-    public const string KEY_NICKNAME_PLAYER_PREFS = "Nickname";
-
     public enum MonopolyScene : byte
     {
         Bootstrap,
@@ -35,12 +27,16 @@ internal sealed class GameCoordinator : MonoBehaviour
         MonopolyGame
     }
 
+    private const string CONNECTION_TYPE = "dtls";
+
     private Scene activeScene;
 
     private int initializationCount;
 
-    private LinkedList<GameObject> initializedObjects;
+    private LinkedList<Type> objectsToLoad;
 
+    private LinkedList<Type> initializedObjects;
+    
     public static GameCoordinator Instance { get; private set; }
 
     public event Action OnAuthenticationFailed;
@@ -74,7 +70,8 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     private async void Start()
     {
-        this.initializedObjects = new LinkedList<GameObject>();
+        this.objectsToLoad = new LinkedList<Type>();
+        this.initializedObjects = new LinkedList<Type>();
 
         try
         {
@@ -87,7 +84,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 #endif
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
-            this.InitializeLocalPlayer(PlayerPrefs.GetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS));
+            this.InitializeLocalPlayer(PlayerPrefs.GetString(LobbyManager.KEY_PLAYER_NICKNAME));
         }
         catch
         {
@@ -106,7 +103,7 @@ internal sealed class GameCoordinator : MonoBehaviour
 
         this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_NICKNAME].Value = newNickname;
 
-        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, newNickname);
+        PlayerPrefs.SetString(LobbyManager.KEY_PLAYER_NICKNAME, newNickname);
         PlayerPrefs.Save();
     }
 
@@ -123,31 +120,16 @@ internal sealed class GameCoordinator : MonoBehaviour
             }
         };
 
-        PlayerPrefs.SetString(GameCoordinator.KEY_NICKNAME_PLAYER_PREFS, nickname);
+        PlayerPrefs.SetString(LobbyManager.KEY_PLAYER_NICKNAME, nickname);
         PlayerPrefs.Save();
 
         this.LocalPlayer = player;
     }
 
-    public void SetupInitializedObjects(int count)
-    {
-        this.initializationCount = count;
-    }
-
-    public void UpdateInitializedObjects(GameObject gameObject)
-    {
-        this.initializedObjects.AddLast(gameObject);
-
-        if (this.initializedObjects.Count == this.initializationCount)
-        {
-            LobbyManager.Instance?.UpdateLocalPlayerData();
-        }
-    }
-
     #endregion
 
     #region Scenes Management
-
+    
     public void LoadSceneNetwork(MonopolyScene scene)
     {
         NetworkManager.Singleton.SceneManager.LoadScene(scene.ToString(), LoadSceneMode.Single);
@@ -158,8 +140,42 @@ internal sealed class GameCoordinator : MonoBehaviour
         await SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Single);
     }
 
+    public void UpdateInitializedObjects(Type gameObject)
+    {
+        if (this.objectsToLoad == null)
+        {
+            throw new System.InvalidOperationException($"You have to call {nameof(this.SetupInitializedObjects)} at first.");
+        }
+
+        if (!this.objectsToLoad.Contains(gameObject))
+        {
+            throw new System.ArgumentException($"{nameof(gameObject)} is not in {nameof(this.SetupInitializedObjects)}.");
+        }
+
+        if (this.initializedObjects.Contains(gameObject))
+        {
+            throw new System.ArgumentException($"{nameof(gameObject)} has already been initialized.");
+        }
+
+        this.initializedObjects.AddLast(gameObject);
+
+        if (this.initializedObjects.Count == this.objectsToLoad.Count)
+        {
+            LobbyManager.Instance?.UpdateLocalPlayerData();
+        }
+    }
+
+    public void SetupInitializedObjects(params Type[] gameObjectsToLoad)
+    {
+        foreach (Type gameObject in gameObjectsToLoad)
+        {
+            this.objectsToLoad.AddLast(gameObject);
+        }
+    }
+
     private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
     {
+        this.objectsToLoad?.Clear();
         this.initializedObjects?.Clear();
 
         this.activeScene = SceneManager.GetActiveScene();
@@ -173,7 +189,8 @@ internal sealed class GameCoordinator : MonoBehaviour
                 {
                     this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
 
-                    this.SetupInitializedObjects(GameCoordinator.INIT_GAME_LOBBY_COUNT);
+                    this.SetupInitializedObjects(typeof(UIManagerGameLobby), typeof(ObjectPoolPanelPlayerLobby));
+
                     LobbyManager.Instance?.OnGameLobbyLoaded?.Invoke();
                 }
                 break;
@@ -181,7 +198,8 @@ internal sealed class GameCoordinator : MonoBehaviour
                 {
                     this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
 
-                    this.SetupInitializedObjects(GameCoordinator.INIT_MONOPOLY_GAME_COUNT);
+                    this.SetupInitializedObjects(typeof(GameManager), typeof(MonopolyBoard), typeof(UIManagerMonopolyGame));
+
                     LobbyManager.Instance?.OnMonopolyGameLoaded?.Invoke();
                 }
                 break;

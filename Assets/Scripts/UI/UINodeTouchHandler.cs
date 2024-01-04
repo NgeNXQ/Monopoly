@@ -29,6 +29,6 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
         this.isShown = !this.isShown;
         this.monopolyNode.Owner.SelectedNode = this.monopolyNode;
 
-        UIManagerMonopolyGame.Instance.ShowMonopolyNode(this.monopolyNode.NodeSprite, this.monopolyNode.AffiliatedMonopoly.ColorOfSet, this.monopolyNode.Owner.CallbackMonopolyNode);
+        UIManagerMonopolyGame.Instance.ShowMonopolyNode(this.monopolyNode.NodeSprite, this.monopolyNode.AffiliatedMonopoly.ColorOfSet, this.monopolyNode.PriceUpgrade, this.monopolyNode.Owner.CallbackMonopolyNode);
     }
 }

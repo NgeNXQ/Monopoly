@@ -86,7 +86,7 @@ public sealed class MonopolyBoard : MonoBehaviour
             }
         }
 
-        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.GetType());
     }
 
     public MonopolyNode this[int index]

@@ -203,12 +203,10 @@ internal sealed class GameManager : NetworkBehaviour
 
         if (LobbyManager.Instance.IsHost)
         {
-            LobbyManager.Instance?.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_PENDING, true);
-
             this.StartCoroutine(this.WaitOtherPlayersCoroutine());
         }
 
-        GameCoordinator.Instance?.UpdateInitializedObjects(this.gameObject);
+        GameCoordinator.Instance?.UpdateInitializedObjects(this.GetType());
     }
 
     private void OnEnable()
@@ -300,7 +298,7 @@ internal sealed class GameManager : NetworkBehaviour
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy, actionCallback: this.CallbackWonTheGameAsync);
         }
 
-        this.targetClientOtherClients = this.targetClientOtherClients.Where(clientId => clientId != disconnectedClientId).ToArray();
+        this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != disconnectedClientId).ToArray();
 
         if (NetworkManager.Singleton.IsHost)
         {
@@ -332,7 +330,7 @@ internal sealed class GameManager : NetworkBehaviour
             this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % this.players.Count;
         }
 
-        this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsHostOtherClients);
+        this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
 
         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
     }
