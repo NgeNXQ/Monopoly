@@ -120,6 +120,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         Vector3 targetPosition;
 
+        bool movedOverStart = false;
+
         int currentNodeIndex = MonopolyBoard.Instance[this.CurrentNode];
 
         this.StartCoroutine(MoveCoroutine());
@@ -144,13 +146,19 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
                 if (MonopolyBoard.Instance.NodeStart == MonopolyBoard.Instance[currentNodeIndex])
                 {
-                    this.Balance += GameManager.Instance.CircleBonus;
+                    movedOverStart = true;
                 }
 
                 yield return StartCoroutine(MoveStepCoroutine(targetPosition));
             }
 
             this.CurrentNode = MonopolyBoard.Instance[currentNodeIndex];
+
+            if (movedOverStart && this.CurrentNode != MonopolyBoard.Instance.NodeStart)
+            {
+                this.Balance += GameManager.Instance.CircleBonus;
+            }
+
             this.HandleLanding();
         }
 
@@ -260,6 +268,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     public void HandleSendJailLanding()
     {
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageSentJail, PanelMessageBoxUI.Icon.Warning);
+
         this.GoToJail();
     }
 
@@ -274,7 +284,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     
     private void UpgradeProperty()
     {
-        if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.CurrentNode.IsMortgaged)
+        if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.SelectedNode.IsMortgaged)
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCompleteMonopolyRequired, PanelMessageBoxUI.Icon.Warning);
         }
@@ -284,7 +294,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         }
         else if (!this.SelectedNode.IsUpgradable)
         {
-            if (this.CurrentNode.Level == MonopolyNode.PROPERTY_MAX_LEVEL)
+            if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MAX_LEVEL)
             {
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeMaxLevel, PanelMessageBoxUI.Icon.Warning);
             }
@@ -315,7 +325,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     {
         if (!this.SelectedNode.IsDowngradable)
         {
-            if (this.CurrentNode.Level == MonopolyNode.PROPERTY_MIN_LEVEL)
+            if (this.SelectedNode.Level == MonopolyNode.PROPERTY_MIN_LEVEL)
             {
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotDowngradeMinLevel, PanelMessageBoxUI.Icon.Warning);
             }
@@ -370,7 +380,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             {
                 UIManagerMonopolyGame.Instance.HideOffer();
 
-                this.CurrentNode.UpdateOwner();
+                this.CurrentNode.UpdateOwnership();
                 this.OwnedNodes.Add(this.CurrentNode);
                 this.Balance -= this.CurrentNode.PricePurchase;
 
@@ -394,8 +404,6 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void CallbackChance()
     {
-        Debug.Log("CallbackChance");
-
         if (UIManagerMonopolyGame.Instance.PanelInfo.InfoDialogResult == PanelInfoUI.DialogResult.Confirmed)
         {
             switch (this.CurrentChanceNode.ChanceType)
@@ -474,7 +482,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (this.isInJail)
         {
-            if (GameManager.Instance.HasRolledDouble || ++this.turnsInJail >= GameManager.Instance.MaxTurnsInJail)
+            if (GameManager.Instance.HasRolledDouble || ++this.turnsInJail > GameManager.Instance.MaxTurnsInJail)
             {
                 this.ReleaseFromJail();
                 this.Move(GameManager.Instance.TotalRollResult);
@@ -498,11 +506,9 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         this.turnsInJail = 0;
         this.Move(MonopolyBoard.Instance.GetDistance(this.CurrentNode, MonopolyBoard.Instance.NodeJail));
 
-        this.HasCompletedTurn = true;
-
         if (this.CurrentChanceNode != null)
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageSentJail);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageSentJail, PanelMessageBoxUI.Icon.Warning);
         }
     }
 
@@ -530,6 +536,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     [ClientRpc]
     public void GoToJailClientRpc(ClientRpcParams clientRpcParams)
     {
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageSentJail, PanelMessageBoxUI.Icon.Warning);
+
         this.GoToJail();
     }
 

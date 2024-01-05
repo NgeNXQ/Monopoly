@@ -61,8 +61,11 @@ public sealed class MonopolyNode : NetworkBehaviour
     }
     
     public int PriceRent 
-    { 
-        get => this.pricesRent[this.Level]; 
+    {
+        get
+        {
+            return this.pricesRent[this.Level] * (this.NodeType == MonopolyNode.Type.Gambling ? GameManager.Instance.TotalRollResult : 1);
+        }
     }
 
     public bool IsMortgaged 
@@ -74,7 +77,7 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            return this.type == MonopolyNode.Type.Transport || this.type == MonopolyNode.Type.Gambling ? this.pricePurchase : this.priceUpgrade;
+            return (this.Level == 0 || this.Level == 1) ? this.pricePurchase : this.PriceUpgrade;
         }
     }
 
@@ -93,7 +96,7 @@ public sealed class MonopolyNode : NetworkBehaviour
         get
         {
             bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.Level >= this.Level);
-            return isEquallySpread && this.Level <= MonopolyNode.PROPERTY_MAX_LEVEL;
+            return (isEquallySpread && this.Level <= MonopolyNode.PROPERTY_MAX_LEVEL) || this.IsMortgaged;
         }
     }
 
@@ -102,7 +105,7 @@ public sealed class MonopolyNode : NetworkBehaviour
         get
         {
             bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.Level <= this.Level);
-            return isEquallySpread && this.Level >= 0;
+            return isEquallySpread && this.Level >= MonopolyNode.PROPERTY_MIN_LEVEL;
         }
     }
 
@@ -132,7 +135,7 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     #region Ownership
 
-    public void UpdateOwner()
+    public void UpdateOwnership()
     {
         this.UpdateOwnerLocally();
         this.UpdateOwnerServerRpc(GameManager.Instance.ServerParamsCurrentClient);
@@ -151,21 +154,24 @@ public sealed class MonopolyNode : NetworkBehaviour
         this.Owner = GameManager.Instance.CurrentPlayer;
         this.imageOwner.color = GameManager.Instance.CurrentPlayer.PlayerColor;
 
-        if (this.NodeType != MonopolyNode.Type.Gambling || this.NodeType != MonopolyNode.Type.Transport)
+        if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
         {
             return;
         }
 
-        if (this.Owner.HasPartialMonopoly(this, out MonopolySet monopolySet))
+        int maxLevel = this.AffiliatedMonopoly.NodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer).OrderByDescending(node => node.Level).FirstOrDefault();
+
+        if (maxLevel > 1)
         {
-            foreach (MonopolyNode node in monopolySet.NodesInSet)
+            foreach (MonopolyNode node in this.AffiliatedMonopoly.NodesInSet)
             {
-                if (node.Owner == this.Owner)
+                if (node.Owner == this.Owner && !node.IsMortgaged)
                 {
                     this.Upgrade();
+                    Debug.Log($"{node.gameObject.name} = {node.Level}");
                 }
             }
-        }
+        } 
     }
 
     private void ResetOwnershipLocally()
@@ -221,21 +227,42 @@ public sealed class MonopolyNode : NetworkBehaviour
         this.DowngradeLocally();
         this.DowngradeServerRpc(GameManager.Instance.ServerParamsCurrentClient);
     }
-
-    private void UpdateVisualsSpecial()
+    
+    private void UpgradeLocally()
     {
-        switch (this.Level)
+        ++this.Level;
+
+        if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
         {
-            case 0:
-                this.imageMortgageStatus.gameObject.SetActive(true);
-                break;
-            default:
+            this.UpdateVisuals();
+        }
+        else
+        {
+            if (this.Level == 1)
+            {
                 this.imageMortgageStatus.gameObject.SetActive(false);
-                break;
+            }
         }
     }
 
-    private void UpdateVisualsDefault()
+    private void DowngradeLocally()
+    {
+        --this.Level;
+
+        if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
+        {
+            this.UpdateVisuals();
+        }
+        else
+        {
+            if (this.Level == 0)
+            {
+                this.imageMortgageStatus.gameObject.SetActive(true);
+            }
+        }
+    }
+
+    private void UpdateVisuals()
     {
         switch (this.Level)
         {
@@ -270,6 +297,9 @@ public sealed class MonopolyNode : NetworkBehaviour
                 break;
             case 5:
                 {
+                    this.imageLevel1.gameObject.SetActive(true);
+                    this.imageLevel2.gameObject.SetActive(true);
+                    this.imageLevel3.gameObject.SetActive(true);
                     this.imageLevel4.gameObject.SetActive(true);
                     this.imageLevel5.gameObject.SetActive(false);
                 }
@@ -283,52 +313,6 @@ public sealed class MonopolyNode : NetworkBehaviour
                     this.imageLevel4.gameObject.SetActive(false);
                 }
                 break;
-        }
-    }
-
-    private void UpgradeLocally()
-    {
-        int previousLevel = this.Level;
-
-        this.Level = ++this.Level % this.pricesRent.Count;
-
-        if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
-        {
-            this.UpdateVisualsDefault();
-        }
-        else
-        {
-            if (!this.IsMortgaged)
-            {
-                this.UpdateVisualsSpecial();
-            }
-            else
-            {
-                this.Level = previousLevel;
-            }
-        }
-    }
-
-    private void DowngradeLocally()
-    {
-        int previousLevel = this.Level;
-
-        this.Level = --this.Level % this.pricesRent.Count;
-
-        if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
-        {
-            this.UpdateVisualsDefault();
-        }
-        else
-        {
-            if (!this.IsMortgaged)
-            {
-                this.UpdateVisualsSpecial();
-            }
-            else
-            {
-                this.Level = previousLevel;
-            }
         }
     }
 

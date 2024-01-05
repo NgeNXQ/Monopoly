@@ -30,13 +30,7 @@ internal sealed class GameManager : NetworkBehaviour
     [SerializeField] [Range(0, 100_000)] private int exactCircleBonus = 3_000;
 
     [Space]
-    [SerializeField] [Range(0.0f, 10.0f)] private float delayBetweenTurns = 0.5f;
-
-    [Space]
-    [SerializeField] [Range(0.0f, 10.0f)] private float delayBetweenNodes = 1.0f;
-
-    [Space]
-    [SerializeField] [Range(0.0f, 100.0f)] private float playerMovementSpeed = 25.0f;
+    [SerializeField] [Range(0.0f, 100.0f)] private float playerMovementSpeed = 30.0f;
 
     #endregion
 
@@ -74,7 +68,7 @@ internal sealed class GameManager : NetworkBehaviour
 
     private int rolledDoubles;
 
-    public List<MonopolyPlayer> players;
+    private List<MonopolyPlayer> players;
 
     private ulong[] targetCurrentClient;
 
