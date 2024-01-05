@@ -380,8 +380,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             {
                 UIManagerMonopolyGame.Instance.HideOffer();
 
-                this.CurrentNode.UpdateOwnership();
                 this.OwnedNodes.Add(this.CurrentNode);
+                this.CurrentNode.UpdateOwnership();
                 this.Balance -= this.CurrentNode.PricePurchase;
 
                 this.HasCompletedTurn = true;

@@ -77,7 +77,7 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            return (this.Level == 0 || this.Level == 1) ? this.pricePurchase : this.PriceUpgrade;
+            return this.Level == 0 || this.Level == 1 ? this.pricePurchase : this.priceUpgrade;
         }
     }
 
@@ -159,19 +159,31 @@ public sealed class MonopolyNode : NetworkBehaviour
             return;
         }
 
-        int maxLevel = this.AffiliatedMonopoly.NodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer).OrderByDescending(node => node.Level).FirstOrDefault();
-
-        if (maxLevel > 1)
+        if (this.Owner.HasPartialMonopoly(this, out _))
         {
+            Debug.Log($"1");
+
+            while (this.Level <= this.AffiliatedMonopoly.Level)
+            {
+                Debug.Log($"2");
+
+                this.Upgrade();
+                Debug.Log($"1 {this.gameObject.name} = {this.Level}");
+            }
+
+            Debug.Log($"3");
+
             foreach (MonopolyNode node in this.AffiliatedMonopoly.NodesInSet)
             {
+                Debug.Log($"4");
+
                 if (node.Owner == this.Owner && !node.IsMortgaged)
                 {
                     this.Upgrade();
-                    Debug.Log($"{node.gameObject.name} = {node.Level}");
+                    Debug.Log($"2 {node.gameObject.name} = {node.Level}");
                 }
             }
-        } 
+        }
     }
 
     private void ResetOwnershipLocally()

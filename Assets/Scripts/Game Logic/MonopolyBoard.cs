@@ -148,7 +148,7 @@ public sealed class MonopolyBoard : MonoBehaviour
         int clockwiseDistance = (toNodeIndex - fromNodeIndex + this.NumberOfNodes) % this.NumberOfNodes;
         int counterclockwiseDistance = (fromNodeIndex - toNodeIndex + this.NumberOfNodes) % this.NumberOfNodes;
 
-        return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
+        return Mathf.Min(clockwiseDistance, counterclockwiseDistance) == counterclockwiseDistance ? -counterclockwiseDistance : clockwiseDistance;
     }
 
     public int GetDistance(MonopolyNode fromNode, MonopolyNode toNode)
@@ -156,6 +156,6 @@ public sealed class MonopolyBoard : MonoBehaviour
         int clockwiseDistance = (this[toNode] - this[fromNode] + this.NumberOfNodes) % this.NumberOfNodes;
         int counterclockwiseDistance = (this[fromNode] - this[toNode] + this.NumberOfNodes) % this.NumberOfNodes;
 
-        return Mathf.Min(clockwiseDistance, counterclockwiseDistance);
+        return Mathf.Min(clockwiseDistance, counterclockwiseDistance) == counterclockwiseDistance ? -counterclockwiseDistance : clockwiseDistance;
     }
 }

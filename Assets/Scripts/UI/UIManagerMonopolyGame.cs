@@ -281,12 +281,12 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     {
         this.PanelPaymentChance.DescriptionText = descriptionText;
 
-        this.PanelOffer.Show(callback);
+        this.PanelPaymentChance.Show(callback);
     }
 
     public void HidePaymentChance()
     {
-        this.PanelOffer.Hide();
+        this.PanelPaymentChance.Hide();
     }
 
     #endregion
