@@ -24,16 +24,6 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     #endregion
 
-    #region Shared Controls
-
-    [Space]
-    [Header("Shared Controls")]
-
-    [Space]
-    [SerializeField] private Button buttonDisconnect;
-
-    #endregion
-
     #region Host Controls
 
     [Space]
@@ -44,6 +34,9 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
 
     [Space]
     [SerializeField] private Button buttonStartGame;
+
+    [Space]
+    [SerializeField] private Button buttonDisconnectHost;
 
     #endregion
 
@@ -56,7 +49,7 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     [SerializeField] private Canvas canvasClient;
 
     [Space]
-    [SerializeField] private Button buttonReady;
+    [SerializeField] private Button buttonDisconnectClient;
 
     #endregion
 
@@ -198,7 +191,8 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     private void OnEnable()
     {
         this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGameClicked);
-        this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClicked);
+        this.buttonDisconnectHost.onClick.AddListener(this.HandleButtonDisconnectClicked);
+        this.buttonDisconnectClient.onClick.AddListener(this.HandleButtonDisconnectClicked);
 
         LobbyManager.Instance.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
         LobbyManager.Instance.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
@@ -210,7 +204,8 @@ internal sealed class UIManagerGameLobby : MonoBehaviour
     private void OnDisable()
     {
         this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGameClicked);
-        this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
+        this.buttonDisconnectHost.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
+        this.buttonDisconnectClient.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
 
         LobbyManager.Instance.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
         LobbyManager.Instance.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;

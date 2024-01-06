@@ -115,6 +115,8 @@ internal sealed class LobbyManager : MonoBehaviour
         this.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
         this.LocalLobbyEventCallbacks.PlayerDataChanged += this.HandlePlayerDataChanged;
         this.LocalLobbyEventCallbacks.KickedFromLobby += this.HandleKickedFromLobbyAsync;
+
+        NetworkManager.Singleton.OnTransportFailure += this.HandleTransportFailureAsync;
     }
 
     private void OnDisable()
@@ -132,6 +134,11 @@ internal sealed class LobbyManager : MonoBehaviour
         this.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
         this.LocalLobbyEventCallbacks.PlayerDataChanged -= this.HandlePlayerDataChanged;
         this.LocalLobbyEventCallbacks.KickedFromLobby -= this.HandleKickedFromLobbyAsync;
+
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnTransportFailure -= this.HandleTransportFailureAsync;
+        }
     }
 
     private async void OnDestroy()
@@ -357,6 +364,11 @@ internal sealed class LobbyManager : MonoBehaviour
     private async void HandleKickedFromLobbyAsync()
     {
         await this.LeaveLobbyAsync();
+    }
+
+    private async void HandleTransportFailureAsync()
+    {
+        await LobbyManager.Instance.DisconnectFromLobbyAsync();
     }
 
     private void HandlePlayerLeft(List<int> leftPlayers)

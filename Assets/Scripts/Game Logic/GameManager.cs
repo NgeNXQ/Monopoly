@@ -130,7 +130,7 @@ internal sealed class GameManager : NetworkBehaviour
     public int FirstDieValue { get; private set; }
 
     public int SecondDieValue { get; private set; }
-
+    
     public ServerRpcParams ServerParamsCurrentClient 
     {
         get
@@ -207,7 +207,7 @@ internal sealed class GameManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.OnClientDisconnectCallback += this.HandleClientDisconnectCallback;
+            NetworkManager.Singleton.OnClientDisconnectCallback += this.HandleClientDisconnectCallbackAsync;
         }
     }
 
@@ -215,18 +215,17 @@ internal sealed class GameManager : NetworkBehaviour
     {
         if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.OnClientDisconnectCallback -= this.HandleClientDisconnectCallback;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= this.HandleClientDisconnectCallbackAsync;
         }
-        
     }
 
     #region Init & Callbacks
-
+    
     private async void CallbackWonTheGameAsync()
     {
         await LobbyManager.Instance.DisconnectFromLobbyAsync();
     }
-
+    
     private IEnumerator WaitOtherPlayersCoroutine()
     {
         float elapsedTime = 0f;
@@ -245,6 +244,16 @@ internal sealed class GameManager : NetworkBehaviour
         {
             this.InitializeGameServerRpc(this.ServerParamsCurrentClient);
         }
+    }
+
+    public ClientRpcParams GetRedirectionRpc(ulong clientId)
+    {
+        this.targetCurrentClient[0] = clientId;
+
+        return new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = this.targetCurrentClient }
+        };
     }
 
     public void UpdatePlayersList(MonopolyPlayer monopolyPlayer)
@@ -274,20 +283,25 @@ internal sealed class GameManager : NetworkBehaviour
             this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
         }
 
-        this.CurrentPlayerIndex = 0;
+        this.CurrentPlayerIndex = 1;
 
         this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
 
         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
     }
-
-    private void HandleClientDisconnectCallback(ulong disconnectedClientId)
+    
+    private async void HandleClientDisconnectCallbackAsync(ulong disconnectedClientId)
     {
+        if (NetworkManager.Singleton?.LocalClientId == disconnectedClientId)
+        {
+            await LobbyManager.Instance.DisconnectFromLobbyAsync();
+        }
+
         int disconnectedPlayerIndex = this.players.FindIndex(player => player.OwnerClientId == disconnectedClientId);
 
         this.players.RemoveAt(disconnectedPlayerIndex);
         
-        if (this.players.Count == 1)
+        if (this.players.Count == 1 && NetworkManager.Singleton?.LocalClientId != disconnectedClientId)
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy, actionCallback: this.CallbackWonTheGameAsync);
         }
@@ -326,6 +340,8 @@ internal sealed class GameManager : NetworkBehaviour
 
         this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
 
+        UIManagerMonopolyGame.Instance.HideButtonRollDiceClientRpc(this.ClientParamsClientOtherClients);
+
         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
     }
 
@@ -344,8 +360,11 @@ internal sealed class GameManager : NetworkBehaviour
         const int MIN_DIE_VALUE = 1;
         const int MAX_DIE_VALUE = 6;
 
-        this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
-        this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
+        //this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
+        //this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
+
+        this.FirstDieValue = 1;
+        this.SecondDieValue = 2;
 
         this.RollDiceServerRpc(this.FirstDieValue, this.SecondDieValue, this.ServerParamsCurrentClient);
     }

@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -14,7 +15,23 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData = null)
     {
-        if (this.monopolyNode.Owner != GameManager.Instance.CurrentPlayer)
+        //Debug.Log($"Owner ID {this.monopolyNode.Owner.OwnerClientId}");
+
+        //Debug.Log($"Current Player Owner ID {GameManager.Instance.CurrentPlayer.OwnerClientId}");
+
+        //Debug.Log($"Current Player Index {GameManager.Instance.CurrentPlayerIndex}");
+
+        if (this.monopolyNode.Owner == null)
+        {
+            return;
+        }
+
+        if (NetworkManager.Singleton.LocalClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
+        {
+            return;
+        }
+
+        if (this.monopolyNode.Owner.OwnerClientId != NetworkManager.Singleton.LocalClientId)
         {
             return;
         }
@@ -29,6 +46,6 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
         this.isShown = !this.isShown;
         this.monopolyNode.Owner.SelectedNode = this.monopolyNode;
 
-        UIManagerMonopolyGame.Instance.ShowMonopolyNode(this.monopolyNode.NodeSprite, this.monopolyNode.AffiliatedMonopoly.ColorOfSet, this.monopolyNode.PriceUpgrade, this.monopolyNode.Owner.CallbackMonopolyNode);
+        UIManagerMonopolyGame.Instance.ShowMonopolyNode(this.monopolyNode.NodeSprite, this.monopolyNode.AffiliatedMonopoly.ColorOfSet, this.monopolyNode.Owner.CallbackMonopolyNode);
     }
 }

@@ -77,7 +77,15 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            return this.Level == 0 || this.Level == 1 ? this.pricePurchase : this.priceUpgrade;
+            return this.Level == 0 ? this.pricePurchase : this.priceUpgrade;
+        }
+    }
+
+    public int PriceDowngrade
+    {
+        get
+        {
+            return this.Level == 1 ? this.pricePurchase : this.priceUpgrade;
         }
     }
 
@@ -137,6 +145,8 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public void UpdateOwnership()
     {
+        Debug.Log(nameof(UpdateOwnership));
+
         this.UpdateOwnerLocally();
         this.UpdateOwnerServerRpc(GameManager.Instance.ServerParamsCurrentClient);
     }
@@ -149,6 +159,8 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     private void UpdateOwnerLocally()
     {
+        Debug.Log(nameof(UpdateOwnerLocally));
+
         this.Level = 1;
         this.imageOwner.gameObject.SetActive(true);
         this.Owner = GameManager.Instance.CurrentPlayer;
@@ -161,26 +173,16 @@ public sealed class MonopolyNode : NetworkBehaviour
 
         if (this.Owner.HasPartialMonopoly(this, out _))
         {
-            Debug.Log($"1");
-
-            while (this.Level <= this.AffiliatedMonopoly.Level)
+            while (this.Level < this.AffiliatedMonopoly.Level)
             {
-                Debug.Log($"2");
-
                 this.Upgrade();
-                Debug.Log($"1 {this.gameObject.name} = {this.Level}");
             }
-
-            Debug.Log($"3");
-
+            
             foreach (MonopolyNode node in this.AffiliatedMonopoly.NodesInSet)
             {
-                Debug.Log($"4");
-
                 if (node.Owner == this.Owner && !node.IsMortgaged)
                 {
-                    this.Upgrade();
-                    Debug.Log($"2 {node.gameObject.name} = {node.Level}");
+                    node.Upgrade();
                 }
             }
         }
@@ -230,6 +232,8 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public void Upgrade()
     {
+        Debug.Log(nameof(Upgrade));
+
         this.UpgradeLocally();
         this.UpgradeServerRpc(GameManager.Instance.ServerParamsCurrentClient);
     }
@@ -242,6 +246,8 @@ public sealed class MonopolyNode : NetworkBehaviour
     
     private void UpgradeLocally()
     {
+        Debug.Log(nameof(UpgradeLocally));
+
         ++this.Level;
 
         if (this.NodeType != MonopolyNode.Type.Gambling && this.NodeType != MonopolyNode.Type.Transport)
@@ -253,6 +259,20 @@ public sealed class MonopolyNode : NetworkBehaviour
             if (this.Level == 1)
             {
                 this.imageMortgageStatus.gameObject.SetActive(false);
+            }
+            
+            if (NetworkManager.Singleton.LocalClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
+            {
+                return;
+            }
+
+            if (this.Owner.HasPartialMonopoly(this, out _))
+            {
+                while (this.Level < this.AffiliatedMonopoly.Level)
+                {
+                    ++this.Level;
+                    this.UpgradeServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+                }
             }
         }
     }

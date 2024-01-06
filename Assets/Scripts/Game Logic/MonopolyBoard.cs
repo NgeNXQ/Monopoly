@@ -52,10 +52,10 @@ public sealed class MonopolyBoard : MonoBehaviour
 
     public static MonopolyBoard Instance { get; private set; }
 
-    public int NumberOfNodes { get => this.nodes.Count; }
-
     public List<MonopolySet> Monopolies { get => this.monopolies; }
 
+    public int NumberOfNodes { get => this.nodes.Count; }
+    
     public MonopolyNode NodeJail { get => this.jail; }
 
     public MonopolyNode NodeStart { get => this.start; }

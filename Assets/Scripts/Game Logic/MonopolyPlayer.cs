@@ -284,7 +284,11 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     
     private void UpgradeProperty()
     {
-        if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.SelectedNode.IsMortgaged)
+        if (this.SelectedNode.NodeType == MonopolyNode.Type.Gambling || this.SelectedNode.NodeType == MonopolyNode.Type.Transport)
+        {
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeNotProperty, PanelMessageBoxUI.Icon.Warning);
+        }
+        else if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.SelectedNode.IsMortgaged)
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCompleteMonopolyRequired, PanelMessageBoxUI.Icon.Warning);
         }
@@ -338,7 +342,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         {
             UIManagerMonopolyGame.Instance.HideMonopolyNode();
 
-            this.Balance += this.SelectedNode.PriceUpgrade;
+            this.Balance += this.SelectedNode.PriceDowngrade;
 
             this.SelectedNode.Downgrade();
         }
@@ -380,9 +384,13 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             {
                 UIManagerMonopolyGame.Instance.HideOffer();
 
+                Debug.Log($"I have before {this.Balance}");
+
                 this.OwnedNodes.Add(this.CurrentNode);
                 this.CurrentNode.UpdateOwnership();
                 this.Balance -= this.CurrentNode.PricePurchase;
+
+                Debug.Log($"I have after {this.Balance}");
 
                 this.HasCompletedTurn = true;
             }
@@ -425,6 +433,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
                     break;
                 case ChanceNodeSO.Type.MoveForward:
                     {
+                        this.CurrentChanceNode = null;
                         GameManager.Instance.RollDice();
                         UIManagerMonopolyGame.Instance.ShowDiceAnimation();
                         this.Move(GameManager.Instance.TotalRollResult);
@@ -432,6 +441,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
                     break;
                 case ChanceNodeSO.Type.MoveBackwards:
                     {
+                        this.CurrentChanceNode = null;
                         GameManager.Instance.RollDice();
                         UIManagerMonopolyGame.Instance.ShowDiceAnimation();
                         this.Move(-GameManager.Instance.TotalRollResult);
@@ -464,7 +474,15 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             {
                 UIManagerMonopolyGame.Instance.HidePaymentProperty();
 
+                Debug.Log($"I have before {this.Balance}");
+
                 this.Balance -= this.CurrentNode.PriceRent;
+
+                Debug.Log($"I have after {this.Balance}");
+
+                Debug.Log($"I am {NetworkManager.Singleton.LocalClientId} sending balance to {this.CurrentNode.Owner.OwnerClientId}");
+
+                this.SendBalanceServerRpc(this.CurrentNode.PriceRent, this.CurrentNode.Owner.OwnerClientId, GameManager.Instance.ServerParamsCurrentClient);
 
                 this.HasCompletedTurn = true;
             }
@@ -508,6 +526,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (this.CurrentChanceNode != null)
         {
+            this.CurrentChanceNode = null;
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageSentJail, PanelMessageBoxUI.Icon.Warning);
         }
     }
@@ -530,9 +549,11 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void HandleBalanceUpdated()
     {
+        Debug.Log(nameof(HandleBalanceUpdated));
+
         this.UpdateBalanceServerRpc(this.Balance, GameManager.Instance.ServerParamsCurrentClient);
     }
-
+    
     [ClientRpc]
     public void GoToJailClientRpc(ClientRpcParams clientRpcParams)
     {
@@ -544,12 +565,45 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     [ServerRpc]
     private void UpdateBalanceServerRpc(int balance, ServerRpcParams serverRpcParams)
     {
+        Debug.Log(nameof(UpdateBalanceServerRpc));
+
         this.UpdateBalanceClientRpc(balance, GameManager.Instance.ClientParamsHostOtherClients);
     }
 
     [ClientRpc]
     private void UpdateBalanceClientRpc(int balance, ClientRpcParams clientRpcParams)
     {
+        Debug.Log(nameof(UpdateBalanceClientRpc));
+
         this.Balance = balance;
+
+        Debug.Log($"Now I have {this.Balance}");
     }
+
+    [ClientRpc]
+    private void ReceiveBalanceClientRpc(int amount, ClientRpcParams clientRpcParams)
+    {
+        Debug.Log(nameof(ReceiveBalanceClientRpc));
+
+        Debug.Log($"I am {NetworkManager.Singleton.LocalClientId} recieved {amount}");
+
+        Debug.Log($"The balance I has {this.Balance}");
+
+        this.Balance += amount;
+
+        Debug.Log($"The balance I have now {this.Balance}");
+    }
+
+    [ServerRpc]
+    private void SendBalanceServerRpc(int amount, ulong receiverClientId, ServerRpcParams serverRpcParams)
+    {
+        Debug.Log(nameof(SendBalanceServerRpc));
+
+        this.ReceiveBalanceClientRpc(amount, GameManager.Instance.GetRedirectionRpc(receiverClientId));
+    }
+
+    //private void Update()
+    //{
+    //    Debug.Log($"{this.Nickname}:{this.Balance}");
+    //}
 }

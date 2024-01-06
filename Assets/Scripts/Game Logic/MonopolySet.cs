@@ -15,7 +15,7 @@ public sealed class MonopolySet
 
     public int Level 
     { 
-        get => this.nodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer).Max(node => node.Level); 
+        get => this.nodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer).Select(node => node.Level).Max();
     }
 
     public Color ColorOfSet 
