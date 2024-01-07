@@ -15,22 +15,22 @@ internal sealed class GameManager : NetworkBehaviour
     [Header("Values")]
 
     [Space]
-    [SerializeField] [Range(0, 100_000)] private int startingBalance = 15_000;
+    [SerializeField][Range(0, 100_000)] private int startingBalance = 15_000;
 
     [Space]
-    [SerializeField] [Range(0, 10)] private int maxTurnsInJail = 3;
+    [SerializeField][Range(0, 10)] private int maxTurnsInJail = 3;
 
     [Space]
-    [SerializeField] [Range(0, 10)] private int maxDoublesInRow = 2;
+    [SerializeField][Range(0, 10)] private int maxDoublesInRow = 2;
 
     [Space]
-    [SerializeField] [Range(0, 100_000)] private int circleBonus = 2_000;
+    [SerializeField][Range(0, 100_000)] private int circleBonus = 2_000;
 
     [Space]
-    [SerializeField] [Range(0, 100_000)] private int exactCircleBonus = 3_000;
+    [SerializeField][Range(0, 100_000)] private int exactCircleBonus = 3_000;
 
     [Space]
-    [SerializeField] [Range(0.0f, 100.0f)] private float playerMovementSpeed = 30.0f;
+    [SerializeField][Range(0.0f, 100.0f)] private float playerMovementSpeed = 30.0f;
 
     #endregion
 
@@ -77,52 +77,52 @@ internal sealed class GameManager : NetworkBehaviour
     private List<ulong[]> targetHostOtherClients;
 
     public static GameManager Instance { get; private set; }
-
+    
     public MonopolyPlayer CurrentPlayer 
     {
         get => this.players[this.CurrentPlayerIndex];
     }
 
     public int CurrentPlayerIndex { get; private set; }
-
-    public ReadOnlyCollection<MonopolyPlayerVisuals> MonopolyPlayersVisuals { get; private set; }
     
-    public int CircleBonus 
+    public ReadOnlyCollection<MonopolyPlayerVisuals> MonopolyPlayersVisuals { get; private set; }
+
+    public int CircleBonus
     {
         get => this.circleBonus;
     }
 
-    public int MaxTurnsInJail 
+    public int MaxTurnsInJail
     {
         get => this.maxTurnsInJail;
     }
 
-    public int TotalRollResult 
+    public int TotalRollResult
     {
         get => this.FirstDieValue + this.SecondDieValue;
     }
 
-    public int MaxDoublesInRow 
+    public int MaxDoublesInRow
     {
         get => this.maxDoublesInRow;
     }
 
-    public int StartingBalance 
+    public int StartingBalance
     {
         get => this.startingBalance;
     }
 
-    public bool HasRolledDouble 
+    public bool HasRolledDouble
     {
         get => this.FirstDieValue == this.SecondDieValue;
     }
 
-    public int ExactCircleBonus 
+    public int ExactCircleBonus
     {
         get => this.exactCircleBonus;
     }
 
-    public float PlayerMovementSpeed 
+    public float PlayerMovementSpeed
     {
         get => this.playerMovementSpeed;
     }
@@ -130,8 +130,8 @@ internal sealed class GameManager : NetworkBehaviour
     public int FirstDieValue { get; private set; }
 
     public int SecondDieValue { get; private set; }
-    
-    public ServerRpcParams ServerParamsCurrentClient 
+
+    public ServerRpcParams ServerParamsCurrentClient
     {
         get
         {
@@ -142,7 +142,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams ClientParamsCurrentClient 
+    public ClientRpcParams ClientParamsCurrentClient
     {
         get
         {
@@ -155,7 +155,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams ClientParamsHostOtherClients 
+    public ClientRpcParams ClientParamsHostOtherClients
     {
         get
         {
@@ -166,7 +166,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams ClientParamsClientOtherClients 
+    public ClientRpcParams ClientParamsClientOtherClients
     {
         get
         {
@@ -205,27 +205,33 @@ internal sealed class GameManager : NetworkBehaviour
 
     private void OnEnable()
     {
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.OnClientDisconnectCallback += this.HandleClientDisconnectCallbackAsync;
-        }
+        //if (NetworkManager.Singleton != null)
+        //{
+        //    if (NetworkManager.Singleton.IsHost)
+        //    {
+        //        NetworkManager.Singleton.OnClientDisconnectCallback += this.HandleClientDisconnectCallback;
+        //    }
+        //}
     }
 
     private void OnDisable()
     {
-        if (NetworkManager.Singleton != null)
-        {
-            NetworkManager.Singleton.OnClientDisconnectCallback -= this.HandleClientDisconnectCallbackAsync;
-        }
+        //if (NetworkManager.Singleton != null)
+        //{
+        //    if (NetworkManager.Singleton.IsHost)
+        //    {
+        //        NetworkManager.Singleton.OnClientDisconnectCallback -= this.HandleClientDisconnectCallback;
+        //    }
+        //}
     }
 
     #region Init & Callbacks
-    
+
     private async void CallbackWonTheGameAsync()
     {
         await LobbyManager.Instance.DisconnectFromLobbyAsync();
     }
-    
+
     private IEnumerator WaitOtherPlayersCoroutine()
     {
         float elapsedTime = 0f;
@@ -246,6 +252,11 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
+    public MonopolyPlayer GetPlayerById(ulong clientId)
+    {
+        return this.players.Where(player => player.OwnerClientId == clientId).FirstOrDefault();
+    }
+
     public ClientRpcParams GetRedirectionRpc(ulong clientId)
     {
         this.targetCurrentClient[0] = clientId;
@@ -256,10 +267,22 @@ internal sealed class GameManager : NetworkBehaviour
         };
     }
 
-    public void UpdatePlayersList(MonopolyPlayer monopolyPlayer)
+    public void AddPlayer(MonopolyPlayer monopolyPlayer)
     {
         this.players.Add(monopolyPlayer);
     }
+
+    //[ClientRpc]
+    //private void RemovePlayerClientRpc(ulong disconnectedClientId, ClientRpcParams clientRpcParams)
+    //{
+    //    this.players.Remove(this.players.Where(player => player.OwnerClientId == disconnectedClientId).First());
+    //    this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != disconnectedClientId).ToArray();
+
+    //    if (this.players.Count == 1)
+    //    {
+    //        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy, actionCallback: this.CallbackWonTheGameAsync);
+    //    }
+    //}
 
     [ServerRpc]
     private void InitializeGameServerRpc(ServerRpcParams serverRpcParams)
@@ -279,42 +302,54 @@ internal sealed class GameManager : NetworkBehaviour
             this.player = GameObject.Instantiate(this.player);
             this.playerPanel = GameObject.Instantiate(this.playerPanel);
 
-            this.player.GetComponent<NetworkObject>().SpawnAsPlayerObject(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+            this.player.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
             this.playerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
         }
 
-        this.CurrentPlayerIndex = 1;
+        this.CurrentPlayerIndex = 0;
 
         this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
 
         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
     }
-    
-    private async void HandleClientDisconnectCallbackAsync(ulong disconnectedClientId)
-    {
-        if (NetworkManager.Singleton?.LocalClientId == disconnectedClientId)
-        {
-            await LobbyManager.Instance.DisconnectFromLobbyAsync();
-        }
 
-        int disconnectedPlayerIndex = this.players.FindIndex(player => player.OwnerClientId == disconnectedClientId);
+    //private void HandleClientDisconnectCallback(ulong disconnectedClientId)
+    //{
+    //    if (this.HaveSurrendered)
+    //    {
 
-        this.players.RemoveAt(disconnectedPlayerIndex);
-        
-        if (this.players.Count == 1 && NetworkManager.Singleton?.LocalClientId != disconnectedClientId)
-        {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy, actionCallback: this.CallbackWonTheGameAsync);
-        }
+    //    }
 
-        this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != disconnectedClientId).ToArray();
+    //    //int disconnectedPlayerIndex = this.players.FindIndex(player => player.OwnerClientId == disconnectedClientId);
 
-        if (NetworkManager.Singleton.IsHost)
-        {
-            this.targetHostOtherClients.RemoveAt(disconnectedPlayerIndex);
-            this.targetHostOtherClients = this.targetHostOtherClients.Select(array => array.Where(id => id != disconnectedClientId).ToArray()).ToList();
-        }
-    }
-    
+    //    //this.players[disconnectedPlayerIndex].Surrender();
+    //    //this.players.RemoveAt(disconnectedPlayerIndex);
+
+    //    //this.RemovePlayerClientRpc(disconnectedPlayerIndex, disconnectedClientId, this.ClientParamsClientOtherClients);
+
+    //    //if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton?.LocalClientId)
+    //    //{
+    //    //    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy, actionCallback: this.CallbackWonTheGameAsync);
+    //    //}
+    //    //else
+    //    //{
+    //    //    this.targetHostOtherClients.RemoveAt(disconnectedPlayerIndex);
+    //    //    this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != disconnectedClientId).ToArray();
+    //    //    this.targetHostOtherClients = this.targetHostOtherClients.Select(array => array.Where(id => id != disconnectedClientId).ToArray()).ToList();
+    //    //}
+    //}
+
+    //private void HandleKickedFromLobby()
+    //{
+    //    this.UpdatePlayersServerRpc(this.players.Where(player => player.OwnerClientId == NetworkManager.Singleton.LocalClientId));
+    //}
+
+    //[ServerRpc(RequireOwnership = false)]
+    //private void UpdatePlayersServerRpc(ulong clientId, ServerRpcParams serverRpcParams)
+    //{
+
+    //}
+
     #endregion
 
     #region Turn-based Game Loop
@@ -359,11 +394,11 @@ internal sealed class GameManager : NetworkBehaviour
     {
         const int MIN_DIE_VALUE = 1;
         const int MAX_DIE_VALUE = 6;
+        
+        this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
+        this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
 
-        //this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
-        //this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
-
-        this.FirstDieValue = 1;
+        this.FirstDieValue = 3;
         this.SecondDieValue = 2;
 
         this.RollDiceServerRpc(this.FirstDieValue, this.SecondDieValue, this.ServerParamsCurrentClient);
@@ -383,4 +418,9 @@ internal sealed class GameManager : NetworkBehaviour
     }
 
     #endregion
+
+    //public void UpdateBalance(ulong clientId)
+    //{
+    //   this.players.Where(player => player.OwnerClientId == clientId).First().Balance = 
+    //}
 }

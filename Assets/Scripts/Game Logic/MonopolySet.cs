@@ -15,17 +15,27 @@ public sealed class MonopolySet
 
     public int Level 
     { 
-        get => this.nodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer).Select(node => node.Level).Max();
+        get => this.nodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer).Select(node => node.Level.Value).Max();
     }
 
-    public Color ColorOfSet 
-    { 
-        get => this.colorOfSet; 
+    public Color ColorOfSet
+    {
+        get => this.colorOfSet;
+    }
+
+    public int OwnedByPlayerCount 
+    {
+        get => this.nodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer).Count();
     }
 
     public IReadOnlyList<MonopolyNode> NodesInSet 
-    { 
-        get => this.nodesInSet; 
+    {
+        get => this.nodesInSet;
+    }
+
+    public IEnumerable<MonopolyNode> OwnedByPlayerNodes 
+    {
+        get => this.nodesInSet.Where(node => node.Owner == GameManager.Instance.CurrentPlayer);
     }
 
     public bool Contains(MonopolyNode monopolyNode)

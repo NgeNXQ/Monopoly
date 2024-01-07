@@ -516,7 +516,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7eb79a46273228547ba1fc4d5b3750eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ImagePlayerColor: {fileID: 860090652875882601}
+  imagePlayerColor: {fileID: 860090652875882601}
   textPlayerName: {fileID: 2344647799733600937}
   textPlayerBalance: {fileID: 1473150465985319428}
   buttonInteract: {fileID: 8264585301173338929}

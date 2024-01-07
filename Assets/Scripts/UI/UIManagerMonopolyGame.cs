@@ -73,7 +73,10 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     [Space]
     [SerializeField] private string messageInsufficientFunds;
-    
+
+    [Space]
+    [SerializeField] private string messageOnlyNumbersAllowed;
+
     [Space]
     [SerializeField] private string messageWaitingOtherPlayers;
 
@@ -124,6 +127,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     public string MessageInsufficientFunds
     {
         get => this.messageInsufficientFunds;
+    }
+
+    public string MessageOnlyNumbersAllowed
+    {
+        get => this.messageOnlyNumbersAllowed;
     }
 
     public string MessageWaitingOtherPlayers
@@ -184,6 +192,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         get => this.canvasPlayersList;
     }
 
+    public PanelTradeOfferUI PanelTradeOffer 
+    {
+        get => PanelTradeOfferUI.Instance;
+    }
+
     public PanelMonopolyNodeUI PanelMonopolyNode 
     {
         get => PanelMonopolyNodeUI.Instance;
@@ -198,7 +211,7 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     {
         get => PanelPaymentPropertyUI.Instance;
     }
-
+    
     private void Awake()
     {
         if (Instance != null)
@@ -265,6 +278,22 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     #endregion
 
+    #region Panel Trade Offer
+
+    public void ShowTradeOffer(string nickname, Action callback)
+    {
+        this.PanelTradeOffer.NicknameText = nickname;
+
+        this.PanelTradeOffer.Show(callback);
+    }
+
+    public void HideTradeOffer()
+    {
+        this.PanelTradeOffer.Hide();
+    }
+
+    #endregion
+
     #region Panel Monopoly Node
 
     public void ShowMonopolyNode(Sprite pictureSprite, Color monopolyColor, Action callback)
@@ -278,11 +307,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         {
             case MonopolyNode.Type.Property:
                 {
-                    if (GameManager.Instance.CurrentPlayer.SelectedNode.Level == 0)
+                    if (GameManager.Instance.CurrentPlayer.SelectedNode.Level.Value == 0)
                     {
                         this.PanelMonopolyNode.PriceText = $"- {this.Currency} {selectedNode.PricePurchase}";
                     }
-                    else if (GameManager.Instance.CurrentPlayer.SelectedNode.Level == 1)
+                    else if (GameManager.Instance.CurrentPlayer.SelectedNode.Level.Value == 1)
                     {
                         this.PanelMonopolyNode.PriceText = $"- {this.Currency} {selectedNode.PriceUpgrade}\n+ {this.Currency} {selectedNode.PricePurchase}";
                     }
@@ -294,7 +323,7 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
                 break;
             default:
                 {
-                    if (GameManager.Instance.CurrentPlayer.SelectedNode.Level == 0)
+                    if (GameManager.Instance.CurrentPlayer.SelectedNode.Level.Value == 0)
                     {
                         this.PanelMonopolyNode.PriceText = $"- {this.Currency} {selectedNode.PricePurchase}";
                     }

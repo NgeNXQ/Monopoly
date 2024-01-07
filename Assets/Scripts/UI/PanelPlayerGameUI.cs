@@ -12,7 +12,7 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
     [Header("Visuals")]
 
     [Space]
-    [SerializeField] private Image ImagePlayerColor;
+    [SerializeField] private Image imagePlayerColor;
 
     [Space]
     [SerializeField] private TMP_Text textPlayerName;
@@ -53,7 +53,7 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
 
         this.associatedPlayer = GameManager.Instance.CurrentPlayer;
         this.textPlayerName.text = GameManager.Instance.CurrentPlayer.Nickname;
-        this.ImagePlayerColor.color = GameManager.Instance.CurrentPlayer.PlayerColor;
+        this.imagePlayerColor.color = GameManager.Instance.CurrentPlayer.PlayerColor;
         this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {GameManager.Instance.CurrentPlayer.Balance}";
 
         if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
@@ -72,18 +72,6 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
 
     #region GUI Callbacks
 
-    private void HandleBttonInteractClicked()
-    {
-        if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
-        {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, UIManagerMonopolyGame.Instance.MessageConfirmSurrender, PanelMessageBoxUI.Icon.Question, actionCallback: this.CallbackSurrender);
-        }
-        else
-        {
-            Debug.Log("Trading placeholder");
-        }
-    }
-
     private void CallbackSurrender()
     {
         if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
@@ -92,19 +80,37 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
         }
     }
 
+    private void HandleBttonInteractClicked()
+    {
+        if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
+        {
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OKCancel, UIManagerMonopolyGame.Instance.MessageConfirmSurrender, PanelMessageBoxUI.Icon.Question, actionCallback: this.CallbackSurrender);
+        }
+        else
+        {
+            if (GameManager.Instance.CurrentPlayer.OwnerClientId == NetworkManager.Singleton.LocalClientId)
+            {
+                GameManager.Instance.CurrentPlayer.IsTrading = true;
+                GameManager.Instance.CurrentPlayer.PlayerTradingWith = this.associatedPlayer;
+
+                UIManagerMonopolyGame.Instance.ShowTradeOffer(this.associatedPlayer.Nickname, GameManager.Instance.CurrentPlayer.CallbackTradeOffer);
+            }
+        }
+    }
+
     #endregion
 
     #region Updating Balance
-
-    private void UpdateBalanceLocally()
-    {
-        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance}";
-    }
 
     private void HandleBalanceUpdated()
     {
         this.UpdateBalanceLocally();
         this.UpdateBalanceServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+    }
+
+    private void UpdateBalanceLocally()
+    {
+        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance}";
     }
 
     [ServerRpc]

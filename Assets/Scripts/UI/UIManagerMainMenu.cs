@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Services.Relay;
 using Unity.Services.Lobbies;
+using System.Text.RegularExpressions;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -221,6 +222,8 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     private bool ValidateTextBoxNickname()
     {
+        const string pattern = @"[\s\n\r\t]";
+
         if (String.IsNullOrWhiteSpace(this.textBoxNickname.text))
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageNicknameEmpty, PanelMessageBoxUI.Icon.Warning);
@@ -232,6 +235,10 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         else if (this.textBoxNickname.text.Length < this.nicknameMinLength)
         {
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageNicknameTooShort, PanelMessageBoxUI.Icon.Error);
+        }
+        else if (Regex.IsMatch(this.textBoxNickname.text, pattern))
+        {
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageNicknameEmpty, PanelMessageBoxUI.Icon.Error);
         }
         else
         {

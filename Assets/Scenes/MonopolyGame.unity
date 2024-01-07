@@ -7134,6 +7134,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6758341332512467324}
     m_Modifications:
+    - target: {fileID: 2346584400940041984, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2922270011367035247, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
       propertyPath: m_Name
       value: PanelOfferTrade
@@ -7710,6 +7714,7 @@ MonoBehaviour:
   messageInsufficientFunds: "\u041D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043D\u044C\u043E
     \u043A\u043E\u0448\u0442\u0456\u0432 \u0434\u043B\u044F \u0437\u0434\u0456\u0439\u0441\u043D\u0435\u043D\u043D\u044F
     \u043E\u043F\u0435\u0440\u0430\u0446\u0456\u0457!"
+  messageOnlyNumbersAllowed: 
   messageWaitingOtherPlayers: "\u041E\u0447\u0456\u043A\u0443\u0432\u0430\u043D\u043D\u044F
     \u0437\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F \u0456\u043D\u0448\u0438\u0445
     \u0433\u0440\u0430\u0432\u0446\u0456\u0432..."
