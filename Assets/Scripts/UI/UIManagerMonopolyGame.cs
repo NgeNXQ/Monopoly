@@ -44,6 +44,16 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     #endregion
 
+    #region Button Disconnect
+
+    [Space]
+    [Header("Button Disconnect")]
+
+    [Space]
+    [SerializeField] private Button buttonDisconnect;
+
+    #endregion
+
     #region Panel Players List
 
     [Space]
@@ -53,12 +63,12 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     [SerializeField] private Canvas canvasPlayersList;
 
     #endregion
-
+    
     #region Messages
 
     [Space]
     [Header("Messages")]
-    
+
     [Space]
     [SerializeField] private string messageWon;
 
@@ -69,13 +79,19 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     [SerializeField] private string messageAlreadyBuilt;
 
     [Space]
+    [SerializeField] private string messageDisconnecting;
+
+    [Space]
+    [SerializeField] private string messageTradeAccepted;
+
+    [Space]
+    [SerializeField] private string messageTradeDeclined;
+
+    [Space]
     [SerializeField] private string messageConfirmSurrender;
 
     [Space]
     [SerializeField] private string messageInsufficientFunds;
-
-    [Space]
-    [SerializeField] private string messageOnlyNumbersAllowed;
 
     [Space]
     [SerializeField] private string messageWaitingOtherPlayers;
@@ -85,6 +101,9 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     [Space]
     [SerializeField] private string messageCannotUpgradeMaxLevel;
+
+    [Space]
+    [SerializeField] private string messageWrongTradeCredentials;
 
     [Space]
     [SerializeField] private string messageCannotDowngradeMinLevel;
@@ -104,67 +123,72 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     #region Messages
 
-    public string MessageWon
+    public string MessageWon 
     {
         get => this.messageWon;
     }
 
-    public string MessageSentJail
+    public string MessageSentJail 
     {
         get => this.messageSentJail;
     }
 
-    public string MessageAlreadyBuilt
+    public string MessageAlreadyBuilt 
     {
         get => this.messageAlreadyBuilt;
     }
 
-    public string MessageConfirmSurrender
+    public string MessageTradeAccepted 
+    {
+        get => this.messageTradeAccepted;
+    }
+
+    public string MessageTradeDeclined 
+    {
+        get => this.messageTradeDeclined;
+    }
+
+    public string MessageConfirmSurrender 
     {
         get => this.messageConfirmSurrender;
     }
-
-    public string MessageInsufficientFunds
+    
+    public string MessageInsufficientFunds 
     {
         get => this.messageInsufficientFunds;
     }
 
-    public string MessageOnlyNumbersAllowed
-    {
-        get => this.messageOnlyNumbersAllowed;
-    }
-
-    public string MessageWaitingOtherPlayers
+    public string MessageWaitingOtherPlayers 
     {
         get => this.messageWaitingOtherPlayers;
     }
     
-    public string MessagePlayersFailedToLoad
+    public string MessagePlayersFailedToLoad 
     {
         get => this.messagePlayersFailedToLoad;
     }
 
-    public string MessageCannotUpgradeMaxLevel
+    public string MessageCannotUpgradeMaxLevel 
     {
         get => this.messageCannotUpgradeMaxLevel;
     }
 
-    public string MessageCannotDowngradeMinLevel
+    public string MessageCannotDowngradeMinLevel 
     {
         get => this.messageCannotDowngradeMinLevel;
     }
 
-    public string MessageOnlyEvenBuildingAllowed
+    public string MessageOnlyEvenBuildingAllowed 
     {
         get => this.messageOnlyEvenBuildingAllowed;
     }
 
-    public string MessageCannotUpgradeNotProperty
+    public string MessageCannotUpgradeNotProperty 
     {
         get => this.messageCannotUpgradeNotProperty;
     }
 
-    public string MessageCompleteMonopolyRequired
+    public string MessageCompleteMonopolyRequired 
     {
         get => this.messageCompleteMonopolyRequired;
     }
@@ -202,6 +226,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         get => PanelMonopolyNodeUI.Instance;
     }
 
+    public PanelReceiveTradeUI PanelReceiveTrade 
+    {
+        get => PanelReceiveTradeUI.Instance;
+    }
+
     public PanelPaymentChanceUI PanelPaymentChance 
     {
         get => PanelPaymentChanceUI.Instance;
@@ -211,7 +240,7 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     {
         get => PanelPaymentPropertyUI.Instance;
     }
-    
+
     private void Awake()
     {
         if (Instance != null)
@@ -228,11 +257,13 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     private void OnEnable()
     {
         this.buttonRollDice.onClick.AddListener(this.HandleButtonRollDiceClicked);
+        this.buttonDisconnect.onClick.AddListener(this.HandleButtonDisconnectClickedAsync);
     }
 
     private void OnDisable()
     {
         this.buttonRollDice.onClick.RemoveListener(this.HandleButtonRollDiceClicked);
+        this.buttonDisconnect.onClick.RemoveListener(this.HandleButtonDisconnectClickedAsync);
     }
 
     #region Panels 
@@ -280,16 +311,146 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     #region Panel Trade Offer
 
-    public void ShowTradeOffer(string nickname, Action callback)
+    public void SendTradeOffer()
     {
-        this.PanelTradeOffer.NicknameText = nickname;
+        ulong otherClientId = GameManager.Instance.CurrentPlayer.PlayerTradingWith.OwnerClientId;
+
+        MonopolyPlayer otherPlayer = GameManager.Instance.GetPlayerById(otherClientId);
+        MonopolyPlayer thisPlayer = GameManager.Instance.GetPlayerById(GameManager.Instance.CurrentPlayer.OwnerClientId);
+
+        if (otherPlayer == null || thisPlayer == null)
+        {
+            this.ShowButtonRollDice();
+
+            this.HideTradeOffer();
+
+            GameManager.Instance.CurrentPlayer.IsTrading = false;
+
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageWrongTradeCredentials, PanelMessageBoxUI.Icon.Warning);
+
+            return;
+        }
+
+        int thisBalance = this.PanelTradeOffer.ThisOffer;
+        int otherBalance = this.PanelTradeOffer.OtherOffer;
+
+        int thisNodeIndex = this.PanelTradeOffer.ThisNodeIndex;
+        int otherNodeIndex = this.PanelTradeOffer.OtherNodeIndex;
+
+        if (thisBalance < 0)
+        {
+            thisBalance = 0;
+        }
+
+        if (otherBalance < 0)
+        {
+            otherBalance = 0;
+        }
+
+        if (thisBalance > thisPlayer.Balance.Value)
+        {
+            thisBalance = thisPlayer.Balance.Value;
+        }
+
+        if (otherBalance > otherPlayer.Balance.Value)
+        {
+            otherBalance = otherPlayer.Balance.Value;
+        }
+
+        if ((thisBalance == 0 && otherBalance == 0) && (thisNodeIndex == -1 && otherNodeIndex == -1))
+        {
+            this.HideTradeOffer();
+
+            this.ShowButtonRollDice();
+
+            GameManager.Instance.CurrentPlayer.IsTrading = false;
+
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageWrongTradeCredentials, PanelMessageBoxUI.Icon.Warning);
+        }
+        else if ((thisBalance != 0 && otherBalance != 0) && (thisNodeIndex == -1 && otherNodeIndex == -1))
+        {
+            this.HideTradeOffer();
+
+            this.ShowButtonRollDice();
+
+            GameManager.Instance.CurrentPlayer.IsTrading = false;
+
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageWrongTradeCredentials, PanelMessageBoxUI.Icon.Warning);
+        }
+        else
+        {
+            this.SendTradeOfferServerRpc(thisBalance, otherBalance, thisNodeIndex, otherNodeIndex, otherClientId, GameManager.Instance.ServerParamsCurrentClient);
+        }
+    }
+
+    public void ShowTradeOffer(string thisNickname, string otherNickname, Action callback)
+    {
+        this.PanelTradeOffer.ThisNicknameText = thisNickname;
+        this.PanelTradeOffer.OtherThisNicknameText = otherNickname;
 
         this.PanelTradeOffer.Show(callback);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void SendTradeOfferServerRpc(int thisBalance, int otherBalance, int thisNodeIndex, int otherNodeIndex, ulong otherClientId, ServerRpcParams serverRpcParams)
+    {
+        if (GameManager.Instance.GetPlayerById(serverRpcParams.Receive.SenderClientId) == null)
+        {
+            GameManager.Instance.SwitchPlayerForcefullyServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+        }
+
+        if (GameManager.Instance.GetPlayerById(otherClientId) == null)
+        {
+            this.ShowButtonRollDiceClientRpc(GameManager.Instance.ClientParamsCurrentClient);
+        }
+
+        this.RecieveTradeOfferClientRpc(thisBalance, otherBalance, thisNodeIndex, otherNodeIndex, serverRpcParams.Receive.SenderClientId, otherClientId, GameManager.Instance.GetRedirectionRpc(otherClientId));
+    }
+
+    [ClientRpc]
+    private void RecieveTradeOfferClientRpc(int thisBalance, int otherBalance, int thisNodeIndex, int otherNodeIndex, ulong senderClientId, ulong receiverClientId, ClientRpcParams clientRpcParams) 
+    {
+        MonopolyPlayer otherPlayer = GameManager.Instance.GetPlayerById(senderClientId);
+        MonopolyPlayer thisPlayer = GameManager.Instance.GetPlayerById(receiverClientId);
+
+        if (thisPlayer == null || otherPlayer == null)
+        {
+            return;
+        }
+
+        this.PanelReceiveTrade.ThisNicknameText = thisPlayer.Nickname;
+        this.PanelReceiveTrade.OtherThisNicknameText = otherPlayer.Nickname;
+
+        this.PanelReceiveTrade.ThisOffer = thisBalance;
+        this.PanelReceiveTrade.OtherOffer = otherBalance;
+
+        if (thisNodeIndex != -1)
+        {
+            this.PanelReceiveTrade.ThisNodeIndex = thisNodeIndex;
+            this.PanelReceiveTrade.ThisSprite = MonopolyBoard.Instance[thisNodeIndex].NodeSprite;
+        }
+
+        if (otherNodeIndex != -1)
+        {
+            this.PanelReceiveTrade.OtherNodeIndex = otherNodeIndex;
+            this.PanelReceiveTrade.OtherSprite = MonopolyBoard.Instance[otherNodeIndex].NodeSprite;
+        }
+
+        this.PanelReceiveTrade.Show(GameManager.Instance.GetPlayerById(receiverClientId).CallbackReceiveTrade);
     }
 
     public void HideTradeOffer()
     {
         this.PanelTradeOffer.Hide();
+    }
+
+    #endregion
+
+    #region Panel Receive Trade
+
+    public void HideReceiveTrade()
+    {
+        this.PanelReceiveTrade.Hide();
     }
 
     #endregion
@@ -307,11 +468,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         {
             case MonopolyNode.Type.Property:
                 {
-                    if (GameManager.Instance.CurrentPlayer.SelectedNode.Level.Value == 0)
+                    if (GameManager.Instance.CurrentPlayer.SelectedNode.LocalLevel == 0)
                     {
                         this.PanelMonopolyNode.PriceText = $"- {this.Currency} {selectedNode.PricePurchase}";
                     }
-                    else if (GameManager.Instance.CurrentPlayer.SelectedNode.Level.Value == 1)
+                    else if (GameManager.Instance.CurrentPlayer.SelectedNode.LocalLevel == 1)
                     {
                         this.PanelMonopolyNode.PriceText = $"- {this.Currency} {selectedNode.PriceUpgrade}\n+ {this.Currency} {selectedNode.PricePurchase}";
                     }
@@ -323,7 +484,7 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
                 break;
             default:
                 {
-                    if (GameManager.Instance.CurrentPlayer.SelectedNode.Level.Value == 0)
+                    if (GameManager.Instance.CurrentPlayer.SelectedNode.LocalLevel == 0)
                     {
                         this.PanelMonopolyNode.PriceText = $"- {this.Currency} {selectedNode.PricePurchase}";
                     }
@@ -388,6 +549,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         this.buttonRollDice.gameObject.SetActive(true);
     }
 
+    public void HideButtonRollDice()
+    {
+        this.buttonRollDice.gameObject.SetActive(false);
+    }
+
     private void HandleButtonRollDiceClicked()
     {
         if (NetworkManager.Singleton.LocalClientId == GameManager.Instance.CurrentPlayer.OwnerClientId)
@@ -399,9 +565,31 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     }
 
     [ClientRpc]
+    public void ShowButtonRollDiceClientRpc(ClientRpcParams clientRpcParams)
+    {
+        this.buttonRollDice.gameObject.SetActive(true);
+    }
+
+    [ClientRpc]
     public void HideButtonRollDiceClientRpc(ClientRpcParams clientRpcParams)
     {
         this.buttonRollDice.gameObject.SetActive(false);
+    }
+
+    #endregion
+
+    #region Button Disconnect
+
+    public void ShowButtonDisconnect()
+    {
+        this.buttonDisconnect.gameObject.SetActive(true);
+    }
+
+    private async void HandleButtonDisconnectClickedAsync()
+    {
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, this.messageDisconnecting, PanelMessageBoxUI.Icon.Loading);
+
+        await LobbyManager.Instance.DisconnectFromLobbyAsync();
     }
 
     #endregion

@@ -92,6 +92,9 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     [Header("General")]
 
     [Space]
+    [SerializeField] private string messageConfirmClosingGame;
+
+    [Space]
     [SerializeField] private string messageEstablishingConnection;
 
     #endregion
@@ -106,6 +109,8 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     [Space]
     [SerializeField] private string messageInvalidLengthJoinCode;
+
+
 
     #endregion
 
@@ -124,7 +129,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
     [SerializeField] private string messageNicknameTooShort;
 
     [Space]
-    [SerializeField] private string messageConfirmClosingGame;
+    [SerializeField] private string messageEnterCorrectNickname;
 
     #endregion
 
@@ -222,7 +227,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
 
     private bool ValidateTextBoxNickname()
     {
-        const string pattern = @"[\s\n\r\t]";
+        const string pattern = @"[^\S ]";
 
         if (String.IsNullOrWhiteSpace(this.textBoxNickname.text))
         {
@@ -238,7 +243,7 @@ internal sealed class UIManagerMainMenu : MonoBehaviour
         }
         else if (Regex.IsMatch(this.textBoxNickname.text, pattern))
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageNicknameEmpty, PanelMessageBoxUI.Icon.Error);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageEnterCorrectNickname, PanelMessageBoxUI.Icon.Error);
         }
         else
         {

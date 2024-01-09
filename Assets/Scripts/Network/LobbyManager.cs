@@ -20,13 +20,7 @@ internal sealed class LobbyManager : MonoBehaviour
 
     public const string KEY_PLAYER_SCENE = "Scene";
 
-    public const string KEY_PLAYER_STATUS = "Status";
-
     public const string KEY_PLAYER_NICKNAME = "Nickname";
-
-    public const string PLAYER_STATUS_READY = "Ready";
-
-    public const string PLAYER_STATUS_NOT_READY = "Not Ready";
 
     public const string KEY_LOBBY_STATE = "State";
     
@@ -71,13 +65,13 @@ internal sealed class LobbyManager : MonoBehaviour
 
     public Action OnMonopolyGameFailedToLoad;
 
-    public Lobby LocalLobby { get; private set; }
-
     public bool IsHost { get; private set; }
 
     public string JoinCode { get; private set; }
 
     public bool HasHostLeft { get; private set; }
+
+    public Lobby LocalLobby { get; private set; }
 
     public bool HavePlayersLoaded 
     {
@@ -170,16 +164,11 @@ internal sealed class LobbyManager : MonoBehaviour
             return;
         }
 
-        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance.MessagePendingGame, PanelMessageBoxUI.Icon.Loading);
-
         this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_LOADING, true);
 
+        UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance.MessagePendingGame, PanelMessageBoxUI.Icon.Loading);
+        
         GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.MonopolyGame);
-    }
-
-    public void EndGame()
-    {
-        GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.GameLobby);
     }
 
     #endregion
@@ -228,12 +217,7 @@ internal sealed class LobbyManager : MonoBehaviour
         }
         else
         {
-            QueryResponse queryResponse = await Lobbies.Instance.QueryLobbiesAsync(this.queryCurrentLobby);
-
-            if (queryResponse.Results.Count > 0)
-            {
-                await LobbyService.Instance.RemovePlayerAsync(this.LocalLobby.Id, GameCoordinator.Instance.LocalPlayer.Id);
-            }
+            await LobbyService.Instance.RemovePlayerAsync(this.LocalLobby.Id, GameCoordinator.Instance.LocalPlayer.Id);  
         }
     }
     
@@ -401,7 +385,7 @@ internal sealed class LobbyManager : MonoBehaviour
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance?.MessagePendingGame ?? UIManagerMonopolyGame.Instance?.MessageWaitingOtherPlayers, PanelMessageBoxUI.Icon.Loading, stateCallback: () => this.HavePlayersLoaded);
                 break;
             case LobbyManager.LOBBY_STATE_RETURNING:
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance?.MessageFailedToConnect ?? UIManagerMonopolyGame.Instance?.MessagePlayersFailedToLoad, PanelMessageBoxUI.Icon.Loading);
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance?.MessageFailedToConnect ?? UIManagerMonopolyGame.Instance?.MessagePlayersFailedToLoad, PanelMessageBoxUI.Icon.Loading, stateCallback: () => this.HavePlayersLoaded);
                 break;
         }
     }

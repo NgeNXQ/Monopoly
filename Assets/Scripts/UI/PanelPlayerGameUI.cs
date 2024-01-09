@@ -56,18 +56,14 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
         this.imagePlayerColor.color = GameManager.Instance.CurrentPlayer.PlayerColor;
         this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {GameManager.Instance.CurrentPlayer.Balance}";
 
-        if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
-        {
-            this.associatedPlayer.OnBalanceUpdated += this.HandleBalanceUpdated;
-        }
+        this.associatedPlayer.OnBalanceUpdated += this.HandleBalanceUpdated;
+
+        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance.Value}";
     }
 
     public override void OnNetworkDespawn()
     {
-        if (NetworkManager.Singleton.LocalClientId == this.OwnerClientId)
-        {
-            this.associatedPlayer.OnBalanceUpdated -= this.HandleBalanceUpdated;
-        }
+        this.associatedPlayer.OnBalanceUpdated -= this.HandleBalanceUpdated;
     }
 
     #region GUI Callbacks
@@ -77,6 +73,8 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
         if (UIManagerGlobal.Instance.LastMessageBox.MessageBoxDialogResult == PanelMessageBoxUI.DialogResult.OK)
         {
             this.associatedPlayer.Surrender();
+            UIManagerMonopolyGame.Instance.HideButtonRollDice();
+            UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
         }
     }
 
@@ -88,42 +86,32 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
         }
         else
         {
+            if (GameManager.Instance == null || GameManager.Instance?.CurrentPlayer == null)
+            {
+                return;
+            }
+
+            if (GameManager.Instance.CurrentPlayer.IsTrading)
+            {
+                return;
+            }
+
             if (GameManager.Instance.CurrentPlayer.OwnerClientId == NetworkManager.Singleton.LocalClientId)
             {
-                GameManager.Instance.CurrentPlayer.IsTrading = true;
+                UIManagerMonopolyGame.Instance.HideButtonRollDice();
+
                 GameManager.Instance.CurrentPlayer.PlayerTradingWith = this.associatedPlayer;
 
-                UIManagerMonopolyGame.Instance.ShowTradeOffer(this.associatedPlayer.Nickname, GameManager.Instance.CurrentPlayer.CallbackTradeOffer);
+                GameManager.Instance.CurrentPlayer.IsTrading = true;
+                UIManagerMonopolyGame.Instance.ShowTradeOffer(GameManager.Instance.CurrentPlayer.Nickname, this.associatedPlayer.Nickname, GameManager.Instance.CurrentPlayer.CallbackTradeOffer);
             }
         }
     }
 
     #endregion
 
-    #region Updating Balance
-
     private void HandleBalanceUpdated()
     {
-        this.UpdateBalanceLocally();
-        this.UpdateBalanceServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance.Value}";
     }
-
-    private void UpdateBalanceLocally()
-    {
-        this.textPlayerBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPlayer.Balance}";
-    }
-
-    [ServerRpc]
-    public void UpdateBalanceServerRpc(ServerRpcParams serverRpcParams)
-    {
-        this.UpdateBalanceClientRpc(GameManager.Instance.ClientParamsHostOtherClients);
-    }
-
-    [ClientRpc]
-    public void UpdateBalanceClientRpc(ClientRpcParams clientRpcParams)
-    {
-        this.UpdateBalanceLocally();
-    }
-
-    #endregion
 }

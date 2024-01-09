@@ -2,8 +2,9 @@ using TMPro;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
+public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointerClickHandler
 {
     #region Setup
 
@@ -15,13 +16,16 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
     [SerializeField] private RectTransform panel;
     
     [Space]
-    [SerializeField] private Image[] imagesThis;
+    [SerializeField] private Image imageThis;
 
     [Space]
-    [SerializeField] private Image[] imagesOther;
+    [SerializeField] private Image imageOther;
 
     [Space]
-    [SerializeField] private TMP_Text textPlayerNickname;
+    [SerializeField] private TMP_Text textThisPlayerNickname;
+
+    [Space]
+    [SerializeField] private TMP_Text textOtherPlayerNickname;
 
     #endregion
 
@@ -52,13 +56,7 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
         Cancel
     }
 
-    private int thisIndex;
-
-    private int otherIndex;
-
     private Action callback;
-
-    //private int[] 
 
     public static PanelTradeOfferUI Instance { get; private set; }
 
@@ -66,8 +64,8 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
     {
         set
         {
-            this.imagesThis[this.thisIndex].sprite = value;
-            this.thisIndex = (this.thisIndex + 1) % this.imagesThis.Length;
+            this.imageThis.sprite = value;
+            this.imageThis.gameObject.SetActive(true);
         }
     }
 
@@ -75,15 +73,44 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
     {
         set
         {
-            this.imagesOther[this.otherIndex].sprite = value;
-            this.otherIndex = (this.otherIndex + 1) % this.imagesOther.Length;
+            this.imageOther.sprite = value;
+            this.imageOther.gameObject.SetActive(true);
         }
     }
 
-    public string NicknameText 
+    public string ThisNicknameText 
     {
-        set => this.textPlayerNickname.text = value;
+        set => this.textThisPlayerNickname.text = value;
     }
+
+    public string OtherThisNicknameText 
+    {
+        set => this.textOtherPlayerNickname.text = value;
+    }
+
+    public int ThisOffer
+    {
+        get
+        {
+            Debug.Log("Here");
+
+            return this.textBoxThisOffer.text.Length == 0 ? 0 : Int32.Parse(this.textBoxThisOffer.text);
+        }
+    }
+
+    public int OtherOffer
+    {
+        get
+        {
+            Debug.Log("Here");
+
+            return this.textBoxOtherOffer.text.Length == 0 ? 0 : Int32.Parse(this.textBoxOtherOffer.text);
+        }
+    }
+
+    public int ThisNodeIndex { get; set; }
+
+    public int OtherNodeIndex { get; set; }
 
     public DialogResult TradeOfferDialogResult { get; private set; }
 
@@ -114,11 +141,11 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
         this.textBoxThisOffer.text = String.Empty;
         this.textBoxOtherOffer.text = String.Empty;
 
-        for (int i = 0; i < this.imagesThis.Length; ++i)
-        {
-            this.imagesThis[i].sprite = null;
-            this.imagesOther[i].sprite = null;
-        }
+        this.imageThis.sprite = null;
+        this.imageOther.sprite = null;
+
+        this.imageThis.gameObject.SetActive(false);
+        this.imageOther.gameObject.SetActive(false);
 
         this.callback = actionCallback;
 
@@ -129,18 +156,19 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
     {
         this.callback = null;
 
-        this.panel.gameObject.SetActive(false);
+        this.ThisNodeIndex = -1;
+        this.OtherNodeIndex = -1;
 
-        for (int i = 0; i < this.imagesThis.Length; ++i)
-        {
-            this.imagesThis[i].sprite = null;
-            this.imagesOther[i].sprite = null;
-        }
+        this.imageThis.sprite = null;
+        this.imageOther.sprite = null;
 
         this.textBoxThisOffer.text = String.Empty;
         this.textBoxOtherOffer.text = String.Empty;
 
-        this.textPlayerNickname.text = String.Empty;
+        this.textThisPlayerNickname.text = String.Empty;
+        this.textOtherPlayerNickname.text = String.Empty;
+
+        this.panel.gameObject.SetActive(false);
     }
 
     private void HandleButtonOfferClicked()
@@ -157,16 +185,17 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI
         this.callback?.Invoke();
     }
 
-    public bool ValidateTextBoxBalance(TMP_InputField textBox)
+    public void OnPointerClick(PointerEventData eventData)
     {
-        if (Int32.TryParse(textBox.text, out _))
+        if (eventData.pointerCurrentRaycast.gameObject == this.imageThis.gameObject)
         {
-            return true;
+            this.ThisNodeIndex = -1;
+            this.imageThis.gameObject.SetActive(false);
         }
-        else
+        else if (eventData.pointerCurrentRaycast.gameObject == this.imageOther.gameObject)
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageOnlyNumbersAllowed, PanelMessageBoxUI.Icon.Warning);
-            return false;
+            this.OtherNodeIndex = -1;
+            this.imageOther.gameObject.SetActive(false);
         }
     }
 }

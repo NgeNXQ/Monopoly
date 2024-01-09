@@ -15,29 +15,31 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData = null)
     {
-        if (this.monopolyNode.Owner == null)
-        {
-            return;
-        }
-
-        if (!this.monopolyNode.IsTradable)
-        {
-            return;
-        }
-
         if (GameManager.Instance.CurrentPlayer.IsTrading)
         {
+            if (!this.monopolyNode.IsTradable)
+            {
+                return;
+            }
+
             if (this.monopolyNode.Owner == GameManager.Instance.CurrentPlayer)
             {
                 UIManagerMonopolyGame.Instance.PanelTradeOffer.ThisSprite = this.monopolyNode.NodeSprite;
+                UIManagerMonopolyGame.Instance.PanelTradeOffer.ThisNodeIndex = MonopolyBoard.Instance[this.monopolyNode];
             }
             else if (this.monopolyNode.Owner == GameManager.Instance.CurrentPlayer.PlayerTradingWith)
             {
                 UIManagerMonopolyGame.Instance.PanelTradeOffer.OtherSprite = this.monopolyNode.NodeSprite;
+                UIManagerMonopolyGame.Instance.PanelTradeOffer.OtherNodeIndex = MonopolyBoard.Instance[this.monopolyNode];
             }
         }
         else
         {
+            if (this.monopolyNode.Owner == null)
+            {
+                return;
+            }
+
             if (NetworkManager.Singleton.LocalClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
             {
                 return;
@@ -59,6 +61,6 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
             this.monopolyNode.Owner.SelectedNode = this.monopolyNode;
 
             UIManagerMonopolyGame.Instance.ShowMonopolyNode(this.monopolyNode.NodeSprite, this.monopolyNode.AffiliatedMonopoly.ColorOfSet, this.monopolyNode.Owner.CallbackMonopolyNode);
-        }
+        }  
     }
 }
