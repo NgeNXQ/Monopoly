@@ -1,6 +1,7 @@
 using TMPro;
 using System;
 using UnityEngine;
+using Unity.Netcode;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
@@ -16,16 +17,16 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
     [SerializeField] private RectTransform panel;
     
     [Space]
-    [SerializeField] private Image imageThis;
+    [SerializeField] private Image imageSender;
 
     [Space]
-    [SerializeField] private Image imageOther;
+    [SerializeField] private Image imageReceiver;
 
     [Space]
-    [SerializeField] private TMP_Text textThisPlayerNickname;
+    [SerializeField] private TMP_Text textSenderNickname;
 
     [Space]
-    [SerializeField] private TMP_Text textOtherPlayerNickname;
+    [SerializeField] private TMP_Text textReceiverNickname;
 
     #endregion
 
@@ -35,16 +36,16 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
     [Header("Controls")]
 
     [Space]
-    [SerializeField] private Button buttonOffer;
+    [SerializeField] private Button buttonSendOffer;
 
     [Space]
-    [SerializeField] private Button buttonCancel;
+    [SerializeField] private Button buttonCancelOffer;
 
     [Space]
-    [SerializeField] private TMP_InputField textBoxThisOffer;
+    [SerializeField] private TMP_InputField textBoxSenderOffer;
 
     [Space]
-    [SerializeField] private TMP_InputField textBoxOtherOffer;
+    [SerializeField] private TMP_InputField textBoxReceiverOffer;
 
     #endregion
 
@@ -58,59 +59,79 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
 
     private Action callback;
 
+    private int senderOffer;
+
+    private int receiverOffer;
+
+    private ulong senderId 
+    {
+        get => NetworkManager.Singleton.LocalClientId;
+    }
+
+    private ulong receiverId 
+    {
+        get => GameManager.Instance.GetPlayerById(NetworkManager.Singleton.LocalClientId).PlayerTradingWith.OwnerClientId;
+    }
+
     public static PanelTradeOfferUI Instance { get; private set; }
 
-    public Sprite ThisSprite 
-    {
-        set
-        {
-            this.imageThis.sprite = value;
-            this.imageThis.gameObject.SetActive(true);
-        }
-    }
-
-    public Sprite OtherSprite 
-    {
-        set
-        {
-            this.imageOther.sprite = value;
-            this.imageOther.gameObject.SetActive(true);
-        }
-    }
-
-    public string ThisNicknameText 
-    {
-        set => this.textThisPlayerNickname.text = value;
-    }
-
-    public string OtherThisNicknameText 
-    {
-        set => this.textOtherPlayerNickname.text = value;
-    }
-
-    public int ThisOffer
+    public int SenderOffer 
     {
         get
         {
-            Debug.Log("Here");
-
-            return this.textBoxThisOffer.text.Length == 0 ? 0 : Int32.Parse(this.textBoxThisOffer.text);
+            this.senderOffer = this.textBoxSenderOffer.text.Length == 0 ? 0 : Int32.Parse(this.textBoxSenderOffer.text);
+            return this.senderOffer;
+        }
+        set
+        {
+            this.senderOffer = value;
         }
     }
 
-    public int OtherOffer
+    public int ReceiverOffer 
     {
         get
         {
-            Debug.Log("Here");
-
-            return this.textBoxOtherOffer.text.Length == 0 ? 0 : Int32.Parse(this.textBoxOtherOffer.text);
+            this.receiverOffer = this.textBoxReceiverOffer.text.Length == 0 ? 0 : Int32.Parse(this.textBoxReceiverOffer.text);
+            return this.receiverOffer;
+        }
+        set
+        {
+            this.receiverOffer = value;
         }
     }
 
-    public int ThisNodeIndex { get; set; }
+    public Sprite SenderSprite 
+    {
+        set
+        {
+            this.imageSender.sprite = value;
+            this.imageSender.gameObject.SetActive(true);
+        }
+    }
 
-    public int OtherNodeIndex { get; set; }
+    public Sprite ReceiverSprite 
+    {
+        set
+        {
+            this.imageReceiver.sprite = value;
+            this.imageReceiver.gameObject.SetActive(true);
+        }
+    }
+
+    public string SenderNicknameText 
+    {
+        set => this.textSenderNickname.text = value;
+    }
+
+    public string ReceiverNicknameText 
+    {
+        set => this.textReceiverNickname.text = value;
+    }
+
+    public int SenderNodeIndex { get; set; }
+
+    public int ReceiverNodeIndex { get; set; }
 
     public DialogResult TradeOfferDialogResult { get; private set; }
 
@@ -126,27 +147,18 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
 
     private void OnEnable()
     {
-        this.buttonOffer.onClick.AddListener(this.HandleButtonOfferClicked);
-        this.buttonCancel.onClick.AddListener(this.HandleButtonCancelClicked);
+        this.buttonSendOffer.onClick.AddListener(this.HandleButtonSendOfferClicked);
+        this.buttonCancelOffer.onClick.AddListener(this.HandleButtonCancelOfferClicked);
     }
 
     private void OnDisable()
     {
-        this.buttonOffer.onClick.RemoveListener(this.HandleButtonOfferClicked);
-        this.buttonCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
+        this.buttonSendOffer.onClick.RemoveListener(this.HandleButtonSendOfferClicked);
+        this.buttonCancelOffer.onClick.RemoveListener(this.HandleButtonCancelOfferClicked);
     }
 
     public void Show(Action actionCallback)
     {
-        this.textBoxThisOffer.text = String.Empty;
-        this.textBoxOtherOffer.text = String.Empty;
-
-        this.imageThis.sprite = null;
-        this.imageOther.sprite = null;
-
-        this.imageThis.gameObject.SetActive(false);
-        this.imageOther.gameObject.SetActive(false);
-
         this.callback = actionCallback;
 
         this.panel.gameObject.SetActive(true);
@@ -154,31 +166,69 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
 
     public void Hide()
     {
+        this.SenderNodeIndex = -1;
+        this.ReceiverNodeIndex = -1;
+
+        this.imageSender.sprite = null;
+        this.imageReceiver.sprite = null;
+
+        this.textBoxSenderOffer.text = String.Empty;
+        this.textBoxReceiverOffer.text = String.Empty;
+
+        this.textSenderNickname.text = String.Empty;
+        this.textReceiverNickname.text = String.Empty;
+
+        this.imageSender.gameObject.SetActive(false);
+        this.imageReceiver.gameObject.SetActive(false);
+
         this.callback = null;
-
-        this.ThisNodeIndex = -1;
-        this.OtherNodeIndex = -1;
-
-        this.imageThis.sprite = null;
-        this.imageOther.sprite = null;
-
-        this.textBoxThisOffer.text = String.Empty;
-        this.textBoxOtherOffer.text = String.Empty;
-
-        this.textThisPlayerNickname.text = String.Empty;
-        this.textOtherPlayerNickname.text = String.Empty;
 
         this.panel.gameObject.SetActive(false);
     }
 
-    private void HandleButtonOfferClicked()
+    public TradeCredentials GetTradeCredentials()
+    {
+        if (this.SenderOffer > GameManager.Instance.GetPlayerById(this.senderId).Balance.Value)
+        {
+            this.SenderOffer = GameManager.Instance.GetPlayerById(this.senderId).Balance.Value;
+        }
+        else if (this.SenderOffer < 0)
+        {
+            this.SenderOffer = 0;
+        }
+
+        if (this.ReceiverOffer > GameManager.Instance.GetPlayerById(this.receiverId).Balance.Value)
+        {
+            this.ReceiverOffer = GameManager.Instance.GetPlayerById(this.receiverId).Balance.Value;
+        }
+        else if (this.ReceiverOffer < 0)
+        {
+            this.ReceiverOffer = 0;
+        }
+
+        TradeCredentials tradeCredentials = new TradeCredentials()
+        {
+            SenderNodeIndex = this.SenderNodeIndex,
+            ReceiverNodeIndex = this.ReceiverNodeIndex,
+
+            SenderOffer = this.SenderOffer,
+            ReceiverOffer = this.ReceiverOffer,
+
+            SenderId = this.senderId,
+            ReceiverId = GameManager.Instance.GetPlayerById(this.receiverId).OwnerClientId
+        };
+
+        return tradeCredentials;
+    }
+
+    private void HandleButtonSendOfferClicked()
     {
         this.TradeOfferDialogResult = PanelTradeOfferUI.DialogResult.Offer;
 
         this.callback?.Invoke();
     }
 
-    private void HandleButtonCancelClicked()
+    private void HandleButtonCancelOfferClicked()
     {
         this.TradeOfferDialogResult = PanelTradeOfferUI.DialogResult.Cancel;
 
@@ -187,15 +237,15 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.pointerCurrentRaycast.gameObject == this.imageThis.gameObject)
+        if (eventData.pointerCurrentRaycast.gameObject == this.imageSender.gameObject)
         {
-            this.ThisNodeIndex = -1;
-            this.imageThis.gameObject.SetActive(false);
+            this.SenderNodeIndex = -1;
+            this.imageSender.gameObject.SetActive(false);
         }
-        else if (eventData.pointerCurrentRaycast.gameObject == this.imageOther.gameObject)
+        else if (eventData.pointerCurrentRaycast.gameObject == this.imageReceiver.gameObject)
         {
-            this.OtherNodeIndex = -1;
-            this.imageOther.gameObject.SetActive(false);
+            this.ReceiverNodeIndex = -1;
+            this.imageReceiver.gameObject.SetActive(false);
         }
     }
 }

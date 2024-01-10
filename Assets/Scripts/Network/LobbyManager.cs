@@ -12,7 +12,7 @@ internal sealed class LobbyManager : MonoBehaviour
 {
     private const float LOBBY_UPTIME = 25.0f;
 
-    public const int MIN_PLAYERS = 1;
+    public const int MIN_PLAYERS = 2;
 
     public const int MAX_PLAYERS = 5;
 

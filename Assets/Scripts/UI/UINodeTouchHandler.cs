@@ -24,13 +24,13 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
 
             if (this.monopolyNode.Owner == GameManager.Instance.CurrentPlayer)
             {
-                UIManagerMonopolyGame.Instance.PanelTradeOffer.ThisSprite = this.monopolyNode.NodeSprite;
-                UIManagerMonopolyGame.Instance.PanelTradeOffer.ThisNodeIndex = MonopolyBoard.Instance[this.monopolyNode];
+                UIManagerMonopolyGame.Instance.PanelTradeOffer.SenderSprite = this.monopolyNode.NodeSprite;
+                UIManagerMonopolyGame.Instance.PanelTradeOffer.SenderNodeIndex = MonopolyBoard.Instance[this.monopolyNode];
             }
             else if (this.monopolyNode.Owner == GameManager.Instance.CurrentPlayer.PlayerTradingWith)
             {
-                UIManagerMonopolyGame.Instance.PanelTradeOffer.OtherSprite = this.monopolyNode.NodeSprite;
-                UIManagerMonopolyGame.Instance.PanelTradeOffer.OtherNodeIndex = MonopolyBoard.Instance[this.monopolyNode];
+                UIManagerMonopolyGame.Instance.PanelTradeOffer.ReceiverSprite = this.monopolyNode.NodeSprite;
+                UIManagerMonopolyGame.Instance.PanelTradeOffer.ReceiverNodeIndex = MonopolyBoard.Instance[this.monopolyNode];
             }
         }
         else

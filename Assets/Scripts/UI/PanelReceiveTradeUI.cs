@@ -13,24 +13,24 @@ public sealed class PanelReceiveTradeUI : MonoBehaviour, IActionControlUI
 
     [Space]
     [SerializeField] private RectTransform panel;
-    
-    [Space]
-    [SerializeField] private Image imageThis;
 
     [Space]
-    [SerializeField] private Image imageOther;
+    [SerializeField] private Image imageSender;
 
     [Space]
-    [SerializeField] private TMP_Text textThisOffer;
+    [SerializeField] private Image imageReceiver;
 
     [Space]
-    [SerializeField] private TMP_Text textOtherOffer;
+    [SerializeField] private TMP_Text textSenderOffer;
 
     [Space]
-    [SerializeField] private TMP_Text textThisPlayerNickname;
+    [SerializeField] private TMP_Text textReceiverOffer;
 
     [Space]
-    [SerializeField] private TMP_Text textOtherPlayerNickname;
+    [SerializeField] private TMP_Text textSenderNickname;
+
+    [Space]
+    [SerializeField] private TMP_Text textReceiverNickname;
 
     #endregion
 
@@ -57,69 +57,44 @@ public sealed class PanelReceiveTradeUI : MonoBehaviour, IActionControlUI
 
     private Action callback;
 
-    private int thisOffer;
-
-    private int otherOffer;
+    private TradeCredentials credentials;
 
     public static PanelReceiveTradeUI Instance { get; private set; }
 
-    public Sprite ThisSprite
-    {
-        set
-        {
-            this.imageThis.sprite = value;
-            this.imageThis.gameObject.SetActive(true);
-        }
-    }
-
-    public Sprite OtherSprite 
-    {
-        set
-        {
-            this.imageOther.sprite = value;
-            this.imageOther.gameObject.SetActive(true);
-        }
-    }
-
-    public string ThisNicknameText 
-    {
-        set => this.textThisPlayerNickname.text = value;
-    }
-
-    public string OtherThisNicknameText 
-    {
-        set => this.textOtherPlayerNickname.text = value;
-    }
-
-    public int ThisOffer 
-    {
+    public TradeCredentials Credentials 
+    { 
         get
         {
-            return this.thisOffer;
+            return this.credentials;
         }
         set
         {
-            this.thisOffer = value;
-            this.textThisOffer.text = value.ToString();
+            if (GameManager.Instance.GetPlayerById(value.SenderId) == null)
+            {
+                return;
+            }
+            else
+            {
+                this.textSenderNickname.text = GameManager.Instance.GetPlayerById(value.SenderId).Nickname;
+                this.textReceiverNickname.text = GameManager.Instance.GetPlayerById(value.ReceiverId).Nickname;
+            }
+
+            if (value.SenderNodeIndex != -1)
+            {
+                this.imageSender.gameObject.SetActive(true);
+                this.imageSender.sprite = MonopolyBoard.Instance[value.SenderNodeIndex].NodeSprite;
+            }
+
+            if (value.ReceiverNodeIndex != -1) 
+            {
+                this.imageReceiver.gameObject.SetActive(true);
+                this.imageReceiver.sprite = MonopolyBoard.Instance[value.ReceiverNodeIndex].NodeSprite; ;
+            }
+
+            this.textSenderOffer.text = value.SenderOffer.ToString();
+            this.textReceiverOffer.text = value.ReceiverOffer.ToString();
         }
     }
-
-    public int OtherOffer 
-    {
-        get
-        {
-            return this.otherOffer;
-        }
-        set
-        {
-            this.otherOffer = value;
-            this.textOtherOffer.text = value.ToString();
-        }
-    }
-
-    public int ThisNodeIndex { get; set; }
-
-    public int OtherNodeIndex { get; set; }
 
     public DialogResult ReceiveTradeDialogResult { get; private set; }
 
@@ -157,21 +132,6 @@ public sealed class PanelReceiveTradeUI : MonoBehaviour, IActionControlUI
         this.callback = null;
 
         this.panel.gameObject.SetActive(false);
-
-        this.thisOffer = 0;
-        this.OtherOffer = 0;
-
-        this.ThisNodeIndex = -1;
-        this.OtherNodeIndex = -1;
-
-        this.imageThis.sprite = null;
-        this.imageOther.sprite = null;
-
-        this.imageThis.gameObject.SetActive(false);
-        this.imageOther.gameObject.SetActive(false);
-
-        this.textThisPlayerNickname.text = String.Empty;
-        this.textOtherPlayerNickname.text = String.Empty;
     }
 
     private void HandleButtonAcceptClicked()
