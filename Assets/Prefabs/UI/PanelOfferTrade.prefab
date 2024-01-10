@@ -223,7 +223,7 @@ GameObject:
   - component: {fileID: 1952772617361084854}
   - component: {fileID: 6515059415257650635}
   m_Layer: 0
-  m_Name: TextBoxOtherPayment
+  m_Name: TextBoxReceiverPayment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -670,12 +670,12 @@ GameObject:
   - component: {fileID: 740772961302510308}
   - component: {fileID: 4159604279238075521}
   m_Layer: 0
-  m_Name: ImageThisProperty
+  m_Name: ImageSenderProperty
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &133739708601532906
 RectTransform:
   m_ObjectHideFlags: 0
@@ -723,7 +723,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 3db2abe491bba5d4f961ad46a9f29c58, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -744,7 +744,7 @@ GameObject:
   - component: {fileID: 8162617537062788361}
   - component: {fileID: 3079008435961399199}
   m_Layer: 0
-  m_Name: ButtonOffer
+  m_Name: ButtonSendOffer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -828,12 +828,12 @@ GameObject:
   - component: {fileID: 6026401229441293834}
   - component: {fileID: 6640105924637486941}
   m_Layer: 0
-  m_Name: ImageOtherProperty
+  m_Name: ImageReceiverProperty
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4515163489148085309
 RectTransform:
   m_ObjectHideFlags: 0
@@ -881,7 +881,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 9bd9dd682b931f54ebde8de86ddae850, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1126,14 +1126,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 6143999753208721571}
-  imagesThis: {fileID: 4159604279238075521}
-  imagesOther: {fileID: 6640105924637486941}
-  textThisPlayerNickname: {fileID: 5609096964110087895}
-  textOtherPlayerNickname: {fileID: 6530558160857969188}
-  buttonOffer: {fileID: 3079008435961399199}
-  buttonCancel: {fileID: 5929693420280533459}
-  textBoxThisOffer: {fileID: 2937015515776808760}
-  textBoxOtherOffer: {fileID: 6515059415257650635}
+  imageSender: {fileID: 4159604279238075521}
+  imageReceiver: {fileID: 6640105924637486941}
+  textSenderNickname: {fileID: 5609096964110087895}
+  textReceiverNickname: {fileID: 6530558160857969188}
+  buttonSendOffer: {fileID: 3079008435961399199}
+  buttonCancelOffer: {fileID: 5929693420280533459}
+  textBoxSenderOffer: {fileID: 2937015515776808760}
+  textBoxReceiverOffer: {fileID: 6515059415257650635}
 --- !u!1 &3309962895409849813
 GameObject:
   m_ObjectHideFlags: 0
@@ -1371,7 +1371,7 @@ GameObject:
   - component: {fileID: 4341211335170806858}
   - component: {fileID: 5609096964110087895}
   m_Layer: 0
-  m_Name: TextThisNickname
+  m_Name: TextSenderNickname
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1717,7 +1717,7 @@ GameObject:
   - component: {fileID: 2637403320694437375}
   - component: {fileID: 5929693420280533459}
   m_Layer: 0
-  m_Name: ButtonCancel
+  m_Name: ButtonCancelOffer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1801,7 +1801,7 @@ GameObject:
   - component: {fileID: 1534256926625762126}
   - component: {fileID: 2937015515776808760}
   m_Layer: 0
-  m_Name: TextBoxThisPayment
+  m_Name: TextBoxSenderPayment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1935,7 +1935,7 @@ MonoBehaviour:
   m_CaretColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
   m_CustomCaretColor: 0
   m_SelectionColor: {r: 1, g: 1, b: 1, a: 0}
-  m_Text: 1213131
+  m_Text: 
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
@@ -2238,7 +2238,7 @@ GameObject:
   - component: {fileID: 1802233281616794669}
   - component: {fileID: 6530558160857969188}
   m_Layer: 0
-  m_Name: TextOtherNickname
+  m_Name: TextReceiverNickname
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2502,7 +2502,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "1213131\u200B"
+  m_text: "\u200B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

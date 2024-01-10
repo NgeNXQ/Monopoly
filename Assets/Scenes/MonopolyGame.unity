@@ -5118,7 +5118,7 @@ PrefabInstance:
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: spriteLogo
       value: 
-      objectReference: {fileID: 21300000, guid: 93efce6b10e9e5a4781cf4d4526718b0, type: 3}
+      objectReference: {fileID: 21300000, guid: aed75f454a74c074d93558ced1104ec9, type: 3}
     - target: {fileID: -5928487063108403412, guid: 387e89809afb2564cb970be5d478b37c, type: 3}
       propertyPath: priceUpgrade
       value: 1000
@@ -7437,25 +7437,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6758341332512467324}
     m_Modifications:
-    - target: {fileID: 1526175388765419657, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1897448350655328204, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2346584400940041984, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2922270011367035247, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
       propertyPath: m_Name
       value: PanelOfferTrade
-      objectReference: {fileID: 0}
-    - target: {fileID: 4159604279238075521, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_Sprite
-      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 4216315094943044256, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7497,45 +7481,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5951397628056676910, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: imageThis
-      value: 
-      objectReference: {fileID: 1567326856871900538}
-    - target: {fileID: 5951397628056676910, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: imageOther
-      value: 
-      objectReference: {fileID: 1567326856871900537}
-    - target: {fileID: 6640105924637486941, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
---- !u!114 &1567326856871900537 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6640105924637486941, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-  m_PrefabInstance: {fileID: 1567326856871900536}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1567326856871900538 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4159604279238075521, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-  m_PrefabInstance: {fileID: 1567326856871900536}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1643082196373713651
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7807,17 +7757,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6758341332512467324}
     m_Modifications:
-    - target: {fileID: 111422858048357475, guid: eacff3e70c5ff3247898416e1cba772d, type: 3}
-      propertyPath: m_text
-      value: "\u0412\u0456\u0434\u043C\u043E\u0432\u0438\u0442\u0438\u0441\u044F"
-      objectReference: {fileID: 0}
     - target: {fileID: 899157556298306861, guid: eacff3e70c5ff3247898416e1cba772d, type: 3}
       propertyPath: m_Name
       value: PanelReceiveTrade
-      objectReference: {fileID: 0}
-    - target: {fileID: 3234857745192745725, guid: eacff3e70c5ff3247898416e1cba772d, type: 3}
-      propertyPath: m_text
-      value: "\u041F\u0440\u0438\u0439\u043D\u044F\u0442\u0438"
       objectReference: {fileID: 0}
     - target: {fileID: 5830390819797768335, guid: eacff3e70c5ff3247898416e1cba772d, type: 3}
       propertyPath: m_LocalPosition.x

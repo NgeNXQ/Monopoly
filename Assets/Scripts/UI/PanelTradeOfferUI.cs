@@ -159,13 +159,6 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
 
     public void Show(Action actionCallback)
     {
-        this.callback = actionCallback;
-
-        this.panel.gameObject.SetActive(true);
-    }
-
-    public void Hide()
-    {
         this.SenderNodeIndex = -1;
         this.ReceiverNodeIndex = -1;
 
@@ -175,13 +168,20 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
         this.textBoxSenderOffer.text = String.Empty;
         this.textBoxReceiverOffer.text = String.Empty;
 
-        this.textSenderNickname.text = String.Empty;
-        this.textReceiverNickname.text = String.Empty;
-
         this.imageSender.gameObject.SetActive(false);
         this.imageReceiver.gameObject.SetActive(false);
 
+        this.callback = actionCallback;
+
+        this.panel.gameObject.SetActive(true);
+    }
+
+    public void Hide()
+    {
         this.callback = null;
+
+        this.textSenderNickname.text = String.Empty;
+        this.textReceiverNickname.text = String.Empty;
 
         this.panel.gameObject.SetActive(false);
     }
@@ -190,20 +190,20 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
     {
         if (this.SenderOffer > GameManager.Instance.GetPlayerById(this.senderId).Balance.Value)
         {
-            this.SenderOffer = GameManager.Instance.GetPlayerById(this.senderId).Balance.Value;
+            this.senderOffer = GameManager.Instance.GetPlayerById(this.senderId).Balance.Value;
         }
         else if (this.SenderOffer < 0)
         {
-            this.SenderOffer = 0;
+            this.senderOffer = 0;
         }
 
         if (this.ReceiverOffer > GameManager.Instance.GetPlayerById(this.receiverId).Balance.Value)
         {
-            this.ReceiverOffer = GameManager.Instance.GetPlayerById(this.receiverId).Balance.Value;
+            this.receiverOffer = GameManager.Instance.GetPlayerById(this.receiverId).Balance.Value;
         }
         else if (this.ReceiverOffer < 0)
         {
-            this.ReceiverOffer = 0;
+            this.receiverOffer = 0;
         }
 
         TradeCredentials tradeCredentials = new TradeCredentials()
@@ -211,8 +211,8 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
             SenderNodeIndex = this.SenderNodeIndex,
             ReceiverNodeIndex = this.ReceiverNodeIndex,
 
-            SenderOffer = this.SenderOffer,
-            ReceiverOffer = this.ReceiverOffer,
+            SenderOffer = this.senderOffer,
+            ReceiverOffer = this.receiverOffer,
 
             SenderId = this.senderId,
             ReceiverId = GameManager.Instance.GetPlayerById(this.receiverId).OwnerClientId

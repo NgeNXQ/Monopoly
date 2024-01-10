@@ -1,0 +1,5 @@
+E:/UnityProjects/Monopoly/.utmp/RelWithDebInfo/2v4kb4s3/armeabi-v7a/CMakeFiles/edit_cache.dir
+E:/UnityProjects/Monopoly/.utmp/RelWithDebInfo/2v4kb4s3/armeabi-v7a/CMakeFiles/rebuild_cache.dir
+E:/UnityProjects/Monopoly/.utmp/RelWithDebInfo/2v4kb4s3/armeabi-v7a/FramePacing/CMakeFiles/swappywrapper.dir
+E:/UnityProjects/Monopoly/.utmp/RelWithDebInfo/2v4kb4s3/armeabi-v7a/FramePacing/CMakeFiles/edit_cache.dir
+E:/UnityProjects/Monopoly/.utmp/RelWithDebInfo/2v4kb4s3/armeabi-v7a/FramePacing/CMakeFiles/rebuild_cache.dir

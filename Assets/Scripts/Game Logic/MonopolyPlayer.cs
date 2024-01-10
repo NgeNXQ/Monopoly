@@ -578,7 +578,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (UIManagerMonopolyGame.Instance.PanelReceiveTrade.ReceiveTradeDialogResult == PanelReceiveTradeUI.DialogResult.Accept)
         {
-            this.AceeptTradeServerRpc(UIManagerMonopolyGame.Instance.PanelReceiveTrade.Credentials, GameManager.Instance.ServerParamsCurrentClient);
+            this.AcceptTradeServerRpc(UIManagerMonopolyGame.Instance.PanelReceiveTrade.Credentials, GameManager.Instance.ServerParamsCurrentClient);
         }
         else
         {
@@ -633,7 +633,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     }
 
     [ServerRpc]
-    private void AceeptTradeServerRpc(TradeCredentials tradeCredentials, ServerRpcParams serverRpcParams)
+    private void AcceptTradeServerRpc(TradeCredentials tradeCredentials, ServerRpcParams serverRpcParams)
     {
         MonopolyPlayer sender = GameManager.Instance.GetPlayerById(tradeCredentials.SenderId);
         MonopolyPlayer receiver = GameManager.Instance.GetPlayerById(tradeCredentials.ReceiverId);
@@ -645,22 +645,24 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (tradeCredentials.SenderNodeIndex != -1)
         {
-            MonopolyBoard.Instance[tradeCredentials.ReceiverNodeIndex].UpdateOwnership(tradeCredentials.ReceiverId);
+            MonopolyBoard.Instance[tradeCredentials.ReceiverNodeIndex].UpdateOwnership(tradeCredentials.SenderId);
         }
 
         if (tradeCredentials.ReceiverNodeIndex != -1)
         {
-            MonopolyBoard.Instance[tradeCredentials.SenderNodeIndex].UpdateOwnership(tradeCredentials.SenderId);
+            MonopolyBoard.Instance[tradeCredentials.SenderNodeIndex].UpdateOwnership(tradeCredentials.ReceiverId);
         }
 
         if (tradeCredentials.SenderOffer != 0)
         {
             sender.SendBalanceServerRpc(tradeCredentials.SenderOffer, receiver.OwnerClientId, GameManager.Instance.ServerParamsCurrentClient);
+            GameManager.Instance.GetPlayerById(tradeCredentials.SenderId).PayChargeClientRpc(tradeCredentials.SenderOffer, GameManager.Instance.GetRedirectionRpc(tradeCredentials.SenderId));
         }
 
         if (tradeCredentials.ReceiverOffer != 0)
         {
-            receiver.SendBalanceServerRpc(tradeCredentials.ReceiverOffer, sender.OwnerClientId, GameManager.Instance.ServerParamsCurrentClient);
+            sender.SendBalanceServerRpc(tradeCredentials.ReceiverOffer, sender.OwnerClientId, GameManager.Instance.ServerParamsCurrentClient);
+            GameManager.Instance.GetPlayerById(tradeCredentials.ReceiverId).PayChargeClientRpc(tradeCredentials.ReceiverOffer, GameManager.Instance.GetRedirectionRpc(tradeCredentials.ReceiverId));
         }
 
         this.CallbackTradeResponseClientRpc(true, GameManager.Instance.ClientParamsCurrentClient);
@@ -673,6 +675,12 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     private void HandleBalanceChanged(int previousValue, int newValue)
     {
         this.OnBalanceUpdated?.Invoke();
+    }
+
+    [ClientRpc]
+    private void PayChargeClientRpc(int amount, ClientRpcParams clientRpcParams)
+    {
+        this.Balance.Value -= amount;
     }
 
     [ServerRpc(RequireOwnership = false)]

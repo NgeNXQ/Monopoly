@@ -69,6 +69,8 @@ public sealed class PanelReceiveTradeUI : MonoBehaviour, IActionControlUI
         }
         set
         {
+            this.credentials = value;
+
             if (GameManager.Instance.GetPlayerById(value.SenderId) == null)
             {
                 return;
@@ -129,6 +131,18 @@ public sealed class PanelReceiveTradeUI : MonoBehaviour, IActionControlUI
 
     public void Hide()
     {
+        this.textSenderNickname.text = String.Empty;
+        this.textReceiverNickname.text = String.Empty;
+
+        this.imageSender.sprite = null;
+        this.imageSender.gameObject.SetActive(false);
+
+        this.imageReceiver.sprite = null;
+        this.imageReceiver.gameObject.SetActive(false);
+
+        this.textSenderOffer.text = String.Empty;
+        this.textReceiverOffer.text = String.Empty;
+
         this.callback = null;
 
         this.panel.gameObject.SetActive(false);
