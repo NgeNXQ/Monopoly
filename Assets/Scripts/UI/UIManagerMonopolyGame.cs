@@ -315,6 +315,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     {
         TradeCredentials tradeCredentials = this.PanelTradeOffer.GetTradeCredentials();
 
+        if (GameManager.Instance.GetPlayerById(tradeCredentials.ReceiverId) == null)
+        {
+            this.ShowButtonRollDice();
+        }
+
         if ((tradeCredentials.SenderOffer == 0 && tradeCredentials.ReceiverOffer == 0) && (tradeCredentials.SenderNodeIndex == -1 && tradeCredentials.ReceiverNodeIndex == -1))
         {
             this.HideTradeOffer();

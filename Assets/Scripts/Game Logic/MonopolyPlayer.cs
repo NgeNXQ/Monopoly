@@ -257,6 +257,16 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     public void Surrender()
     {
+        this.DeclineTradeServerRpc(GameManager.Instance.ServerParamsCurrentClient);
+
+        UIManagerMonopolyGame.Instance.HidePaymentProperty();
+        UIManagerMonopolyGame.Instance.HideButtonRollDice();
+        UIManagerMonopolyGame.Instance.HidePaymentChance();
+        UIManagerMonopolyGame.Instance.HideMonopolyNode();
+        UIManagerMonopolyGame.Instance.HideReceiveTrade();
+        UIManagerMonopolyGame.Instance.HideTradeOffer();
+        UIManagerMonopolyGame.Instance.HideOffer();
+
         foreach (MonopolyNode node in this.OwnedNodes)
         {
             node.ResetOwnership();
@@ -444,7 +454,6 @@ public sealed class MonopolyPlayer : NetworkBehaviour
                 UIManagerMonopolyGame.Instance.HideOffer();
 
                 this.OwnedNodes.Add(this.CurrentNode);
-                this.UpdateOwnedNodesServerRpc(MonopolyBoard.Instance[this.CurrentNode], GameManager.Instance.ServerParamsCurrentClient);
 
                 this.CurrentNode.UpdateOwnership(NetworkManager.Singleton.LocalClientId);
                 this.Balance.Value -= this.CurrentNode.PricePurchase;
@@ -463,16 +472,28 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    private void UpdateOwnedNodesServerRpc(int monopolyNodeIndex, ServerRpcParams serverRpcParams)
+    [ClientRpc]
+    private void AddNodeClientRpc(int monopolyNodeIndex, ClientRpcParams clientRpcParams)
     {
-        this.UpdateOwnedNodesClientRpc(serverRpcParams.Receive.SenderClientId, monopolyNodeIndex, GameManager.Instance.ClientParamsHostOtherClients);
+        this.OwnedNodes.Add(MonopolyBoard.Instance[monopolyNodeIndex]);
     }
 
     [ClientRpc]
-    private void UpdateOwnedNodesClientRpc(ulong clientId, int monopolyNodeIndex, ClientRpcParams serverRpcParams)
+    private void RemoveNodeClientRpc(int monopolyNodeIndex, ClientRpcParams clientRpcParams)
     {
-        GameManager.Instance.GetPlayerById(clientId).OwnedNodes.Add(MonopolyBoard.Instance[monopolyNodeIndex]);
+        this.OwnedNodes.Remove(MonopolyBoard.Instance[monopolyNodeIndex]);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void AddNodeServerRpc(int monopolyNodeIndex, ulong ownerdId, ServerRpcParams serverRpcParams)
+    {
+        this.AddNodeClientRpc(monopolyNodeIndex, GameManager.Instance.GetRedirectionRpc(ownerdId));
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void RemoveNodeServerRpc(int monopolyNodeIndex, ulong ownerdId, ServerRpcParams serverRpcParams)
+    {
+        this.RemoveNodeClientRpc(monopolyNodeIndex, GameManager.Instance.GetRedirectionRpc(ownerdId));
     }
 
     #endregion
@@ -618,6 +639,11 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     [ClientRpc]
     private void CallbackTradeResponseClientRpc(bool result, ClientRpcParams clientRpcParams)
     {
+        if (!GameManager.Instance.CurrentPlayer.IsTrading)
+        {
+            return;
+        }
+
         GameManager.Instance.CurrentPlayer.IsTrading = false;
 
         if (result)
@@ -645,12 +671,16 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (tradeCredentials.SenderNodeIndex != -1)
         {
-            MonopolyBoard.Instance[tradeCredentials.ReceiverNodeIndex].UpdateOwnership(tradeCredentials.SenderId);
+            MonopolyBoard.Instance[tradeCredentials.SenderNodeIndex].UpdateOwnership(tradeCredentials.ReceiverId);
+            receiver.AddNodeServerRpc(tradeCredentials.SenderNodeIndex, tradeCredentials.ReceiverId, GameManager.Instance.ServerParamsCurrentClient);
+            sender.RemoveNodeServerRpc(tradeCredentials.SenderNodeIndex, tradeCredentials.SenderId, GameManager.Instance.ServerParamsCurrentClient);
         }
 
         if (tradeCredentials.ReceiverNodeIndex != -1)
         {
-            MonopolyBoard.Instance[tradeCredentials.SenderNodeIndex].UpdateOwnership(tradeCredentials.ReceiverId);
+            MonopolyBoard.Instance[tradeCredentials.ReceiverNodeIndex].UpdateOwnership(tradeCredentials.SenderId);
+            sender.AddNodeServerRpc(tradeCredentials.ReceiverNodeIndex, tradeCredentials.SenderId, GameManager.Instance.ServerParamsCurrentClient);
+            receiver.RemoveNodeServerRpc(tradeCredentials.ReceiverNodeIndex, tradeCredentials.ReceiverId, GameManager.Instance.ServerParamsCurrentClient);
         }
 
         if (tradeCredentials.SenderOffer != 0)

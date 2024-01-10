@@ -107,7 +107,21 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public bool IsTradable 
     {
-        get => this.LocalLevel == 1;
+        get
+        {
+            if (this.NodeType == MonopolyNode.Type.Transport || this.NodeType == MonopolyNode.Type.Gambling)
+            {
+                return true;
+            }
+            else if (this.LocalLevel == 1)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
     public bool IsUpgradable 

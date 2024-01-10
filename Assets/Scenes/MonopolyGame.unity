@@ -7441,6 +7441,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: PanelOfferTrade
       objectReference: {fileID: 0}
+    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_HideMobileInput
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_HideSoftKeyboard
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_OnFocusSelectAll
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_ResetOnDeActivation
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4216315094943044256, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -7480,6 +7496,26 @@ PrefabInstance:
     - target: {fileID: 4216315094943044256, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_HideMobileInput
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_HideSoftKeyboard
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_OnFocusSelectAll
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_ResetOnDeActivation
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
+      propertyPath: m_ShouldActivateOnSelect
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
