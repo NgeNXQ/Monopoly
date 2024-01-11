@@ -317,14 +317,20 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
         if (GameManager.Instance.GetPlayerById(tradeCredentials.ReceiverId) == null)
         {
-            this.ShowButtonRollDice();
+            if (!GameManager.Instance.CurrentPlayer.HasRolled)
+            {
+                this.ShowButtonRollDice();
+            }
         }
 
         if ((tradeCredentials.SenderOffer == 0 && tradeCredentials.ReceiverOffer == 0) && (tradeCredentials.SenderNodeIndex == -1 && tradeCredentials.ReceiverNodeIndex == -1))
         {
             this.HideTradeOffer();
 
-            this.ShowButtonRollDice();
+            if (!GameManager.Instance.CurrentPlayer.HasRolled)
+            {
+                this.ShowButtonRollDice();
+            }
 
             GameManager.Instance.CurrentPlayer.IsTrading = false;
 
@@ -334,7 +340,23 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         {
             this.HideTradeOffer();
 
-            this.ShowButtonRollDice();
+            if (!GameManager.Instance.CurrentPlayer.HasRolled)
+            {
+                this.ShowButtonRollDice();
+            }
+
+            GameManager.Instance.CurrentPlayer.IsTrading = false;
+
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageWrongTradeCredentials, PanelMessageBoxUI.Icon.Warning);
+        }
+        else if ((tradeCredentials.SenderOffer != 0 || tradeCredentials.ReceiverOffer != 0) && (tradeCredentials.SenderNodeIndex == -1 && tradeCredentials.ReceiverNodeIndex == -1))
+        {
+            this.HideTradeOffer();
+
+            if (!GameManager.Instance.CurrentPlayer.HasRolled)
+            {
+                this.ShowButtonRollDice();
+            }
 
             GameManager.Instance.CurrentPlayer.IsTrading = false;
 
@@ -342,6 +364,9 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         }
         else
         {
+            this.HideMonopolyNode();
+            this.HideTradeOffer();
+
             this.SendTradeOfferServerRpc(tradeCredentials, GameManager.Instance.ServerParamsCurrentClient);
         }
     }

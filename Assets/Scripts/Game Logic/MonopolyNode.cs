@@ -83,7 +83,14 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            return this.LocalLevel == 0 ? this.pricePurchase : this.priceUpgrade;
+            if (this.NodeType == MonopolyNode.Type.Property)
+            {
+                return this.LocalLevel == 0 ? this.pricePurchase : this.priceUpgrade;
+            }
+            else
+            {
+                return this.pricePurchase;
+            }
         }
     }
 
@@ -96,7 +103,14 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            return this.LocalLevel == 1 ? this.pricePurchase : this.priceUpgrade;
+            if (this.NodeType == MonopolyNode.Type.Property)
+            {
+                return this.LocalLevel == 1 ? this.pricePurchase : this.priceUpgrade;
+            }
+            else
+            {
+                return this.pricePurchase;
+            }
         }
     }
     
@@ -109,13 +123,13 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            if (this.NodeType == MonopolyNode.Type.Transport || this.NodeType == MonopolyNode.Type.Gambling)
+            if (this.NodeType == MonopolyNode.Type.Property)
             {
-                return true;
+                return this.LocalLevel == MonopolyNode.LEVEL_OWNERSHIP ? true : false;
             }
-            else if (this.LocalLevel == 1)
+            else if (this.NodeType == MonopolyNode.Type.Transport || this.NodeType == MonopolyNode.Type.Gambling)
             {
-                return true;
+                return this.LocalLevel > MonopolyNode.LEVEL_MORTGAGE ? true : false;
             }
             else
             {
@@ -128,8 +142,26 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.LocalLevel >= this.LocalLevel);
-            return (isEquallySpread && this.LocalLevel < MonopolyNode.PROPERTY_MAX_LEVEL) || this.IsMortgaged;
+            if (this.NodeType == MonopolyNode.Type.Property)
+            {
+                bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.LocalLevel >= this.LocalLevel);
+                return (isEquallySpread && this.LocalLevel < MonopolyNode.PROPERTY_MAX_LEVEL) || this.IsMortgaged;
+            }
+            else if (this.NodeType == MonopolyNode.Type.Transport || this.NodeType == MonopolyNode.Type.Gambling)
+            {
+                if (this.LocalLevel == MonopolyNode.LEVEL_MORTGAGE)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 
@@ -137,8 +169,19 @@ public sealed class MonopolyNode : NetworkBehaviour
     {
         get
         {
-            bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.LocalLevel <= this.LocalLevel);
-            return isEquallySpread && this.LocalLevel > MonopolyNode.PROPERTY_MIN_LEVEL;
+            if (this.NodeType == MonopolyNode.Type.Property)
+            {
+                bool isEquallySpread = this.AffiliatedMonopoly.NodesInSet.All(node => node.LocalLevel <= this.LocalLevel);
+                return isEquallySpread && this.LocalLevel > MonopolyNode.PROPERTY_MIN_LEVEL;
+            }
+            else if (this.NodeType == MonopolyNode.Type.Gambling || this.NodeType == MonopolyNode.Type.Transport)
+            {
+                return this.LocalLevel > MonopolyNode.PROPERTY_MIN_LEVEL ? true : false;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 
@@ -147,7 +190,7 @@ public sealed class MonopolyNode : NetworkBehaviour
     public MonopolyPlayer Owner { get; private set; }
 
     public MonopolySet AffiliatedMonopoly { get; private set; }
-    
+
     private void Awake()
     {
         this.imageLogo.sprite = this.spriteLogo;
@@ -195,6 +238,8 @@ public sealed class MonopolyNode : NetworkBehaviour
             }
             else
             {
+                this.imageMortgageStatus.gameObject.SetActive(false);
+
                 this.imageOwner.gameObject.SetActive(true);
                 this.imageOwner.color = this.Owner.PlayerColor;
             }
@@ -429,30 +474,42 @@ public sealed class MonopolyNode : NetworkBehaviour
 
     public void Upgrade()
     {
-        ++this.LocalLevel;
-
         if (this.NodeType == MonopolyNode.Type.Property)
         {
+            ++this.LocalLevel;
+
             this.UpdateVisualsProperty();
+
+            this.ChangeLevelServerRpc(this.LocalLevel, GameManager.Instance.ServerParamsCurrentClient);
         }
         else
         {
-            this.UpdateVisualsSpecial();
-        }
+            this.LocalLevel = MonopolyNode.LEVEL_OWNERSHIP;
 
-        this.ChangeLevelServerRpc(this.LocalLevel, GameManager.Instance.ServerParamsCurrentClient);
+            this.UpdateVisualsSpecial();
+
+            this.ChangeLevelServerRpc(this.LocalLevel, GameManager.Instance.ServerParamsCurrentClient);
+
+            if (this.Owner.HasPartialMonopoly(this, out _))
+            {
+                this.LocalLevel = this.AffiliatedMonopoly.OwnedByPlayerCount;
+                this.ChangeLevelServerRpc(this.LocalLevel, GameManager.Instance.ServerParamsCurrentClient);
+            }
+        }
     }
 
     public void Downgrade()
     {
-        --this.LocalLevel;
-
         if (this.NodeType == MonopolyNode.Type.Property)
         {
+            --this.LocalLevel;
+
             this.UpdateVisualsProperty();
         }
         else
         {
+            this.LocalLevel = MonopolyNode.LEVEL_MORTGAGE;
+
             this.UpdateVisualsSpecial();
         }
 

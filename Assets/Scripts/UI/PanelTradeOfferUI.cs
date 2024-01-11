@@ -233,6 +233,8 @@ public sealed class PanelTradeOfferUI : MonoBehaviour, IActionControlUI, IPointe
         this.TradeOfferDialogResult = PanelTradeOfferUI.DialogResult.Cancel;
 
         this.callback?.Invoke();
+
+        this.Hide();
     }
 
     public void OnPointerClick(PointerEventData eventData)

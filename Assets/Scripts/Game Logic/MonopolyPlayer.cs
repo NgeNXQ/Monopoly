@@ -33,8 +33,10 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     public bool HasBuilt { get; private set; }
 
+    public bool HasRolled { get; private set; }
+
     public string Nickname { get; private set; }
-    
+
     public bool IsAbleToBuild { get; private set; }
 
     public bool HasCompletedTurn { get; private set; }
@@ -84,6 +86,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
         if (this.OwnerClientId == NetworkManager.Singleton?.LocalClientId)
         {
+            this.Surrender();
             UIManagerMonopolyGame.Instance.ButtonRollDiceClicked -= this.HandleButtonRollDiceClicked;
         }
     }
@@ -221,6 +224,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     {
         this.HasBuilt = false;
         this.IsTrading = false;
+        this.HasRolled = false;
         this.IsAbleToBuild = true;
         this.HasCompletedTurn = false;
         this.CurrentChanceNode = null;
@@ -353,43 +357,46 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void UpgradeProperty()
     {
-        if (this.SelectedNode.NodeType == MonopolyNode.Type.Gambling || this.SelectedNode.NodeType == MonopolyNode.Type.Transport)
+        if ((this.SelectedNode.NodeType == MonopolyNode.Type.Transport || this.SelectedNode.NodeType == MonopolyNode.Type.Gambling) && !this.SelectedNode.IsMortgaged)
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeNotProperty, PanelMessageBoxUI.Icon.Warning);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeMaxLevel, PanelMessageBoxUI.Icon.Warning);
         }
-        else if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.SelectedNode.IsMortgaged)
+        else if (this.SelectedNode.NodeType == MonopolyNode.Type.Property)
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCompleteMonopolyRequired, PanelMessageBoxUI.Icon.Warning);
-        }
-        else if (this.HasBuilt)
-        {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageAlreadyBuilt, PanelMessageBoxUI.Icon.Warning);
-        }
-        else if (!this.SelectedNode.IsUpgradable)
-        {
-            if (this.SelectedNode.LocalLevel == MonopolyNode.PROPERTY_MAX_LEVEL)
+            if (!this.HasFullMonopoly(this.SelectedNode, out _) && !this.SelectedNode.IsMortgaged)
             {
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeMaxLevel, PanelMessageBoxUI.Icon.Warning);
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCompleteMonopolyRequired, PanelMessageBoxUI.Icon.Warning);
+            }
+            else if (this.HasBuilt)
+            {
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageAlreadyBuilt, PanelMessageBoxUI.Icon.Warning);
+            }
+            else if (!this.SelectedNode.IsUpgradable)
+            {
+                if (this.SelectedNode.LocalLevel == MonopolyNode.PROPERTY_MAX_LEVEL)
+                {
+                    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeMaxLevel, PanelMessageBoxUI.Icon.Warning);
+                }
+                else
+                {
+                    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageOnlyEvenBuildingAllowed, PanelMessageBoxUI.Icon.Warning);
+                }
             }
             else
             {
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageOnlyEvenBuildingAllowed, PanelMessageBoxUI.Icon.Warning);
-            }
-        }
-        else
-        {
-            if (this.Balance.Value >= this.SelectedNode.PriceUpgrade)
-            {
-                UIManagerMonopolyGame.Instance.HideMonopolyNode();
+                if (this.Balance.Value >= this.SelectedNode.PriceUpgrade)
+                {
+                    UIManagerMonopolyGame.Instance.HideMonopolyNode();
 
-                this.Balance.Value -= this.SelectedNode.PriceUpgrade;
+                    this.Balance.Value -= this.SelectedNode.PriceUpgrade;
 
-                this.HasBuilt = true;
-                this.SelectedNode.Upgrade();
-            }
-            else
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageInsufficientFunds, PanelMessageBoxUI.Icon.Warning);
+                    this.HasBuilt = true;
+                    this.SelectedNode.Upgrade();
+                }
+                else
+                {
+                    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageInsufficientFunds, PanelMessageBoxUI.Icon.Warning);
+                }
             }
         }
     }
@@ -579,17 +586,18 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     public void CallbackTradeOffer()
     {
-        UIManagerMonopolyGame.Instance.HideTradeOffer();
-
         if (UIManagerMonopolyGame.Instance.PanelTradeOffer.TradeOfferDialogResult == PanelTradeOfferUI.DialogResult.Offer)
         {
             UIManagerMonopolyGame.Instance.SendTradeOffer();
         }
         else
         {
-            UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+            this.IsTrading = false;
 
-            GameManager.Instance.CurrentPlayer.IsTrading = false;
+            if (!this.HasRolled)
+            {
+                UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+            }
         }
     }
 
@@ -609,6 +617,15 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void HandleButtonRollDiceClicked()
     {
+        this.HasRolled = true;
+
+        UIManagerMonopolyGame.Instance.HidePaymentProperty();
+        UIManagerMonopolyGame.Instance.HidePaymentChance();
+        UIManagerMonopolyGame.Instance.HideMonopolyNode();
+        UIManagerMonopolyGame.Instance.HideReceiveTrade();
+        UIManagerMonopolyGame.Instance.HideTradeOffer();
+        UIManagerMonopolyGame.Instance.HideOffer();
+
         GameManager.Instance.RollDice();
         UIManagerMonopolyGame.Instance.ShowDiceAnimation();
 
@@ -630,8 +647,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    private void DeclineTradeServerRpc(ServerRpcParams serverRpcParams)
+    [ServerRpc(RequireOwnership = false)]
+    public void DeclineTradeServerRpc(ServerRpcParams serverRpcParams)
     {
         this.CallbackTradeResponseClientRpc(false, GameManager.Instance.ClientParamsCurrentClient);
     }
@@ -639,7 +656,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     [ClientRpc]
     private void CallbackTradeResponseClientRpc(bool result, ClientRpcParams clientRpcParams)
     {
-        if (!GameManager.Instance.CurrentPlayer.IsTrading)
+        if (GameManager.Instance.CurrentPlayer == null || !GameManager.Instance.CurrentPlayer.IsTrading)
         {
             return;
         }
@@ -655,12 +672,17 @@ public sealed class MonopolyPlayer : NetworkBehaviour
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageTradeDeclined, PanelMessageBoxUI.Icon.Warning);
         }
 
-        UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+        if (!GameManager.Instance.CurrentPlayer.HasRolled)
+        {
+            UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+        }
     }
 
     [ServerRpc]
-    private void AcceptTradeServerRpc(TradeCredentials tradeCredentials, ServerRpcParams serverRpcParams)
+    public void AcceptTradeServerRpc(TradeCredentials tradeCredentials, ServerRpcParams serverRpcParams)
     {
+        UIManagerMonopolyGame.Instance.HideMonopolyNode();
+
         MonopolyPlayer sender = GameManager.Instance.GetPlayerById(tradeCredentials.SenderId);
         MonopolyPlayer receiver = GameManager.Instance.GetPlayerById(tradeCredentials.ReceiverId);
 

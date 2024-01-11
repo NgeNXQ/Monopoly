@@ -259,32 +259,42 @@ internal sealed class GameManager : NetworkBehaviour
     {
         bool hasCurrentLeft = false;
 
-        int surrenderedPlayerIndex = this.players.IndexOf(this.players.Where(player => player.OwnerClientId == surrenderedClientId).First());
-
-        if (this.CurrentPlayer == this.players[surrenderedPlayerIndex])
+        if (this.players.Any(player => player.OwnerClientId == surrenderedClientId))
         {
-            hasCurrentLeft = true;
-        }
+            int surrenderedPlayerIndex = this.players.IndexOf(this.players.Where(player => player.OwnerClientId == surrenderedClientId).First());
 
-        this.players.RemoveAt(surrenderedPlayerIndex);
-        this.targetHostOtherClients.RemoveAt(surrenderedPlayerIndex);
-        this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != surrenderedClientId).ToArray();
-        this.targetHostOtherClients = this.targetHostOtherClients.Select(array => array.Where(id => id != surrenderedClientId).ToArray()).ToList();
-
-        if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton.LocalClientId && NetworkManager.Singleton.IsConnectedClient)
-        {
-            UIManagerMonopolyGame.Instance.HideButtonRollDice();
-            UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy);
-        }
-        else
-        {
-            if (hasCurrentLeft)
+            if (this.CurrentPlayer == this.players[surrenderedPlayerIndex])
             {
-                this.SwitchPlayerForcefullyServerRpc(this.ServerParamsCurrentClient);
+                hasCurrentLeft = true;
             }
 
-            this.RemovePlayerClientRpc(surrenderedClientId, this.ClientParamsClientOtherClients);
+            this.players.RemoveAt(surrenderedPlayerIndex);
+            this.targetHostOtherClients.RemoveAt(surrenderedPlayerIndex);
+            this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != surrenderedClientId).ToArray();
+            this.targetHostOtherClients = this.targetHostOtherClients.Select(array => array.Where(id => id != surrenderedClientId).ToArray()).ToList();
+
+            if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton.LocalClientId && NetworkManager.Singleton.IsConnectedClient)
+            {
+                UIManagerMonopolyGame.Instance.HidePaymentProperty();
+                UIManagerMonopolyGame.Instance.HideButtonRollDice();
+                UIManagerMonopolyGame.Instance.HidePaymentChance();
+                UIManagerMonopolyGame.Instance.HideMonopolyNode();
+                UIManagerMonopolyGame.Instance.HideReceiveTrade();
+                UIManagerMonopolyGame.Instance.HideTradeOffer();
+                UIManagerMonopolyGame.Instance.HideOffer();
+
+                UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy);
+            }
+            else
+            {
+                if (hasCurrentLeft)
+                {
+                    this.SwitchPlayerForcefullyServerRpc(this.ServerParamsCurrentClient);
+                }
+
+                this.RemovePlayerClientRpc(surrenderedClientId, this.ClientParamsClientOtherClients);
+            }
         }
     }
 
@@ -296,7 +306,14 @@ internal sealed class GameManager : NetworkBehaviour
 
         if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton.LocalClientId)
         {
+            UIManagerMonopolyGame.Instance.HidePaymentProperty();
             UIManagerMonopolyGame.Instance.HideButtonRollDice();
+            UIManagerMonopolyGame.Instance.HidePaymentChance();
+            UIManagerMonopolyGame.Instance.HideMonopolyNode();
+            UIManagerMonopolyGame.Instance.HideReceiveTrade();
+            UIManagerMonopolyGame.Instance.HideTradeOffer();
+            UIManagerMonopolyGame.Instance.HideOffer();
+
             UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy);
         }

@@ -100,9 +100,10 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
             {
                 UIManagerMonopolyGame.Instance.HideButtonRollDice();
 
+                GameManager.Instance.CurrentPlayer.IsTrading = true;
+
                 GameManager.Instance.CurrentPlayer.PlayerTradingWith = this.associatedPlayer;
 
-                GameManager.Instance.CurrentPlayer.IsTrading = true;
                 UIManagerMonopolyGame.Instance.ShowTradeOffer(GameManager.Instance.CurrentPlayer.Nickname, this.associatedPlayer.Nickname, GameManager.Instance.CurrentPlayer.CallbackTradeOffer);
             }
         }
