@@ -288,12 +288,12 @@ internal sealed class GameManager : NetworkBehaviour
             }
             else
             {
+                this.RemovePlayerClientRpc(surrenderedClientId, this.ClientParamsClientOtherClients);
+
                 if (hasCurrentLeft)
                 {
                     this.SwitchPlayerForcefullyServerRpc(this.ServerParamsCurrentClient);
                 }
-
-                this.RemovePlayerClientRpc(surrenderedClientId, this.ClientParamsClientOtherClients);
             }
         }
     }

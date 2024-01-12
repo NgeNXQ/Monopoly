@@ -357,9 +357,28 @@ public sealed class MonopolyPlayer : NetworkBehaviour
 
     private void UpgradeProperty()
     {
-        if ((this.SelectedNode.NodeType == MonopolyNode.Type.Transport || this.SelectedNode.NodeType == MonopolyNode.Type.Gambling) && !this.SelectedNode.IsMortgaged)
+        if (this.SelectedNode.NodeType == MonopolyNode.Type.Transport || this.SelectedNode.NodeType == MonopolyNode.Type.Gambling)
         {
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeMaxLevel, PanelMessageBoxUI.Icon.Warning);
+            if (!this.SelectedNode.IsMortgaged)
+            {
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageCannotUpgradeMaxLevel, PanelMessageBoxUI.Icon.Warning);
+            }
+            else
+            {
+                if (this.Balance.Value >= this.SelectedNode.PriceUpgrade)
+                {
+                    UIManagerMonopolyGame.Instance.HideMonopolyNode();
+
+                    this.Balance.Value -= this.SelectedNode.PriceUpgrade;
+
+                    this.HasBuilt = true;
+                    this.SelectedNode.Upgrade();
+                }
+                else
+                {
+                    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageInsufficientFunds, PanelMessageBoxUI.Icon.Warning);
+                }
+            }
         }
         else if (this.SelectedNode.NodeType == MonopolyNode.Type.Property)
         {
