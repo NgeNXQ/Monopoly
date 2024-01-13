@@ -1,0 +1,2 @@
+# Monopoly
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f2a05be5947943dcae3d602fffe53e8f)](https://app.codacy.com/gh/NgeNXQ/Monopoly?utm_source=github.com&utm_medium=referral&utm_content=NgeNXQ/Monopoly&utm_campaign=Badge_Grade)
