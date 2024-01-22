@@ -64,7 +64,7 @@ internal sealed class ObjectPoolMessageBoxes : MonoBehaviour
 
         foreach (PanelMessageBoxUI messageBox in this.pooledMessageBoxes)
         {
-            if ((bool)!messageBox.gameObject?.activeInHierarchy)
+            if (messageBox != null && !messageBox.gameObject.activeInHierarchy)
             {
                 messageBox.gameObject.SetActive(true);
                 return messageBox;

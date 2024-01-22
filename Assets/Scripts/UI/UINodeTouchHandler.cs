@@ -15,6 +15,11 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData = null)
     {
+        if (this.monopolyNode.Owner == null)
+        {
+            return;
+        }
+
         if (GameManager.Instance.CurrentPlayer.IsTrading)
         {
             if (!this.monopolyNode.IsTradable)
@@ -35,11 +40,6 @@ public sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
         }
         else
         {
-            if (this.monopolyNode.Owner == null)
-            {
-                return;
-            }
-
             if (NetworkManager.Singleton.LocalClientId != GameManager.Instance.CurrentPlayer.OwnerClientId)
             {
                 return;
