@@ -45,6 +45,8 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     public event Action<LobbyServiceException> OnEstablishingConnectionLobbyFailed;
 
+    public bool IsGameQuiting { get; private set; }
+
     public Player LocalPlayer { get; private set; }
 
     public MonopolyScene ActiveScene { get; private set; }
@@ -93,6 +95,11 @@ internal sealed class GameCoordinator : MonoBehaviour
         }
 
         await this.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
+    }
+
+    private void OnApplicationQuit()
+    {
+        this.IsGameQuiting = true;
     }
 
     #region Updating Player

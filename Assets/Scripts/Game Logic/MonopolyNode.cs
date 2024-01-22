@@ -125,7 +125,20 @@ public sealed class MonopolyNode : NetworkBehaviour
         {
             if (this.NodeType == MonopolyNode.Type.Property)
             {
-                return this.LocalLevel == MonopolyNode.LEVEL_OWNERSHIP ? true : false;
+                if (this.LocalLevel == MonopolyNode.LEVEL_OWNERSHIP)
+                {
+                    foreach (MonopolyNode node in this.AffiliatedMonopoly.NodesInSet)
+                    {
+                        if (node.LocalLevel != MonopolyNode.LEVEL_OWNERSHIP && node.LocalLevel != MonopolyNode.LEVEL_MORTGAGE)
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+
+                return false;
             }
             else if (this.NodeType == MonopolyNode.Type.Transport || this.NodeType == MonopolyNode.Type.Gambling)
             {

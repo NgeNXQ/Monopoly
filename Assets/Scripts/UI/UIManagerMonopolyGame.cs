@@ -88,6 +88,9 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     [SerializeField] private string messageTradeDeclined;
 
     [Space]
+    [SerializeField] private string messageHostDisconnected;
+
+    [Space]
     [SerializeField] private string messageConfirmSurrender;
 
     [Space]
@@ -146,6 +149,11 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     public string MessageTradeDeclined 
     {
         get => this.messageTradeDeclined;
+    }
+
+    public string MessageHostDisconnected 
+    {
+        get => this.messageHostDisconnected;
     }
 
     public string MessageConfirmSurrender 
@@ -528,12 +536,9 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
 
     private void HandleButtonRollDiceClicked()
     {
-        if (NetworkManager.Singleton.LocalClientId == GameManager.Instance.CurrentPlayer.OwnerClientId)
-        {
-            this.buttonRollDice.gameObject.SetActive(false);
+        this.buttonRollDice.gameObject.SetActive(false);
 
-            this.ButtonRollDiceClicked?.Invoke();
-        }
+        this.ButtonRollDiceClicked?.Invoke();
     }
 
     [ClientRpc]

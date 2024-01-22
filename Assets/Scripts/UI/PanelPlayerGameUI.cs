@@ -86,11 +86,6 @@ public sealed class PanelPlayerGameUI : NetworkBehaviour
         }
         else
         {
-            if (GameManager.Instance == null || GameManager.Instance?.CurrentPlayer == null)
-            {
-                return;
-            }
-
             if (GameManager.Instance.CurrentPlayer.IsTrading)
             {
                 return;

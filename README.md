@@ -1,0 +1,1 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/42b0fe06b62d4f208686214a252b1a85)](https://app.codacy.com/gh/NgeNXQ/Monopoly/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
