@@ -81,16 +81,4 @@ internal sealed class UIManagerGlobal : MonoBehaviour
             messageBox.Show();
         }
     }
-
-    public void ShowTouchKeyboard(TouchScreenKeyboardType touchScreenKeyboardType)
-    {
-        throw new NotImplementedException();
-        //this.keyboard = TouchScreenKeyboard.Open(String.Empty, touchScreenKeyboardType);
-    }
-
-    public void HideTouchKeyboard()
-    {
-        throw new NotImplementedException();
-        //this.keyboard = TouchScreenKeyboard.Open(String.Empty, touchScreenKeyboardType);
-    }
 }

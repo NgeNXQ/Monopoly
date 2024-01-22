@@ -66,6 +66,8 @@ internal sealed class GameManager : NetworkBehaviour
 
     #endregion
 
+    private const int HOST_ID = 0;
+
     private int rolledDoubles;
 
     private List<MonopolyPlayer> players;
@@ -154,7 +156,7 @@ internal sealed class GameManager : NetworkBehaviour
     {
         get
         {
-            this.targetCurrentClient[0] = NetworkManager.Singleton.ConnectedClientsIds[this.CurrentPlayerIndex];
+            this.targetCurrentClient[0] = this.players[this.CurrentPlayerIndex].OwnerClientId;
 
             return new ClientRpcParams
             {
@@ -215,7 +217,7 @@ internal sealed class GameManager : NetworkBehaviour
 
     private void OnEnable()
     {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback += this.HandleClientDisconnectCallback;
         }
@@ -223,9 +225,25 @@ internal sealed class GameManager : NetworkBehaviour
 
     private void OnDisable()
     {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsHost)
+        if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback -= this.HandleClientDisconnectCallback;
+        }
+    }
+
+    private async void OnApplicationQuit()
+    {
+        if (LobbyManager.Instance != null && await LobbyManager.Instance.PingLobbyExists())
+        {
+            await LobbyManager.Instance.DisconnectFromLobbyAsync();
+        }
+    }
+
+    private async void OnApplicationPause(bool pause)
+    {
+        if (LobbyManager.Instance != null && await LobbyManager.Instance.PingLobbyExists())
+        {
+            await LobbyManager.Instance.DisconnectFromLobbyAsync();
         }
     }
 
@@ -246,34 +264,69 @@ internal sealed class GameManager : NetworkBehaviour
         };
     }
 
-    private void HandleClientDisconnectCallback(ulong surrenderedClientId)
+    private async void HandleClientDisconnectCallback(ulong surrenderedClientId)
     {
-        if (this.players.Any(player => player.OwnerClientId == surrenderedClientId))
+        if (surrenderedClientId == GameManager.HOST_ID)
         {
-            this.RemovePlayerServerRpc(surrenderedClientId, this.ServerParamsCurrentClient);
+            if (await LobbyManager.Instance.PingLobbyExists())
+            {
+                if (ObjectPoolMessageBoxes.Instance != null)
+                {
+                    UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageHostDisconnected, PanelMessageBoxUI.Icon.Error);
+                }
+            }
+
+            await LobbyManager.Instance.DisconnectFromLobbyAsync();
+        }
+        else
+        {
+            if (this.players.Any(player => player.OwnerClientId == surrenderedClientId))
+            {
+                this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != surrenderedClientId).ToArray();
+                this.targetHostOtherClients = this.targetHostOtherClients.Select(array => array.Where(id => id != surrenderedClientId).ToArray()).ToList();
+
+                MonopolyPlayer player = this.players[this.players.IndexOf(this.players.Where(player => player.OwnerClientId == surrenderedClientId).First())];
+
+                if (player.NetworkObject.IsSpawned)
+                {
+                    player.DeclineTradeServerRpc(this.ServerParamsCurrentClient);
+                }
+
+                for (int i = 0; i < MonopolyBoard.Instance.NumberOfNodes; ++i)
+                {
+                    if (MonopolyBoard.Instance[i].Owner != null && MonopolyBoard.Instance[i].Owner.OwnerClientId == surrenderedClientId)
+                    {
+                        MonopolyBoard.Instance[i].ResetOwnership();
+                    }
+                }
+
+                this.RemovePlayerServerRpc(surrenderedClientId, this.ServerParamsCurrentClient);
+            }
         }
     }
 
     [ServerRpc]
     public void RemovePlayerServerRpc(ulong surrenderedClientId, ServerRpcParams serverRpcParams)
     {
-        bool hasCurrentLeft = false;
-
         if (this.players.Any(player => player.OwnerClientId == surrenderedClientId))
         {
-            int surrenderedPlayerIndex = this.players.IndexOf(this.players.Where(player => player.OwnerClientId == surrenderedClientId).First());
+            this.targetHostOtherClients.RemoveAt(this.players.IndexOf(this.players.Where(player => player.OwnerClientId == surrenderedClientId).First()));
 
-            if (this.CurrentPlayer == this.players[surrenderedPlayerIndex])
+            MonopolyPlayer player = this.players[this.players.IndexOf(this.players.Where(player => player.OwnerClientId == surrenderedClientId).First())];
+
+            bool isCurrent = player == this.CurrentPlayer;
+
+            this.players.Remove(player);
+            this.RemovePlayerClientRpc(surrenderedClientId, this.ClientParamsClientOtherClients);
+
+            if (isCurrent && this.players.Count != 0)
             {
-                hasCurrentLeft = true;
+                this.CurrentPlayerIndex %= this.players.Count;
+                this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
+                this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
             }
 
-            this.players.RemoveAt(surrenderedPlayerIndex);
-            this.targetHostOtherClients.RemoveAt(surrenderedPlayerIndex);
-            this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != surrenderedClientId).ToArray();
-            this.targetHostOtherClients = this.targetHostOtherClients.Select(array => array.Where(id => id != surrenderedClientId).ToArray()).ToList();
-
-            if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton.LocalClientId && NetworkManager.Singleton.IsConnectedClient)
+            if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton.LocalClientId && NetworkManager.Singleton.IsConnectedClient && NetworkManager.Singleton.IsListening)
             {
                 UIManagerMonopolyGame.Instance.HidePaymentProperty();
                 UIManagerMonopolyGame.Instance.HideButtonRollDice();
@@ -286,15 +339,6 @@ internal sealed class GameManager : NetworkBehaviour
                 UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
                 UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy);
             }
-            else
-            {
-                this.RemovePlayerClientRpc(surrenderedClientId, this.ClientParamsClientOtherClients);
-
-                if (hasCurrentLeft)
-                {
-                    this.SwitchPlayerForcefullyServerRpc(this.ServerParamsCurrentClient);
-                }
-            }
         }
     }
 
@@ -304,7 +348,7 @@ internal sealed class GameManager : NetworkBehaviour
         this.players.Remove(this.players.Where(player => player.OwnerClientId == surrenderedClientId).First());
         this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != surrenderedClientId).ToArray();
 
-        if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton.LocalClientId)
+        if (this.players.Count == 1 && this.players.First().OwnerClientId == NetworkManager.Singleton.LocalClientId && NetworkManager.Singleton.IsConnectedClient)
         {
             UIManagerMonopolyGame.Instance.HidePaymentProperty();
             UIManagerMonopolyGame.Instance.HideButtonRollDice();
@@ -319,7 +363,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    #endregion
+#endregion
 
     #region Initialization
 
@@ -359,9 +403,9 @@ internal sealed class GameManager : NetworkBehaviour
         {
             this.CurrentPlayerIndex = i;
 
-            this.targetHostOtherClients.Add(NetworkManager.Singleton.ConnectedClientsIds.Where((value) => value != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
-
             this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
+
+            this.targetHostOtherClients.Add(NetworkManager.Singleton.ConnectedClientsIds.Where((value) => value != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
 
             this.player = GameObject.Instantiate(this.player);
             this.playerPanel = GameObject.Instantiate(this.playerPanel);
@@ -402,6 +446,8 @@ internal sealed class GameManager : NetworkBehaviour
 
         this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
 
+        UIManagerMonopolyGame.Instance.HideButtonRollDice();
+
         UIManagerMonopolyGame.Instance.HideButtonRollDiceClientRpc(this.ClientParamsClientOtherClients);
 
         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
@@ -410,15 +456,20 @@ internal sealed class GameManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void SwitchPlayerForcefullyServerRpc(ServerRpcParams serverRpcParams)
     {
-        this.rolledDoubles = 0;
+        if (this.players.Count > 1)
+        {
+            this.rolledDoubles = 0;
 
-        this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % this.players.Count;
+            this.CurrentPlayerIndex = ++this.CurrentPlayerIndex % this.players.Count;
 
-        this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
+            this.SwitchPlayerClientRpc(this.CurrentPlayerIndex, this.ClientParamsClientOtherClients);
 
-        UIManagerMonopolyGame.Instance.HideButtonRollDiceClientRpc(this.ClientParamsClientOtherClients);
+            UIManagerMonopolyGame.Instance.HideButtonRollDice();
 
-        this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
+            UIManagerMonopolyGame.Instance.HideButtonRollDiceClientRpc(this.ClientParamsClientOtherClients);
+
+            this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
+        }
     }
 
     [ClientRpc]
@@ -445,6 +496,9 @@ internal sealed class GameManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void RollDiceServerRpc(int firstDieValue, int secondDieValue, ServerRpcParams serverRpcParams)
     {
+        this.FirstDieValue = firstDieValue;
+        this.SecondDieValue = secondDieValue;
+
         this.RollDiceClientRpc(firstDieValue, secondDieValue, this.ClientParamsHostOtherClients);
     }
 

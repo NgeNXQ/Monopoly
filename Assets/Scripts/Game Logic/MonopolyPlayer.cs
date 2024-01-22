@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.UI;
 using System.Collections;
+using Unity.Services.Lobbies;
 using System.Collections.Generic;
 
 public sealed class MonopolyPlayer : NetworkBehaviour
@@ -20,7 +21,7 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     #endregion
 
     #endregion
-
+    
     private bool isInJail;
 
     private int turnsInJail;
@@ -60,15 +61,34 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         this.Balance = new NetworkVariable<int>(GameManager.Instance.StartingBalance, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     }
 
-    public override void OnNetworkSpawn()
+    public override void OnNetworkDespawn()
+    {
+        this.Balance.OnValueChanged -= this.HandleBalanceChanged;
+
+        if (this.OwnerClientId == NetworkManager.Singleton?.LocalClientId)
+        {
+            this.StopCoroutine(this.PerformTurnCoroutine());
+            UIManagerMonopolyGame.Instance.ButtonRollDiceClicked -= this.HandleButtonRollDiceClicked;
+        }
+    }
+
+    public override async void OnNetworkSpawn()
     {
         this.OwnedNodes = new List<MonopolyNode>();
-        this.Balance.Value = GameManager.Instance.StartingBalance;
         this.CurrentNode = MonopolyBoard.Instance.NodeStart;
+        this.Balance.Value = GameManager.Instance.StartingBalance;
         this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
         this.PlayerColor = GameManager.Instance.MonopolyPlayersVisuals[GameManager.Instance.CurrentPlayerIndex].ColorPlayerToken;
         this.playerImageToken.sprite = GameManager.Instance.MonopolyPlayersVisuals[GameManager.Instance.CurrentPlayerIndex].SpritePlayerToken;
-        this.Nickname = LobbyManager.Instance.LocalLobby.Players[GameManager.Instance.CurrentPlayerIndex].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+
+        try
+        {
+            this.Nickname = LobbyManager.Instance.LocalLobby.Players[GameManager.Instance.CurrentPlayerIndex].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+        }
+        catch (LobbyServiceException)
+        {
+            await LobbyManager.Instance.DisconnectFromLobbyAsync();
+        }
 
         GameManager.Instance.AddPlayer(this);
 
@@ -77,17 +97,6 @@ public sealed class MonopolyPlayer : NetworkBehaviour
         if (this.OwnerClientId == NetworkManager.Singleton?.LocalClientId)
         {
             UIManagerMonopolyGame.Instance.ButtonRollDiceClicked += this.HandleButtonRollDiceClicked;
-        }
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        this.Balance.OnValueChanged -= this.HandleBalanceChanged;
-
-        if (this.OwnerClientId == NetworkManager.Singleton?.LocalClientId)
-        {
-            this.Surrender();
-            UIManagerMonopolyGame.Instance.ButtonRollDiceClicked -= this.HandleButtonRollDiceClicked;
         }
     }
 
@@ -333,10 +342,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void SurrenderServerRpc(ServerRpcParams serverRpcParams)
+    public void SurrenderServerRpc(ServerRpcParams serverRpcParams)
     {
-        GameManager.Instance.RemovePlayerServerRpc(serverRpcParams.Receive.SenderClientId, GameManager.Instance.ServerParamsCurrentClient);
-
         if (NetworkManager.Singleton.ConnectedClients.ContainsKey(serverRpcParams.Receive.SenderClientId))
         {
             NetworkClient client = NetworkManager.Singleton.ConnectedClients[serverRpcParams.Receive.SenderClientId];
@@ -349,6 +356,8 @@ public sealed class MonopolyPlayer : NetworkBehaviour
                 }
             }
         }
+
+        GameManager.Instance.RemovePlayerServerRpc(serverRpcParams.Receive.SenderClientId, GameManager.Instance.ServerParamsCurrentClient);
     }
 
     #endregion
