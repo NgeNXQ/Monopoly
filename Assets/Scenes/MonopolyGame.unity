@@ -7382,7 +7382,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3608112863194246148, guid: 7e0a7fee65b25054d9de65dd945b999f, type: 3}
       propertyPath: m_Name
-      value: PanelOffer
+      value: PanelNodeOffer
       objectReference: {fileID: 0}
     - target: {fileID: 7441355793676657922, guid: 7e0a7fee65b25054d9de65dd945b999f, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7439,23 +7439,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2922270011367035247, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
       propertyPath: m_Name
-      value: PanelOfferTrade
-      objectReference: {fileID: 0}
-    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_HideMobileInput
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_HideSoftKeyboard
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_OnFocusSelectAll
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2937015515776808760, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_ResetOnDeActivation
-      value: 0
+      value: PanelSendTrade
       objectReference: {fileID: 0}
     - target: {fileID: 4216315094943044256, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7497,26 +7481,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_HideMobileInput
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_HideSoftKeyboard
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_OnFocusSelectAll
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_ResetOnDeActivation
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6515059415257650635, guid: f82b291bb99bc03409f4f34f4233b490, type: 3}
-      propertyPath: m_ShouldActivateOnSelect
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7539,20 +7503,21 @@ MonoBehaviour:
   maxDoublesInRow: 3
   circleBonus: 2000
   exactCircleBonus: 3000
-  playerMovementSpeed: 30
+  pawnMovementSpeed: 35
+  bot: {fileID: 4338824861593196919, guid: 8aa798d8dd1e27243a6c29cab5f0fb2b, type: 3}
   player: {fileID: 6664082868912979496, guid: 075d89063a5c40347973aaa79cad57a2, type: 3}
-  playerPanel: {fileID: 5784825573561046600, guid: c55e4465fded9754b8ea7a9bc3e4b98b, type: 3}
-  monopolyPlayersVisuals:
-  - colorPlayerToken: {r: 0.9450981, g: 0.75294125, b: 0.49411768, a: 1}
-    spritePlayerToken: {fileID: 21300000, guid: 7539f1d33877f3e4391098f024533393, type: 3}
-  - colorPlayerToken: {r: 0.7058824, g: 0.7803922, b: 0.654902, a: 1}
-    spritePlayerToken: {fileID: 21300000, guid: 2816cc5938e7b5e4ab688dbf3f762e30, type: 3}
-  - colorPlayerToken: {r: 0.68235296, g: 0.7607844, b: 0.8588236, a: 1}
-    spritePlayerToken: {fileID: 21300000, guid: 728942dec72afd744a56e3d857943e12, type: 3}
-  - colorPlayerToken: {r: 0.8862746, g: 0.5019608, b: 0.30980393, a: 1}
-    spritePlayerToken: {fileID: 21300000, guid: b4862b133bef5cb488458ec80a000c90, type: 3}
-  - colorPlayerToken: {r: 0.52156866, g: 0.5176471, b: 0.68235296, a: 1}
-    spritePlayerToken: {fileID: 21300000, guid: b17b6ef699c533e45acd5de1705daa7d, type: 3}
+  pawnPanel: {fileID: 5784825573561046600, guid: c55e4465fded9754b8ea7a9bc3e4b98b, type: 3}
+  pawnsVisuals:
+  - pawnTokenColor: {r: 0.9490197, g: 0.7490196, b: 0.49411768, a: 1}
+    pawnTokenSprite: {fileID: 21300000, guid: 7539f1d33877f3e4391098f024533393, type: 3}
+  - pawnTokenColor: {r: 0.7019608, g: 0.7843138, b: 0.654902, a: 1}
+    pawnTokenSprite: {fileID: 21300000, guid: b4862b133bef5cb488458ec80a000c90, type: 3}
+  - pawnTokenColor: {r: 0.68235296, g: 0.7607844, b: 0.8588236, a: 1}
+    pawnTokenSprite: {fileID: 21300000, guid: b17b6ef699c533e45acd5de1705daa7d, type: 3}
+  - pawnTokenColor: {r: 0.8862746, g: 0.5019608, b: 0.30980393, a: 1}
+    pawnTokenSprite: {fileID: 21300000, guid: 2816cc5938e7b5e4ab688dbf3f762e30, type: 3}
+  - pawnTokenColor: {r: 0.5137255, g: 0.5176471, b: 0.6901961, a: 1}
+    pawnTokenSprite: {fileID: 21300000, guid: 728942dec72afd744a56e3d857943e12, type: 3}
 --- !u!224 &2923108662133957271
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7678,7 +7643,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5623910360032014805, guid: ed513b0e574b89e43ac6b8714d18b3f6, type: 3}
       propertyPath: m_Name
-      value: PanelMonopolyNode
+      value: PanelNodeMenu
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7710,7 +7675,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5875045244549243336, guid: 82c7926de5fa2684ab890fb0973e0bfb, type: 3}
       propertyPath: m_Name
-      value: PanelPaymentChance
+      value: PanelChancePayment
       objectReference: {fileID: 0}
     - target: {fileID: 6706166459023125879, guid: 82c7926de5fa2684ab890fb0973e0bfb, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7852,7 +7817,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6993450834350900636, guid: 4660a93d08d41ab4d92271c9497c192e, type: 3}
       propertyPath: m_Name
-      value: PanelPaymentProperty
+      value: PanelNodePayment
       objectReference: {fileID: 0}
     - target: {fileID: 8098650275416515476, guid: 4660a93d08d41ab4d92271c9497c192e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -8045,6 +8010,12 @@ MonoBehaviour:
   canvasPlayersList: {fileID: 892037619}
   messageWon: "\u0412\u0438 \u043F\u0435\u0440\u0435\u043C\u043E\u0433\u043B\u0438
     !!!"
+  messageBankrupt: "\u0412\u0441\u0456\u0445 \u0432\u0430\u0448\u0438\u0445 \u0441\u0442\u0430\u0442\u043A\u0456\u0432
+    \u043D\u0435\u0434\u043E\u0441\u0442\u0430\u0442\u043D\u044C\u043E, \u0449\u043E\u0431
+    \u0441\u043F\u043B\u0430\u0442\u0438\u0442\u0438 \u0431\u043E\u0440\u0433. \u0412\u0430\u0448
+    \u0424\u041E\u041F \u0431\u0443\u0434\u0435 \u043B\u0456\u043A\u0434\u0432\u0456\u0434\u043E\u0432\u0430\u043D\u043E,
+    \u0439 \u043E\u0447\u0456\u043A\u0443\u0439\u0442\u0435 \u043F\u043E\u0434\u0430\u0442\u043A\u043E\u0432\u0443
+    \u0437 \u0421\u0411\u0423."
   messageSentJail: "\u0412\u0438 \u0432\u0456\u0434\u043F\u0440\u0430\u0432\u043B\u044F\u0454\u0442\u0435\u0441\u044F
     \u0434\u043E \u0432'\u044F\u0437\u043D\u0438\u0446\u0456!"
   messageAlreadyBuilt: "\u0412\u0438 \u0432\u0436\u0435 \u043F\u043E\u0431\u0443\u0434\u0443\u0432\u0430\u043B\u0438

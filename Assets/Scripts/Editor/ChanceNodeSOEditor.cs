@@ -3,7 +3,7 @@
 using UnityEditor;
 
 [CustomEditor(typeof(ChanceNodeSO))]
-public sealed class ChanceNodeSOEditor : Editor
+internal sealed class ChanceNodeSOEditor : Editor
 {
     public override void OnInspectorGUI()
     {

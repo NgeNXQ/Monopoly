@@ -1,51 +1,43 @@
 using System;
 using System.Linq;
-using UnityEngine;
-using Unity.Netcode;
 using System.Collections;
 using System.Threading.Tasks;
-using Unity.Services.Lobbies;
 using System.Collections.Generic;
+using UnityEngine;
+using Unity.Netcode;
+using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 
 internal sealed class LobbyManager : MonoBehaviour
 {
     private const float LOBBY_UPTIME = 25.0f;
 
-    public const int MIN_PLAYERS = 2;
-
+    public const int MIN_PLAYERS = 1;
     public const int MAX_PLAYERS = 5;
 
     public const float LOBBY_LOADING_TIMEOUT = 15.0f;
 
     public const string KEY_PLAYER_SCENE = "Scene";
-
     public const string KEY_PLAYER_NICKNAME = "Nickname";
-
     public const string KEY_LOBBY_STATE = "State";
-    
     public const string LOBBY_STATE_GAME = "Game";
-
     public const string LOBBY_STATE_LOBBY = "Lobby";
-
     public const string LOBBY_STATE_LOADING = "Loading";
-
     public const string LOBBY_STATE_PENDING = "Waiting";
-
     public const string LOBBY_STATE_RETURNING = "Returning";
-    
-    private string lobbyName 
+
+    private string lobbyName
     {
-        get => $"LOBBY_{this.JoinCode}"; 
+        get => $"LOBBY_{this.JoinCode}";
     }
 
     private ILobbyEvents localLobbyEvents;
 
-    private QueryLobbiesOptions queryCurrentLobby 
+    private QueryLobbiesOptions queryCurrentLobby
     {
         get
         {
-            return new QueryLobbiesOptions() 
+            return new QueryLobbiesOptions()
             {
                 Filters = new List<QueryFilter>()
                 {
@@ -58,14 +50,11 @@ internal sealed class LobbyManager : MonoBehaviour
     public static LobbyManager Instance { get; private set; }
 
     public Action OnGameLobbyLoaded;
-
     public Action OnMonopolyGameLoaded;
-
     public Action OnGameLobbyFailedToLoad;
-
     public Action OnMonopolyGameFailedToLoad;
 
-    public bool HavePlayersLoaded 
+    public bool HavePlayersLoaded
     {
         get
         {
@@ -74,15 +63,10 @@ internal sealed class LobbyManager : MonoBehaviour
     }
 
     public bool IsHost { get; private set; }
-
     public string JoinCode { get; private set; }
-
     public bool HasHostLeft { get; private set; }
-
     public Lobby LocalLobby { get; private set; }
-
     public bool HasLocalPlayerLeft { get; private set; }
-    
     public LobbyEventCallbacks LocalLobbyEventCallbacks { get; private set; }
 
     private void Awake()
@@ -97,7 +81,7 @@ internal sealed class LobbyManager : MonoBehaviour
     private void OnEnable()
     {
         this.LocalLobbyEventCallbacks = new LobbyEventCallbacks();
-        
+
         this.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
         this.OnMonopolyGameLoaded += this.HandleMonopolyGameLoaded;
         this.OnGameLobbyFailedToLoad += this.HandleGameLobbyFailedToLoadAsync;
@@ -167,7 +151,7 @@ internal sealed class LobbyManager : MonoBehaviour
         this.UpdateLocalLobbyData(LobbyManager.LOBBY_STATE_LOADING, true);
 
         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.None, UIManagerGameLobby.Instance.MessagePendingGame, PanelMessageBoxUI.Icon.Loading);
-        
+
         GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.MonopolyGame);
     }
 
@@ -265,7 +249,7 @@ internal sealed class LobbyManager : MonoBehaviour
             }
         }
     }
-    
+
     public async Task HostLobbyAsync(string relayCode)
     {
         this.IsHost = true;
@@ -337,7 +321,7 @@ internal sealed class LobbyManager : MonoBehaviour
         await LobbyService.Instance.RemovePlayerAsync(this.LocalLobby.Id, playerId);
     }
 
-#endregion
+    #endregion
 
     #region Lobby Ping
 

@@ -334,10 +334,10 @@ MonoBehaviour:
   panel: {fileID: 1356222674741102421}
   imageSender: {fileID: 8319697878071672489}
   imageReceiver: {fileID: 3517332057079253160}
-  textSenderOffer: {fileID: 7990498367535516373}
-  textReceiverOffer: {fileID: 2255215472647248549}
-  textSenderNickname: {fileID: 5406974576288408256}
-  textReceiverNickname: {fileID: 2621757895161103182}
+  labelSenderOffer: {fileID: 7990498367535516373}
+  labelReceiverOffer: {fileID: 2255215472647248549}
+  labelSenderNickname: {fileID: 5406974576288408256}
+  labelReceiverNickname: {fileID: 2621757895161103182}
   buttonAccept: {fileID: 1710632182696411698}
   buttonDecline: {fileID: 3759109590127467596}
 --- !u!1 &918269481054564786

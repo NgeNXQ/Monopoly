@@ -3,17 +3,17 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Chance card", menuName = "Monopoly/Cards/Chance", order = 1)]
 public sealed class ChanceNodeSO : ScriptableObject
 {
-    #region Setup (Editor)
+    [SerializeField]
+    private Type type;
 
-    [SerializeField] private Type type;
+    [SerializeField]
+    private int penalty;
 
-    [SerializeField] private int penalty;
+    [SerializeField]
+    private int reward;
 
-    [SerializeField] private int reward;
-
-    [SerializeField] private string description;
-
-    #endregion
+    [SerializeField]
+    private string description;
 
     public enum Type : byte
     {
@@ -25,22 +25,11 @@ public sealed class ChanceNodeSO : ScriptableObject
         MoveBackwards
     }
 
-    public Type ChanceType 
-    {
-        get => this.type;
-    }
+    public Type ChanceType => this.type;
+    internal int Reward => this.reward;
+    internal int Penalty => this.penalty;
 
-    public int Reward 
-    {
-        get => this.reward;
-    }
-
-    public int Penalty 
-    {
-        get => this.penalty;
-    }
-
-    public string Description 
+    internal string Description
     {
         get
         {
