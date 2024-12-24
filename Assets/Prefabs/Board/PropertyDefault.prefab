@@ -519,7 +519,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1.6700001}
+  m_AnchoredPosition: {x: 0, y: 1.675}
   m_SizeDelta: {x: 2.7, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8971594310825216896
@@ -670,7 +670,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 2.76, y: 4.4}
+  m_SizeDelta: {x: 2.7, y: 4.34}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5020240366622093860
 CanvasRenderer:
@@ -843,7 +843,9 @@ MonoBehaviour:
   imageLevel3: {fileID: 6455511569602826088}
   imageLevel4: {fileID: 923918583967032545}
   imageLevel5: {fileID: 3531002776111831584}
-  pricing: 
+  pricePurchase: 0
+  priceUpgrade: 0
+  pricesRent: 
 --- !u!114 &7982305199546684485
 MonoBehaviour:
   m_ObjectHideFlags: 0

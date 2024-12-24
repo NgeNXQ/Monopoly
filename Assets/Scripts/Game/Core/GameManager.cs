@@ -58,9 +58,9 @@ internal sealed class GameManager : NetworkBehaviour
     [SerializeField]
     private PawnVisuals[] pawnsVisuals = new PawnVisuals[5];
 
-    private const ulong HOST_ID = 0;
+    private const ulong CLIENT_ID_HOST = 0;
 
-    public static GameManager Instance { get; private set; }
+    internal static GameManager Instance { get; private set; }
 
     private int rolledDoublesCount;
     private IList<PawnController> pawns;
@@ -71,22 +71,24 @@ internal sealed class GameManager : NetworkBehaviour
     private ulong[] targetAllDefaultClients;
     private IList<ulong[]> targetAllClientsExcludingCurrentPlayer;
 
-    public int PawnsCount => this.pawns.Count;
-    public int CircleBonus => this.circleBonus;
-    public int MaxTurnsInJail => this.maxTurnsInJail;
-    public int MaxDoublesInRow => this.maxDoublesInRow;
-    public int StartingBalance => this.startingBalance;
-    public int ExactCircleBonus => this.exactCircleBonus;
-    public float PawnMovementSpeed => this.pawnMovementSpeed;
+    private int nextPawnIndex => ++this.CurrentPawnIndex % this.pawns.Count;
 
-    public int FirstDieValue { get; private set; }
-    public int SecondDieValue { get; private set; }
-    public int CurrentPawnIndex { get; private set; }
-    public IList<PawnVisuals> PawnsVisuals { get; private set; }
-    public int TotalRollResult => this.FirstDieValue + this.SecondDieValue;
-    public bool HasRolledDouble => this.FirstDieValue == this.SecondDieValue;
+    internal int PawnsCount => this.pawns.Count;
+    internal int CircleBonus => this.circleBonus;
+    internal int MaxTurnsInJail => this.maxTurnsInJail;
+    internal int MaxDoublesInRow => this.maxDoublesInRow;
+    internal int StartingBalance => this.startingBalance;
+    internal int ExactCircleBonus => this.exactCircleBonus;
+    internal float PawnMovementSpeed => this.pawnMovementSpeed;
 
-    public PawnController CurrentPawn
+    internal int FirstDieValue { get; private set; }
+    internal int SecondDieValue { get; private set; }
+    internal int CurrentPawnIndex { get; private set; }
+    internal IList<PawnVisuals> PawnsVisuals { get; private set; }
+    internal int TotalRollResult => this.FirstDieValue + this.SecondDieValue;
+    internal bool HasRolledDouble => this.FirstDieValue == this.SecondDieValue;
+
+    internal PawnController CurrentPawn
     {
         get
         {
@@ -97,7 +99,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ServerRpcParams SenderLocalClient
+    internal ServerRpcParams SenderLocalClient
     {
         get
         {
@@ -108,7 +110,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams TargetAllClients
+    internal ClientRpcParams TargetAllClients
     {
         get
         {
@@ -119,7 +121,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams TargetOtherClients
+    internal ClientRpcParams TargetOtherClients
     {
         get
         {
@@ -130,7 +132,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams TargetAllDefaultClients
+    internal ClientRpcParams TargetAllDefaultClients
     {
         get
         {
@@ -141,7 +143,7 @@ internal sealed class GameManager : NetworkBehaviour
         }
     }
 
-    public ClientRpcParams TargetAllClientsExcludingCurrentPlayer
+    internal ClientRpcParams TargetAllClientsExcludingCurrentPlayer
     {
         get
         {
@@ -188,100 +190,48 @@ internal sealed class GameManager : NetworkBehaviour
 
     private async void OnApplicationQuit()
     {
-        if (LobbyManager.Instance != null && await LobbyManager.Instance.PingLobbyExists())
+        if (await LobbyManager.Instance?.PingLobbyExists())
             await LobbyManager.Instance.DisconnectFromLobbyAsync();
     }
 
     private async void OnApplicationPause(bool pause)
     {
-        if (LobbyManager.Instance != null && await LobbyManager.Instance.PingLobbyExists())
+        if (await LobbyManager.Instance?.PingLobbyExists())
             await LobbyManager.Instance.DisconnectFromLobbyAsync();
     }
 
-    private async void OnClientDisconnected(ulong surrenderedClientId)
+    private async void OnClientDisconnected(ulong disconnectedClientId)
     {
-        // private ulong[] targetAllClients;
-        // private ulong[] targetOtherClients;
-        // private ulong[] targetAllDefaultClients;
-        // private IList<ulong[]> targetAllClientsExcludingCurrentPlayer;
+        if (NetworkManager.Singleton.IsHost)
+        {
+            this.targetAllClients = this.targetAllClients.Where(clientId => clientId != disconnectedClientId).ToArray();
+            this.targetOtherClients = this.targetOtherClients.Where(clientId => clientId != disconnectedClientId).ToArray();
+            this.targetAllDefaultClients = this.targetAllDefaultClients.Where(clientId => clientId != disconnectedClientId).ToArray();
 
+            this.RemoveSurrenderedPawn(this.pawns.Where(pawn => pawn.OwnerClientId == disconnectedClientId).First().NetworkIndex);
+        }
+        else
+        {
+            if (disconnectedClientId != GameManager.CLIENT_ID_HOST)
+                return;
 
-        // if (surrenderedClientId == GameManager.HOST_ID)
-        // {
-        //     if (await LobbyManager.Instance.PingLobbyExists())
-        //     {
-        //         if (ObjectPoolMessageBoxes.Instance != null)
-        //             UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageHostDisconnected, PanelMessageBoxUI.Icon.Error);
-        //     }
-
-        //     await LobbyManager.Instance.DisconnectFromLobbyAsync();
-        // }
-        // else
-        // {
-        //     if (this.pawns.Any(pawn => pawn.OwnerClientId == surrenderedClientId))
-        //     {
-        //         this.targetClientOtherClients = this.targetClientOtherClients?.Where(clientId => clientId != surrenderedClientId).ToArray();
-        //         this.targetAllDefaultClients = this.targetAllDefaultClients.Select(array => array.Where(id => id != surrenderedClientId).ToArray()).ToList();
-
-        //         PawnController pawn = this.pawns[this.pawns.IndexOf(this.pawns.Where(pawn => pawn.OwnerClientId == surrenderedClientId).First())];
-
-        //         if (pawn.NetworkObject.IsSpawned)
-        //             pawn.DeclineTradeServerRpc(this.ServerParamsCurrentClient);
-
-        //         for (int i = 0; i < MonopolyBoard.Instance.NumberOfNodes; ++i)
-        //         {
-        //             if (MonopolyBoard.Instance[i].Owner != null && MonopolyBoard.Instance[i].Owner.OwnerClientId == surrenderedClientId)
-        //                 MonopolyBoard.Instance[i].ResetOwnership();
-        //         }
-
-        //         this.RemovePlayerServerRpc(surrenderedClientId, this.ServerParamsCurrentClient);
-        //     }
-        // }
+            if (LobbyManager.Instance != null && await LobbyManager.Instance.PingLobbyExists())
+            {
+                await LobbyManager.Instance.DisconnectFromLobbyAsync();
+                UIManagerGlobal.Instance?.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageHostDisconnected, PanelMessageBoxUI.Icon.Error);
+            }
+        }
     }
 
-    public void RemoveSurrenderedPawn(int networkIndex)
+    internal void RemoveSurrenderedPawn(int networkIndex)
     {
         if (this.CurrentPawn.NetworkIndex == networkIndex)
             this.SwitchPlayerForcefullyServerRpc(this.SenderLocalClient);
 
         this.targetAllClientsExcludingCurrentPlayer.RemoveAt(networkIndex);
+        this.pawns.Where(pawn => pawn.NetworkIndex == networkIndex).First().DeclineTradeServerRpc(TradeCredentials.Blank, this.SenderLocalClient);
 
         this.RemoveSurrenderedPawnClientRpc(networkIndex, this.TargetAllClients);
-
-
-
-        // if (this.pawns.Any(pawn => pawn.OwnerClientId == surrenderedClientId))
-        // {
-        //     this.targetAllDefaultClients.RemoveAt(this.pawns.IndexOf(this.pawns.Where(pawn => pawn.OwnerClientId == surrenderedClientId).First()));
-
-        //     MonopolyPlayer pawn = this.pawns[this.pawns.IndexOf(this.pawns.Where(pawn => pawn.OwnerClientId == surrenderedClientId).First())];
-
-        //     bool isCurrent = pawn == this.CurrentPlayer;
-
-        //     this.pawns.Remove(pawn);
-        //     this.RemovePlayerClientRpc(surrenderedClientId, this.ClientParamsClientOtherClients);
-
-        //     if (isCurrent && this.pawns.Count != 0)
-        //     {
-        //         this.CurrentPawnIndex %= this.pawns.Count;
-        //         this.SwitchPlayerClientRpc(this.CurrentPawnIndex, this.ClientParamsClientOtherClients);
-        //         this.CurrentPlayer.PerformTurnClientRpc(this.ClientParamsCurrentClient);
-        //     }
-
-        //     if (this.pawns.Count == 1 && this.pawns.First().OwnerClientId == NetworkManager.Singleton.LocalClientId && NetworkManager.Singleton.IsConnectedClient && NetworkManager.Singleton.IsListening)
-        //     {
-        //         UIManagerMonopolyGame.Instance.HidePaymentProperty();
-        //         UIManagerMonopolyGame.Instance.HideButtonRollDice();
-        //         UIManagerMonopolyGame.Instance.HidePaymentChance();
-        //         UIManagerMonopolyGame.Instance.HideMonopolyNode();
-        //         UIManagerMonopolyGame.Instance.HideReceiveTrade();
-        //         UIManagerMonopolyGame.Instance.HideTradeOffer();
-        //         UIManagerMonopolyGame.Instance.HideOffer();
-
-        //         UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
-        //         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy);
-        //     }
-        // }
     }
 
     [ClientRpc]
@@ -290,14 +240,10 @@ internal sealed class GameManager : NetworkBehaviour
         this.pawns.Remove(this.pawns.Where(pawn => pawn.NetworkIndex == networkIndex).First());
         this.pawnsPanels.Remove(this.pawnsPanels.Where(pawnPanel => pawnPanel.NetworkIndex == networkIndex).First());
 
-        if (this.pawns.Count > 1)
-            return;
-
-        if (PlayerPawnController.LocalInstance == null)
-            return;
-
-        if (PlayerPawnController.LocalInstance.NetworkIndex == this.pawns.First().NetworkIndex)
+        if (this.pawns.Count == 1)
         {
+            UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
+
             UIManagerMonopolyGame.Instance.HidePanelNodeMenu();
             UIManagerMonopolyGame.Instance.HidePanelSendTrade();
             UIManagerMonopolyGame.Instance.HidePanelNodeOffer();
@@ -306,8 +252,7 @@ internal sealed class GameManager : NetworkBehaviour
             UIManagerMonopolyGame.Instance.HidePanelReceiveTrade();
             UIManagerMonopolyGame.Instance.HidePanelChancePayment();
 
-            UIManagerMonopolyGame.Instance.ShowButtonDisconnect();
-            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWon, PanelMessageBoxUI.Icon.Trophy);
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, $"{UIManagerMonopolyGame.Instance.MessageWon} {this.pawns.First().Nickname} !!!", PanelMessageBoxUI.Icon.Trophy);
         }
     }
 
@@ -329,22 +274,20 @@ internal sealed class GameManager : NetworkBehaviour
 
     private void InitializeGameSession()
     {
-        const int FIRST_CLIENT_INDEX = 1;
-
         this.targetAllClientsExcludingCurrentPlayer = new List<ulong[]>();
-        this.targetAllClients = new ulong[NetworkManager.Singleton.ConnectedClientsIds.Count];
-        this.targetOtherClients = new ulong[NetworkManager.Singleton.ConnectedClientsIds.Count - 1];
-        this.targetAllDefaultClients = new ulong[NetworkManager.Singleton.ConnectedClientsIds.Count - 1];
+        this.targetAllClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count];
+        this.targetOtherClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
+        this.targetAllDefaultClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
 
-        int clientsCount = NetworkManager.Singleton.ConnectedClientsIds.Count - 1;
+        int defaultClientsCount = NetworkManager.Singleton.ConnectedClients.Count - 1;
 
-        for (int i = FIRST_CLIENT_INDEX; i < clientsCount; ++i)
-            this.targetAllDefaultClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i];
+        for (int i = 0; i < defaultClientsCount; ++i)
+            this.targetAllDefaultClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i + 1];
 
-        for (int i = 0; i < NetworkManager.Singleton?.ConnectedClientsIds.Count; ++i)
+        for (int i = 0; i < NetworkManager.Singleton?.ConnectedClients.Count; ++i)
         {
             this.targetAllClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i];
-            this.targetAllClientsExcludingCurrentPlayer.Add(NetworkManager.Singleton.ConnectedClientsIds.Where((value) => value != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
+            this.targetAllClientsExcludingCurrentPlayer.Add(NetworkManager.Singleton.ConnectedClientsIds.Where(id => id != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
 
             GameObject newPlayer = GameObject.Instantiate(this.player);
             GameObject newPlayerPanel = GameObject.Instantiate(this.pawnPanel);
@@ -352,15 +295,14 @@ internal sealed class GameManager : NetworkBehaviour
             newPlayerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
         }
 
-        // for (int i = this.pawns.Count; i < LobbyManager.MAX_PLAYERS; ++i)
-        for (int i = this.pawns.Count; i < 2; ++i)
+        for (int i = this.pawns.Count; i < LobbyManager.MAX_PLAYERS; ++i)
         {
             this.targetAllClientsExcludingCurrentPlayer.Add(NetworkManager.Singleton.ConnectedClientsIds.ToArray());
 
             GameObject newBot = GameObject.Instantiate(this.bot);
             GameObject newBotPanel = GameObject.Instantiate(this.pawnPanel);
-            newBot.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.HOST_ID, true);
-            newBotPanel.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.HOST_ID, true);
+            newBot.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.CLIENT_ID_HOST, true);
+            newBotPanel.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.CLIENT_ID_HOST, true);
         }
 
         this.CurrentPawnIndex = 0;
@@ -368,7 +310,7 @@ internal sealed class GameManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SwitchPawnServerRpc(ServerRpcParams serverRpcParams)
+    internal void SwitchPawnServerRpc(ServerRpcParams serverRpcParams)
     {
         if (this.HasRolledDouble)
         {
@@ -379,34 +321,30 @@ internal sealed class GameManager : NetworkBehaviour
                 this.rolledDoublesCount = 0;
                 this.SendCurrentPawnToJailClientRpc(this.TargetAllClients);
             }
+            else
+            {
+                this.SwitchPawnClientRpc(this.CurrentPawnIndex, this.TargetAllClients);
+            }
         }
         else
         {
             this.rolledDoublesCount = 0;
-            this.CurrentPawnIndex = ++this.CurrentPawnIndex % this.pawns.Count;
+            this.SwitchPawnClientRpc(this.nextPawnIndex, this.TargetAllClients);
         }
-
-        this.SwitchPawnClientRpc(this.CurrentPawnIndex, this.TargetAllClients);
     }
 
     [ClientRpc]
     private void SendCurrentPawnToJailClientRpc(ClientRpcParams clientRpcParams)
     {
         if (this.CurrentPawn.OwnerClientId == NetworkManager.Singleton.LocalClientId)
-        {
-            if (NetworkManager.Singleton.IsHost)
-                this.CurrentPawn.GoToJail();
-            else
-                PlayerPawnController.LocalInstance.GoToJail();
-        }
+            this.CurrentPawn.GoToJail();
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SwitchPlayerForcefullyServerRpc(ServerRpcParams serverRpcParams)
+    internal void SwitchPlayerForcefullyServerRpc(ServerRpcParams serverRpcParams)
     {
         this.rolledDoublesCount = 0;
-        this.CurrentPawnIndex = ++this.CurrentPawnIndex % this.pawns.Count;
-        this.SwitchPawnClientRpc(this.CurrentPawnIndex, this.TargetAllClients);
+        this.SwitchPawnClientRpc(this.nextPawnIndex, this.TargetAllClients);
     }
 
     [ClientRpc]
@@ -415,35 +353,30 @@ internal sealed class GameManager : NetworkBehaviour
         this.CurrentPawnIndex = currentPawnIndex;
 
         if (this.CurrentPawn.OwnerClientId == NetworkManager.Singleton.LocalClientId)
-        {
-            if (NetworkManager.Singleton.IsHost)
-                this.CurrentPawn.PerformTurn();
-            else
-                PlayerPawnController.LocalInstance.PerformTurn();
-        }
+            this.CurrentPawn.PerformTurn();
     }
 
-    public void AddPawnController(PawnController pawn)
+    internal void AddPawnController(PawnController pawn)
     {
         this.pawns.Add(pawn);
     }
 
-    public void AddPawnPanel(PanelPawnGameUI pawnPanel)
+    internal void AddPawnPanel(PanelPawnGameUI pawnPanel)
     {
         this.pawnsPanels.Add(pawnPanel);
     }
 
-    public PanelPawnGameUI GetPawnPanel(int networkIndex)
+    internal PanelPawnGameUI GetPawnPanel(int networkIndex)
     {
         return this.pawnsPanels.Where(pawnPanel => pawnPanel.NetworkIndex == networkIndex).FirstOrDefault();
     }
 
-    public PawnController GetPawnController(int networkIndex)
+    internal PawnController GetPawnController(int networkIndex)
     {
         return this.pawns.Where(pawn => pawn.NetworkIndex == networkIndex).FirstOrDefault();
     }
 
-    public void RollDice()
+    internal void RollDice()
     {
         const int MIN_DIE_VALUE = 1;
         const int MAX_DIE_VALUE = 6;

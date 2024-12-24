@@ -38,6 +38,7 @@ internal sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
             }
             else
             {
+                PlayerPawnController.LocalInstance.SelectedNode = this.associatedNode;
                 UIManagerMonopolyGame.Instance.ShowPanelNodeMenu(this.associatedNode, PlayerPawnController.LocalInstance.OnNodeMenuShown);
             }
 

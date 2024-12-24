@@ -43,7 +43,7 @@ internal sealed class PanelPawnGameUI : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         this.associatedPawn = GameManager.Instance.GetPawnController(GameManager.Instance.PawnsCount - 1);
-        this.associatedPawn.OnBalanceUpdated += () => this.textPawnBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPawn.Balance.Value}";
+        this.associatedPawn.Balance.OnValueChanged += (int _, int _) => this.textPawnBalance.text = $"{UIManagerMonopolyGame.Instance.Currency} {this.associatedPawn.Balance.Value}";
 
         this.imagePawnColor.color = this.associatedPawn.PawnColor;
         this.textPawnNickname.text = this.associatedPawn.Nickname;
@@ -63,8 +63,11 @@ internal sealed class PanelPawnGameUI : NetworkBehaviour
         }
         else
         {
-            if (PlayerPawnController.LocalInstance.TradeReceiver != null)
+            if (!PlayerPawnController.LocalInstance.IsAbleToTrade || PlayerPawnController.LocalInstance.TradeReceiver != null)
+            {
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageLimitedTradesCount, PanelMessageBoxUI.Icon.Error);
                 return;
+            }
 
             if (PlayerPawnController.LocalInstance == GameManager.Instance.CurrentPawn)
             {

@@ -67,6 +67,14 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
     [SerializeField]
     private Sprite spriteQuestion;
 
+    [Space]
+    [SerializeField]
+    private Sprite spriteSuccess;
+
+    [Space]
+    [SerializeField]
+    private Sprite spriteFailure;
+
     internal enum Type : byte
     {
         OK,
@@ -82,6 +90,8 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
         Warning,
         Loading,
         Question,
+        Success,
+        Failure
     }
 
     internal enum DialogResult : byte
@@ -131,6 +141,12 @@ internal sealed class PanelMessageBoxUI : MonoBehaviour, IControlUI, IActionCont
                     break;
                 case Icon.Question:
                     this.imageIcon.sprite = this.spriteQuestion;
+                    break;
+                case Icon.Success:
+                    this.imageIcon.sprite = this.spriteSuccess;
+                    break;
+                case Icon.Failure:
+                    this.imageIcon.sprite = this.spriteFailure;
                     break;
             }
         }

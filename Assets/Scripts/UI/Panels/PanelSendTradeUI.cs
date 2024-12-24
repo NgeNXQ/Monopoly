@@ -72,7 +72,8 @@ internal sealed class PanelSendTradeUI : MonoBehaviour, IActionControlUI, IPoint
         set
         {
             this.senderNode = value;
-            this.imageSender.sprite = this.senderNode.NodeSprite;
+            this.imageSender.gameObject.SetActive(value != null);
+            this.imageSender.sprite = this.senderNode?.NodeSprite;
         }
     }
 
@@ -82,7 +83,8 @@ internal sealed class PanelSendTradeUI : MonoBehaviour, IActionControlUI, IPoint
         set
         {
             this.receiverNode = value;
-            this.imageReceiver.sprite = this.receiverNode.NodeSprite;
+            this.imageReceiver.gameObject.SetActive(value != null);
+            this.imageReceiver.sprite = this.receiverNode?.NodeSprite;
         }
     }
 
@@ -114,8 +116,8 @@ internal sealed class PanelSendTradeUI : MonoBehaviour, IActionControlUI, IPoint
             int receiverNetworkIndex = this.Receiver.NetworkIndex;
             int clampedSenderBalanceAmount = this.senderBalanceAmount;
             int clampedReceiverBalanceAmount = this.receiverBalanceAmount;
-            int senderNodeIndex = this.SenderNode == null ? TradeCredentials.NODE_INDEX_PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfNode(this.SenderNode);
-            int receiverNodeIndex = this.ReceiverNode == null ? TradeCredentials.NODE_INDEX_PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfNode(this.ReceiverNode);
+            int senderNodeIndex = this.SenderNode == null ? TradeCredentials.PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfNode(this.SenderNode);
+            int receiverNodeIndex = this.ReceiverNode == null ? TradeCredentials.PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfNode(this.ReceiverNode);
 
             if (this.senderBalanceAmount > GameManager.Instance.GetPawnController(senderNetworkIndex).Balance.Value)
                 clampedSenderBalanceAmount = GameManager.Instance.GetPawnController(senderNetworkIndex).Balance.Value;
@@ -164,23 +166,20 @@ internal sealed class PanelSendTradeUI : MonoBehaviour, IActionControlUI, IPoint
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.pointerCurrentRaycast.gameObject == this.imageSender.gameObject)
-        {
             this.SenderNode = null;
-            this.imageSender.gameObject.SetActive(false);
-        }
         else if (eventData.pointerCurrentRaycast.gameObject == this.imageReceiver.gameObject)
-        {
             this.ReceiverNode = null;
-            this.imageReceiver.gameObject.SetActive(false);
-        }
     }
 
     public void Show(Action actionCallback)
     {
         this.callback = actionCallback;
 
-        this.imageReceiver.gameObject.SetActive(false);
         this.imageSender.gameObject.SetActive(false);
+        this.imageReceiver.gameObject.SetActive(false);
+        this.textBoxSenderBalanceAmount.text = String.Empty;
+        this.textBoxReceiverBalanceAmount.text = String.Empty;
+
         this.panel.gameObject.SetActive(true);
     }
 

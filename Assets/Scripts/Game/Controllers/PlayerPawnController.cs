@@ -1,5 +1,6 @@
 ﻿using Unity.Netcode;
 using Unity.Services.Lobbies;
+using UnityEngine;
 
 internal sealed class PlayerPawnController : PawnController
 {
@@ -7,6 +8,8 @@ internal sealed class PlayerPawnController : PawnController
 
     private bool isAbleToBuild;
     private ChanceNodeSO currentChanceNode;
+
+    internal bool IsAbleToTrade { get; private set; }
 
     internal MonopolyNode SelectedNode { get; set; }
     internal PawnController TradeReceiver { get; set; }
@@ -39,6 +42,7 @@ internal sealed class PlayerPawnController : PawnController
 
     private void OnButtonRollDiceClicked()
     {
+        this.IsAbleToTrade = false;
         this.isAbleToBuild = false;
 
         UIManagerMonopolyGame.Instance.HidePanelNodeMenu();
@@ -55,12 +59,14 @@ internal sealed class PlayerPawnController : PawnController
         base.PerformDiceRolling();
     }
 
-    internal override sealed void PerformTurn()
+    internal override sealed async void PerformTurn()
     {
+        await Awaitable.WaitForSecondsAsync(PawnController.TURN_DELAY);
+
         this.SelectedNode = null;
         this.TradeReceiver = null;
-
         this.isAbleToBuild = true;
+        this.IsAbleToTrade = true;
         this.currentChanceNode = null;
 
         if (base.IsSkipTurn)
@@ -273,34 +279,53 @@ internal sealed class PlayerPawnController : PawnController
     {
         if (PanelSendTradeUI.Instance.PanelDialogResult == PanelSendTradeUI.DialogResult.Offer)
         {
-            base.SendTradeServerRpc(PanelSendTradeUI.Instance.Credentials, GameManager.Instance.SenderLocalClient);
-            UIManagerMonopolyGame.Instance.HideButtonRollDice();
+            TradeCredentials credentials = PanelSendTradeUI.Instance.Credentials;
+
+            if (credentials.AreValid)
+            {
+                UIManagerMonopolyGame.Instance.HidePanelSendTrade();
+                base.SendTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+            }
+            else
+            {
+                this.TradeReceiver = null;
+                UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+                UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageWrongTradeCredentials, PanelMessageBoxUI.Icon.Error);
+            }
         }
         else
         {
             this.TradeReceiver = null;
             UIManagerMonopolyGame.Instance.ShowButtonRollDice();
+            UIManagerMonopolyGame.Instance.HidePanelSendTrade();
         }
-
-        UIManagerMonopolyGame.Instance.HidePanelSendTrade();
     }
 
-    private protected override sealed void RespondToTrade(TradeCredentials tradeCredentials)
+    private protected override sealed void RespondToTrade(TradeCredentials credentials)
     {
-        UIManagerMonopolyGame.Instance.ShowPanelReceiveTrade(tradeCredentials, () => this.OnTradeReceived(tradeCredentials));
+        UIManagerMonopolyGame.Instance.ShowPanelReceiveTrade(credentials, () => this.OnTradeReceived(credentials));
     }
 
-    private void OnTradeReceived(TradeCredentials tradeCredentials)
+    private void OnTradeReceived(TradeCredentials credentials)
     {
         if (UIManagerMonopolyGame.Instance.PanelReceiveTrade.PanelDialogResult == PanelReceiveTradeUI.DialogResult.Accept)
-            base.AcceptTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+            base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
         else
-            base.DeclineTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+            base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+
+        UIManagerMonopolyGame.Instance.HidePanelReceiveTrade();
     }
 
-    private protected override sealed void HandleTradeResponse(TradeCredentials tradeCredentials)
+    private protected override sealed void HandleTradeResponse(TradeCredentials credentials)
     {
         this.TradeReceiver = null;
+        this.IsAbleToTrade = false;
+
+        if (credentials.Result == TradeResult.Success)
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageTradeAccepted, PanelMessageBoxUI.Icon.Success);
+        else
+            UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, UIManagerMonopolyGame.Instance.MessageTradeDeclined, PanelMessageBoxUI.Icon.Failure);
+
         UIManagerMonopolyGame.Instance.ShowButtonRollDice();
     }
 }

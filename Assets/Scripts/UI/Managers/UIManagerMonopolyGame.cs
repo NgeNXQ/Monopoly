@@ -90,6 +90,7 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     [SerializeField]
     private string messageHostDisconnected;
 
+
     [Space]
     [SerializeField]
     private string messageConfirmSurrender;
@@ -97,6 +98,10 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     [Space]
     [SerializeField]
     private string messageInsufficientFunds;
+
+    [Space]
+    [SerializeField]
+    private string messageLimitedTradesCount;
 
     [Space]
     [SerializeField]
@@ -139,8 +144,10 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     internal string MessageHostDisconnected => this.messageHostDisconnected;
     internal string MessageConfirmSurrender => this.messageConfirmSurrender;
     internal string MessageInsufficientFunds => this.messageInsufficientFunds;
+    internal string MessageLimitedTradesCount => this.messageLimitedTradesCount;
     internal string MessageWaitingOtherPlayers => this.messageWaitingOtherPlayers;
     internal string MessagePlayersFailedToLoad => this.messagePlayersFailedToLoad;
+    internal string MessageWrongTradeCredentials => this.messageWrongTradeCredentials;
     internal string MessageCannotUpgradeMaxLevel => this.messageCannotUpgradeMaxLevel;
     internal string MessageCannotDowngradeMinLevel => this.messageCannotDowngradeMinLevel;
     internal string MessageOnlyEvenBuildingAllowed => this.messageOnlyEvenBuildingAllowed;
@@ -240,114 +247,6 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
         this.PanelReceiveTrade.Hide();
     }
 
-    // internal void SendTradeOffer()
-    // {
-    //     TradeCredentials credentials = this.PanelTradeOffer.GetTradeCredentials();
-
-    //     if (GameManager.Instance.GetPlayerById(credentials.ReceiverId) == null)
-    //     {
-    //         if (!GameManager.Instance.CurrentPawn.HasRolled)
-    //         {
-    //             this.ShowButtonRollDice();
-    //         }
-    //     }
-
-    //     if ((credentials.SenderOffer == 0 && credentials.ReceiverOffer == 0) && (credentials.SenderNodeIndex == -1 && credentials.ReceiverNodeIndex == -1))
-    //     {
-    //         this.HideTradeOffer();
-
-    //         if (!GameManager.Instance.CurrentPawn.HasRolled)
-    //         {
-    //             this.ShowButtonRollDice();
-    //         }
-
-    //         GameManager.Instance.CurrentPawn.IsTrading = false;
-
-    //         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageWrongTradeCredentials, PanelMessageBoxUI.Icon.Warning);
-    //     }
-    //     else if ((credentials.SenderOffer != 0 && credentials.ReceiverOffer != 0) && (credentials.SenderNodeIndex == -1 && credentials.ReceiverNodeIndex == -1))
-    //     {
-    //         this.HideTradeOffer();
-
-    //         if (!GameManager.Instance.CurrentPawn.HasRolled)
-    //         {
-    //             this.ShowButtonRollDice();
-    //         }
-
-    //         GameManager.Instance.CurrentPawn.IsTrading = false;
-
-    //         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageWrongTradeCredentials, PanelMessageBoxUI.Icon.Warning);
-    //     }
-    //     else if ((credentials.SenderOffer != 0 || credentials.ReceiverOffer != 0) && (credentials.SenderNodeIndex == -1 && credentials.ReceiverNodeIndex == -1))
-    //     {
-    //         this.HideTradeOffer();
-
-    //         if (!GameManager.Instance.CurrentPawn.HasRolled)
-    //         {
-    //             this.ShowButtonRollDice();
-    //         }
-
-    //         GameManager.Instance.CurrentPawn.IsTrading = false;
-
-    //         UIManagerGlobal.Instance.ShowMessageBox(PanelMessageBoxUI.Type.OK, this.messageWrongTradeCredentials, PanelMessageBoxUI.Icon.Warning);
-    //     }
-    //     else
-    //     {
-    //         this.HideMonopolyNode();
-    //         this.HideTradeOffer();
-
-    //         this.SendTradeOfferServerRpc(credentials, GameManager.Instance.ServerParamsCurrentClient);
-    //     }
-    // }
-
-    // internal void HideTradeOffer()
-    // {
-    //     this.PanelTradeOffer.Hide();
-    // }
-
-    // internal void ShowTradeOffer(string senderNicknameText, string receiverNicknameText, Action callback)
-    // {
-    //     this.PanelTradeOffer.SenderNicknameText = senderNicknameText;
-    //     this.PanelTradeOffer.ReceiverNicknameText = receiverNicknameText;
-    //     this.PanelTradeOffer.Show(callback);
-    // }
-
-    // [ServerRpc(RequireOwnership = false)]
-    // private void SendTradeOfferServerRpc(TradeCredentials credentials, ServerRpcParams serverRpcParams)
-    // {
-    //     // if (GameManager.Instance.GetPlayerById(credentials.SenderId) == null)
-    //     // {
-    //     //     GameManager.Instance.SwitchPlayerForcefullyServerRpc(GameManager.Instance.ServerParamsCurrentClient);
-    //     // }
-
-    //     // if (GameManager.Instance.GetPlayerById(credentials.ReceiverId) == null)
-    //     // {
-    //     //     this.ShowButtonRollDiceClientRpc(GameManager.Instance.ClientParamsCurrentClient);
-    //     // }
-
-    //     // this.RecieveTradeOfferClientRpc(credentials, GameManager.Instance.GetRedirectionRpc(credentials.ReceiverId));
-    // }
-
-    // internal void HideReceiveTrade()
-    // {
-    //     this.PanelReceiveTrade.Hide();
-    // }
-
-    // [ClientRpc]
-    // private void RecieveTradeOfferClientRpc(TradeCredentials credentials, ClientRpcParams clientRpcParams)
-    // {
-    //     PawnController sender = GameManager.Instance.GetPawn(credentials.SenderId);
-    //     PawnController receiver = GameManager.Instance.GetPawn(credentials.ReceiverId);
-
-    //     if (sender == null)
-    //     {
-    //         return;
-    //     }
-
-    //     this.PanelReceiveTrade.Credentials = credentials;
-    //     // this.PanelReceiveTrade.Show(GameManager.Instance.GetPlayerById(credentials.ReceiverId).CallbackReceiveTrade);
-    // }
-
     internal void ShowPanelNodeMenu(MonopolyNode monopolyNode, Action callback)
     {
         this.PanelNodeMenu.PictureSprite = monopolyNode.NodeSprite;
@@ -417,18 +316,6 @@ internal sealed class UIManagerMonopolyGame : NetworkBehaviour
     {
         this.buttonRollDice.gameObject.SetActive(false);
         this.ButtonRollDiceClicked?.Invoke();
-    }
-
-    [ClientRpc]
-    internal void ShowButtonRollDiceClientRpc(ClientRpcParams clientRpcParams)
-    {
-        this.buttonRollDice.gameObject.SetActive(true);
-    }
-
-    [ClientRpc]
-    internal void HideButtonRollDiceClientRpc(ClientRpcParams clientRpcParams)
-    {
-        this.buttonRollDice.gameObject.SetActive(false);
     }
 
     internal void ShowButtonDisconnect()

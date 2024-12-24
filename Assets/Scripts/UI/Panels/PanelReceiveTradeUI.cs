@@ -65,13 +65,13 @@ internal sealed class PanelReceiveTradeUI : MonoBehaviour, IActionControlUI
             this.labelSenderOffer.text = value.SenderBalanceAmount.ToString();
             this.labelReceiverOffer.text = value.ReceiverBalanceAmount.ToString();
 
-            if (value.SenderNodeIndex != TradeCredentials.NODE_INDEX_PLACEHOLDER)
+            if (value.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
             {
                 this.imageSender.gameObject.SetActive(true);
                 this.imageSender.sprite = MonopolyBoard.Instance.GetNodeByIndex(value.SenderNodeIndex).NodeSprite;
             }
 
-            if (value.ReceiverNodeIndex != TradeCredentials.NODE_INDEX_PLACEHOLDER)
+            if (value.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
             {
                 this.imageReceiver.gameObject.SetActive(true);
                 this.imageReceiver.sprite = MonopolyBoard.Instance.GetNodeByIndex(value.ReceiverNodeIndex).NodeSprite; ;
