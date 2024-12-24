@@ -29,28 +29,21 @@ internal sealed class GameCoordinator : MonoBehaviour
 
     private const string CONNECTION_TYPE = "dtls";
 
-    private Scene activeScene;
-
-    private int initializationCount;
-
-    private LinkedList<Type> objectsToLoad;
-
-    private LinkedList<Type> initializedObjects;
-    
     public static GameCoordinator Instance { get; private set; }
 
+    private Scene activeScene;
+    private int initializationCount;
+    private LinkedList<Type> objectsToLoad;
+    private LinkedList<Type> initializedObjects;
+
     public event Action OnAuthenticationFailed;
-
     public event Action<RelayServiceException> OnEstablishingConnectionRelayFailed;
-
     public event Action<LobbyServiceException> OnEstablishingConnectionLobbyFailed;
 
     public bool IsGameQuiting { get; private set; }
-
     public Player LocalPlayer { get; private set; }
-
     public MonopolyScene ActiveScene { get; private set; }
-    
+
     private void Awake()
     {
         if (Instance != null)
@@ -136,7 +129,7 @@ internal sealed class GameCoordinator : MonoBehaviour
     #endregion
 
     #region Scenes Management
-    
+
     public void LoadSceneNetwork(MonopolyScene scene)
     {
         NetworkManager.Singleton.SceneManager.LoadScene(scene.ToString(), LoadSceneMode.Single);

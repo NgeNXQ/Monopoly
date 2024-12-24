@@ -1268,6 +1268,8 @@ MonoBehaviour:
   spriteWarning: {fileID: 21300000, guid: ea06f9c9a1bbc184ebf54bffd1625ac2, type: 3}
   spriteLoading: {fileID: 21300000, guid: 00be551b8ec16de4ba87657b2ca28ee2, type: 3}
   spriteQuestion: {fileID: 21300000, guid: c0cf939fe466c1b4f97eafff98c22ca5, type: 3}
+  spriteSuccess: {fileID: 21300000, guid: 199732d090e144c42b31ae472cbc03da, type: 3}
+  spriteFailure: {fileID: 21300000, guid: 2e2fac082e6480c439133e681f0a005d, type: 3}
 --- !u!1 &5061975337596992012
 GameObject:
   m_ObjectHideFlags: 0
