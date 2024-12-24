@@ -8,6 +8,7 @@ internal sealed class BotPawnController : PawnController
     private const float TURN_TIMEOUT_DELAY = 1.0f;
 
     private bool isAbleToRollDice;
+    private int previousBalanceOffer;
 
     public override void OnNetworkSpawn()
     {
@@ -16,14 +17,14 @@ internal sealed class BotPawnController : PawnController
 
     internal override sealed async void PerformTurn()
     {
-        await Awaitable.WaitForSecondsAsync(PawnController.TURN_DELAY);
-
         if (base.IsSkipTurn)
         {
             base.IsSkipTurn = false;
             base.CompleteTurn();
             return;
         }
+
+        await Awaitable.WaitForSecondsAsync(PawnController.TURN_DELAY);
 
         this.isAbleToRollDice = true;
 
@@ -70,19 +71,23 @@ internal sealed class BotPawnController : PawnController
             ReceiverNodeIndex = MonopolyBoard.Instance.GetIndexOfNode(targetNode)
         };
 
-        int strategiesChangeCount = 0;
+        int strategyChangesCount = 0;
         int strategyChoice = Random.Range(0, STRATEGIES_COUNT);
 
         switch (strategyChoice)
         {
             case STRATEGY_NODE:
-                ++strategiesChangeCount;
+                ++strategyChangesCount;
 
-                if (strategiesChangeCount > MAX_STRATEGIES_CHANGE_COUNT)
+                if (strategyChangesCount > MAX_STRATEGIES_CHANGE_COUNT)
                     return TradeCredentials.Blank;
 
-                MonopolyNode strategyNodeSelectedNode = base.OwnedNodes.Where(node => node.AffiliatedMonopoly != targetNode.AffiliatedMonopoly && targetNode.IsTradable
-                && targetNode.Owner.OwnedNodes.Any(ownerNode => ownerNode.AffiliatedMonopoly == node.AffiliatedMonopoly)).FirstOrDefault();
+                MonopolyNode strategyNodeSelectedNode = base.OwnedNodes
+                    .Where(node => node.AffiliatedMonopoly != targetNode.AffiliatedMonopoly
+                        && targetNode.IsTradable
+                        && targetNode.Owner.OwnedNodes.Any(ownerNode => ownerNode.AffiliatedMonopoly == node.AffiliatedMonopoly))
+                    .OrderBy(node => UnityEngine.Random.value)
+                    .FirstOrDefault();
 
                 if (strategyNodeSelectedNode == null)
                     goto case STRATEGY_BALANCE;
@@ -92,28 +97,32 @@ internal sealed class BotPawnController : PawnController
                 credentials.SenderNodeIndex = MonopolyBoard.Instance.GetIndexOfNode(strategyNodeSelectedNode);
                 break;
             case STRATEGY_BALANCE:
-                ++strategiesChangeCount;
+                ++strategyChangesCount;
 
-                if (strategiesChangeCount > MAX_STRATEGIES_CHANGE_COUNT)
+                if (strategyChangesCount > MAX_STRATEGIES_CHANGE_COUNT)
                     return TradeCredentials.Blank;
 
                 float balanceScaler = Random.Range(1.0f, 2.0f);
                 int balanceOffer = (int)(targetNode.PricePurchase * balanceScaler);
 
-                if (base.Balance.Value < balanceOffer)
+                if (base.Balance.Value < balanceOffer || this.previousBalanceOffer < balanceOffer)
                     goto case STRATEGY_NODE_AND_BALANCE;
 
+                this.previousBalanceOffer = balanceOffer;
                 credentials.ReceiverBalanceAmount = 0;
                 credentials.SenderBalanceAmount = balanceOffer;
                 credentials.SenderNodeIndex = TradeCredentials.PLACEHOLDER;
                 break;
             case STRATEGY_NODE_AND_BALANCE:
-                ++strategiesChangeCount;
+                ++strategyChangesCount;
 
-                if (strategiesChangeCount > MAX_STRATEGIES_CHANGE_COUNT)
+                if (strategyChangesCount > MAX_STRATEGIES_CHANGE_COUNT)
                     return TradeCredentials.Blank;
 
-                MonopolyNode strategyNodeAndBalanceNode = base.OwnedNodes.Where(node => node.AffiliatedMonopoly != targetNode.AffiliatedMonopoly && targetNode.IsTradable).FirstOrDefault();
+                MonopolyNode strategyNodeAndBalanceNode = base.OwnedNodes
+                    .Where(node => node.AffiliatedMonopoly != targetNode.AffiliatedMonopoly && targetNode.IsTradable)
+                    .OrderBy(node => UnityEngine.Random.value)
+                    .FirstOrDefault();
 
                 if (strategyNodeAndBalanceNode == null)
                     goto case STRATEGY_BALANCE;
@@ -121,12 +130,13 @@ internal sealed class BotPawnController : PawnController
                 float nodeAndBalanceScaler = Random.Range(1.0f, 1.25f);
                 int nodeAndBalanceOffer = (int)(targetNode.PricePurchase * nodeAndBalanceScaler);
 
-                if (base.Balance.Value < nodeAndBalanceOffer)
+                if (base.Balance.Value < nodeAndBalanceOffer || this.previousBalanceOffer < nodeAndBalanceOffer)
                     goto case STRATEGY_NODE;
 
+                this.previousBalanceOffer = nodeAndBalanceOffer;
                 credentials.ReceiverBalanceAmount = 0;
                 credentials.SenderBalanceAmount = nodeAndBalanceOffer;
-                credentials.SenderNodeIndex = TradeCredentials.PLACEHOLDER;
+                credentials.SenderNodeIndex = MonopolyBoard.Instance.GetIndexOfNode(strategyNodeAndBalanceNode);
                 break;
         }
 
@@ -297,11 +307,11 @@ internal sealed class BotPawnController : PawnController
         }
     }
 
-    private protected override sealed async void RespondToTrade(TradeCredentials tradeCredentials)
+    private protected override sealed async void RespondToTrade(TradeCredentials credentials)
     {
         await Awaitable.WaitForSecondsAsync(BotPawnController.TURN_TIMEOUT_DELAY);
 
-        const float WORTH_SENT_FULL_MONOPOLY_RATIO_THRESHOLD = 2.5f;
+        const float WORTH_SENT_FULL_MONOPOLY_RATIO_THRESHOLD = 2.25f;
         const float WORTH_RECEIVED_FULL_MONOPOLY_RATIO_THRESHOLD = 1.5f;
 
         const float WORTH_SENT_PARTIAL_MONOPOLY_RATIO_THRESHOLD = 1.7f;
@@ -314,80 +324,92 @@ internal sealed class BotPawnController : PawnController
         bool willSenderHavePartialMonopoly = false;
         bool willReceiverHavePartialMonopoly = false;
 
-        if (tradeCredentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
+        if (credentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
         {
-            nodeToSend = MonopolyBoard.Instance.GetNodeByIndex(tradeCredentials.ReceiverNodeIndex);
-            PawnController sender = GameManager.Instance.GetPawnController(tradeCredentials.SenderNetworkIndex);
+            nodeToSend = MonopolyBoard.Instance.GetNodeByIndex(credentials.ReceiverNodeIndex);
+            PawnController sender = GameManager.Instance.GetPawnController(credentials.SenderNetworkIndex);
             willSenderHavePartialMonopoly = sender.OwnedNodes.Count(node => node.AffiliatedMonopoly == nodeToSend.AffiliatedMonopoly) + 1 > 1;
             willSenderHaveFullMonopoly = sender.OwnedNodes.Count(node => node.AffiliatedMonopoly == nodeToSend.AffiliatedMonopoly) + 1 == nodeToSend.AffiliatedMonopoly.NodesCount;
         }
 
-        if (tradeCredentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
+        if (credentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
         {
-            nodeToReceive = MonopolyBoard.Instance.GetNodeByIndex(tradeCredentials.SenderNodeIndex);
-            willSenderHavePartialMonopoly = this.OwnedNodes.Count(node => node.AffiliatedMonopoly == nodeToReceive.AffiliatedMonopoly) + 1 > 1;
+            nodeToReceive = MonopolyBoard.Instance.GetNodeByIndex(credentials.SenderNodeIndex);
+            willReceiverHavePartialMonopoly = this.OwnedNodes.Count(node => node.AffiliatedMonopoly == nodeToReceive.AffiliatedMonopoly) + 1 > 1;
             willReceiverHaveFullMonopoly = this.OwnedNodes.Count(node => node.AffiliatedMonopoly == nodeToReceive.AffiliatedMonopoly) + 1 == nodeToReceive.AffiliatedMonopoly.NodesCount;
         }
 
-        int worthToSend = tradeCredentials.ReceiverBalanceAmount + (nodeToSend?.PricePurchase ?? 0);
-        int worthToReceive = tradeCredentials.SenderBalanceAmount + (nodeToReceive?.PricePurchase ?? 0);
+        int worthToSend = credentials.ReceiverBalanceAmount + (nodeToSend?.PricePurchase ?? 0);
+        int worthToReceive = credentials.SenderBalanceAmount + (nodeToReceive?.PricePurchase ?? 0);
 
         if (worthToSend == 0)
         {
-            base.AcceptTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+            base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             return;
         }
 
         if (worthToReceive == 0)
         {
-            base.DeclineTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+            base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             return;
+        }
+
+        if (nodeToSend != null)
+        {
+            if (base.OwnedNodes.Where(node => node.AffiliatedMonopoly == nodeToSend.AffiliatedMonopoly).Count() == nodeToSend.AffiliatedMonopoly.NodesCount)
+            {
+                base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+                return;
+            }
         }
 
         if (willReceiverHaveFullMonopoly)
         {
             if (((float)worthToSend / worthToReceive) <= WORTH_SENT_FULL_MONOPOLY_RATIO_THRESHOLD)
-                base.AcceptTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             else
-                base.DeclineTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             return;
         }
 
         if (willSenderHaveFullMonopoly)
         {
             if (((float)worthToReceive / worthToSend) >= WORTH_RECEIVED_FULL_MONOPOLY_RATIO_THRESHOLD)
-                base.AcceptTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             else
-                base.DeclineTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             return;
         }
 
         if (willReceiverHavePartialMonopoly)
         {
             if (((float)worthToSend / worthToReceive) <= WORTH_SENT_PARTIAL_MONOPOLY_RATIO_THRESHOLD)
-                base.AcceptTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             else
-                base.DeclineTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             return;
         }
 
         if (willSenderHavePartialMonopoly)
         {
             if (((float)worthToReceive / worthToSend) >= WORTH_RECEIVED_PARTIAL_MONOPOLY_RATIO_THRESHOLD)
-                base.AcceptTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             else
-                base.DeclineTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+                base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
             return;
         }
 
         if (worthToReceive > worthToSend)
-            base.AcceptTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+            base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
         else
-            base.DeclineTradeServerRpc(tradeCredentials, GameManager.Instance.SenderLocalClient);
+            base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
     }
 
-    private protected override sealed void HandleTradeResponse(TradeCredentials tradeCredentials)
+    private protected override sealed void HandleTradeResponse(TradeCredentials credentials)
     {
+        if (credentials.Result == TradeResult.Success)
+            this.previousBalanceOffer = 0;
+
         this.isAbleToRollDice = true;
     }
 }

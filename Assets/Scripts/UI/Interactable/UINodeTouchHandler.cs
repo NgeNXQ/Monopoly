@@ -31,6 +31,9 @@ internal sealed class UINodeTouchHandler : MonoBehaviour, IPointerClickHandler
         }
         else
         {
+            if (PlayerPawnController.LocalInstance != this.associatedNode.Owner)
+                return;
+
             if (this.isShown)
             {
                 PlayerPawnController.LocalInstance.SelectedNode = null;

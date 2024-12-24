@@ -69,7 +69,7 @@ internal sealed class GameManager : NetworkBehaviour
     private ulong[] targetAllClients;
     private ulong[] targetOtherClients;
     private ulong[] targetAllDefaultClients;
-    private IList<ulong[]> targetAllClientsExcludingCurrentPlayer;
+    private IDictionary<int, ulong[]> targetAllClientsExcludingCurrentPlayer;
 
     private int nextPawnIndex => ++this.CurrentPawnIndex % this.pawns.Count;
 
@@ -228,9 +228,7 @@ internal sealed class GameManager : NetworkBehaviour
         if (this.CurrentPawn.NetworkIndex == networkIndex)
             this.SwitchPlayerForcefullyServerRpc(this.SenderLocalClient);
 
-        this.targetAllClientsExcludingCurrentPlayer.RemoveAt(networkIndex);
-        this.pawns.Where(pawn => pawn.NetworkIndex == networkIndex).First().DeclineTradeServerRpc(TradeCredentials.Blank, this.SenderLocalClient);
-
+        this.targetAllClientsExcludingCurrentPlayer.Remove(networkIndex);
         this.RemoveSurrenderedPawnClientRpc(networkIndex, this.TargetAllClients);
     }
 
@@ -274,7 +272,7 @@ internal sealed class GameManager : NetworkBehaviour
 
     private void InitializeGameSession()
     {
-        this.targetAllClientsExcludingCurrentPlayer = new List<ulong[]>();
+        this.targetAllClientsExcludingCurrentPlayer = new Dictionary<int, ulong[]>();
         this.targetAllClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count];
         this.targetOtherClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
         this.targetAllDefaultClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
@@ -287,7 +285,7 @@ internal sealed class GameManager : NetworkBehaviour
         for (int i = 0; i < NetworkManager.Singleton?.ConnectedClients.Count; ++i)
         {
             this.targetAllClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i];
-            this.targetAllClientsExcludingCurrentPlayer.Add(NetworkManager.Singleton.ConnectedClientsIds.Where(id => id != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
+            this.targetAllClientsExcludingCurrentPlayer.Add(i, NetworkManager.Singleton.ConnectedClientsIds.Where(id => id != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
 
             GameObject newPlayer = GameObject.Instantiate(this.player);
             GameObject newPlayerPanel = GameObject.Instantiate(this.pawnPanel);
@@ -297,7 +295,7 @@ internal sealed class GameManager : NetworkBehaviour
 
         for (int i = this.pawns.Count; i < LobbyManager.MAX_PLAYERS; ++i)
         {
-            this.targetAllClientsExcludingCurrentPlayer.Add(NetworkManager.Singleton.ConnectedClientsIds.ToArray());
+            this.targetAllClientsExcludingCurrentPlayer.Add(i, NetworkManager.Singleton.ConnectedClientsIds.ToArray());
 
             GameObject newBot = GameObject.Instantiate(this.bot);
             GameObject newBotPanel = GameObject.Instantiate(this.pawnPanel);

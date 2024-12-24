@@ -319,19 +319,18 @@ public sealed class MonopolyNode : NetworkBehaviour
     [ClientRpc]
     private void UpdateOwnershipClientRpc(int networkIndex, ClientRpcParams clientRpcParams)
     {
+        this.Level = MonopolyNode.LEVEL_OWNERSHIP;
         this.Owner = GameManager.Instance.GetPawnController(networkIndex);
         this.Owner.OwnedNodes.Add(this);
 
         if (this.NodeType == Type.Property)
         {
-            this.Level = MonopolyNode.LEVEL_OWNERSHIP;
             this.UpdateVisualsProperty();
         }
         else
         {
             this.UpdateVisualsSpecial();
             this.UpdateSpecialNodesLevel(this.Owner);
-            this.Level = this.AffiliatedMonopoly.GetLevel(this.Owner);
         }
     }
 
@@ -372,15 +371,15 @@ public sealed class MonopolyNode : NetworkBehaviour
         if (owner == null)
             throw new System.ArgumentNullException($"{nameof(owner)} is null.");
 
-        if (owner.HasPartialMonopoly(this.AffiliatedMonopoly))
-        {
-            int levelAdjustment = this.IsMortgaged ? -1 : 1;
+        int ownedNodesCount = owner.OwnedNodes.Where(node => node.AffiliatedMonopoly == this.AffiliatedMonopoly).Count();
+        int mortgagedNodesCount = owner.OwnedNodes.Where(node => node.AffiliatedMonopoly == this.AffiliatedMonopoly && node.IsMortgaged).Count();
 
-            foreach (MonopolyNode node in this.AffiliatedMonopoly.GetNodesOwnedByPawn(owner))
-            {
-                if (!node.IsMortgaged)
-                    node.Level += levelAdjustment;
-            }
+        int currentLevel = ownedNodesCount - mortgagedNodesCount;
+
+        foreach (MonopolyNode node in this.AffiliatedMonopoly.GetNodesOwnedByPawn(owner))
+        {
+            if (!node.IsMortgaged)
+                node.Level = currentLevel;
         }
     }
 }

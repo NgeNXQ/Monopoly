@@ -164,7 +164,8 @@ internal abstract class PawnController : NetworkBehaviour
         if (monopolySet == null)
             throw new System.NullReferenceException($"{nameof(monopolySet)} cannot be null.");
 
-        return this.OwnedNodes.Where(node => node.AffiliatedMonopoly == monopolySet).Count() > 1;
+        const float MONOPOLY_PERCENTAGE_THRESHOLD = 0.5f;
+        return (float)this.OwnedNodes.Where(node => node.AffiliatedMonopoly == monopolySet).Count() / monopolySet.NodesCount >= MONOPOLY_PERCENTAGE_THRESHOLD;
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -174,6 +175,8 @@ internal abstract class PawnController : NetworkBehaviour
 
         foreach (MonopolyNode monopolyNode in monopolyNodes)
             monopolyNode.ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
+
+        this.DeclineTradeServerRpc(TradeCredentials.Blank, GameManager.Instance.SenderLocalClient);
 
         GameManager.Instance.GetPawnPanel(this.NetworkIndex).GetComponent<NetworkObject>().Despawn();
         GameManager.Instance.GetPawnController(this.NetworkIndex).GetComponent<NetworkObject>().Despawn();
@@ -244,7 +247,7 @@ internal abstract class PawnController : NetworkBehaviour
 
     private protected void CompleteTurn()
     {
-        if (this.IsInJail)
+        if (this.IsInJail || this.IsSkipTurn)
             GameManager.Instance.SwitchPlayerForcefullyServerRpc(GameManager.Instance.SenderLocalClient);
         else
             GameManager.Instance.SwitchPawnServerRpc(GameManager.Instance.SenderLocalClient);
@@ -257,14 +260,19 @@ internal abstract class PawnController : NetworkBehaviour
             return;
 
 #if UNITY_EDITOR || DEBUG
+        MonopolyNode senderNode = null;
+        MonopolyNode receiverNode = null;
         PawnController sender = GameManager.Instance.GetPawnController(credentials.SenderNetworkIndex);
         PawnController receiver = GameManager.Instance.GetPawnController(credentials.ReceiverNetworkIndex);
 
         int senderBalance = credentials.SenderBalanceAmount;
         int receiverBalance = credentials.ReceiverBalanceAmount;
 
-        MonopolyNode senderNode = MonopolyBoard.Instance.GetNodeByIndex(credentials.SenderNodeIndex);
-        MonopolyNode receiverNode = MonopolyBoard.Instance.GetNodeByIndex(credentials.ReceiverNodeIndex);
+        if (credentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
+            senderNode = MonopolyBoard.Instance.GetNodeByIndex(credentials.SenderNodeIndex);
+
+        if (credentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
+            receiverNode = MonopolyBoard.Instance.GetNodeByIndex(credentials.ReceiverNodeIndex);
 
         Debug.Log($"{sender.Nickname} sends offer to the {receiver.Nickname} ({senderNode?.name} and {senderBalance} for {receiverNode?.name} and {receiverBalance})");
 #endif
@@ -285,16 +293,13 @@ internal abstract class PawnController : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    internal void DeclineTradeServerRpc(TradeCredentials credentials, ServerRpcParams serverRpcParams)
+    private protected void DeclineTradeServerRpc(TradeCredentials credentials, ServerRpcParams serverRpcParams)
     {
-        if (!credentials.AreValid)
-            return;
-
 #if UNITY_EDITOR || DEBUG
         PawnController sender = GameManager.Instance.GetPawnController(credentials.SenderNetworkIndex);
         PawnController receiver = GameManager.Instance.GetPawnController(credentials.ReceiverNetworkIndex);
 
-        Debug.Log($"{sender.Nickname} accepted offer from {receiver.Nickname}");
+        Debug.Log($"{sender?.Nickname} declined offer from {receiver?.Nickname}");
 #endif
 
         credentials.Result = TradeResult.Failure;
@@ -304,9 +309,6 @@ internal abstract class PawnController : NetworkBehaviour
     [ServerRpc]
     private protected void AcceptTradeServerRpc(TradeCredentials credentials, ServerRpcParams serverRpcParams)
     {
-        if (!credentials.AreValid)
-            return;
-
         credentials.Result = TradeResult.Success;
 
         PawnController sender = GameManager.Instance.GetPawnController(credentials.SenderNetworkIndex);
@@ -323,10 +325,16 @@ internal abstract class PawnController : NetworkBehaviour
         this.UpdateBalanceServerRpc(credentials.ReceiverNetworkIndex, receiver.Balance.Value - credentials.ReceiverBalanceAmount, GameManager.Instance.SenderLocalClient);
 
         if (credentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
+        {
+            MonopolyBoard.Instance.GetNodeByIndex(credentials.SenderNodeIndex).ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
             MonopolyBoard.Instance.GetNodeByIndex(credentials.SenderNodeIndex).UpdateOwnershipServerRpc(credentials.ReceiverNetworkIndex, GameManager.Instance.SenderLocalClient);
+        }
 
         if (credentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
+        {
+            MonopolyBoard.Instance.GetNodeByIndex(credentials.ReceiverNodeIndex).ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
             MonopolyBoard.Instance.GetNodeByIndex(credentials.ReceiverNodeIndex).UpdateOwnershipServerRpc(credentials.SenderNetworkIndex, GameManager.Instance.SenderLocalClient);
+        }
 
         this.HandleTradeResponseClientRpc(credentials, GameManager.Instance.TargetAllClients);
     }

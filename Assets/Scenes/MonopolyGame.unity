@@ -7500,7 +7500,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startingBalance: 15000
   maxTurnsInJail: 3
-  maxDoublesInRow: 2
+  maxDoublesInRow: 3
   circleBonus: 2000
   exactCircleBonus: 3000
   pawnMovementSpeed: 35
