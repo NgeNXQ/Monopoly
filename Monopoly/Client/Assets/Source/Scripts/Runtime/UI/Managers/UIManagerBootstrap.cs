@@ -54,13 +54,13 @@ namespace Monopoly.Client.Runtime.UI.Managers
         private void OnEnable()
         {
             // LocalizationSettings.SelectedLocaleChanged += this.OnSelectedLocaleChanged;
-            GameCoordinator.Instance.OnAuthenticationFailed += this.HandleAuthenticationFailed;
+            GameCoordinator.Instance.AuthenticationFailedEvent += this.OnAuthenticationFailed;
         }
 
         private void OnDisable()
         {
             // LocalizationSettings.SelectedLocaleChanged -= this.OnSelectedLocaleChanged;
-            GameCoordinator.Instance.OnAuthenticationFailed -= this.HandleAuthenticationFailed;
+            GameCoordinator.Instance.AuthenticationFailedEvent -= this.OnAuthenticationFailed;
         }
 
         // private void OnSelectedLocaleChanged(Locale locale)
@@ -68,17 +68,17 @@ namespace Monopoly.Client.Runtime.UI.Managers
         //     this.messageDefaultInitializingGameCoordinator = this.localizationTable.GetEntry("message_default_initializing_game_coordinator").Value;
         // }
 
-        private void HandleAuthenticationFailed()
+        private void OnAuthenticationFailed()
         {
             UIManagerGlobal.Instance.ShowMessageBox(
                 MessageBoxPanel.Type.OK, 
                 MessageBoxPanel.Icon.Error, 
                 this.messageExceptionGameCoordinatorInitializationFailed, 
-                this.OnAuthenticationFailed
+                this.HandleAuthenticationFailed
             );
         }
 
-        private async void OnAuthenticationFailed()
+        private async void HandleAuthenticationFailed()
         {
             switch (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult)
             {
@@ -93,7 +93,7 @@ namespace Monopoly.Client.Runtime.UI.Managers
                     break;
                 case MessageBoxPanel.DialogResult.Cancel:
                     {
-                        await GameCoordinator.Instance.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
+                        // await GameCoordinator.Instance.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
                     }
                     break;
             }

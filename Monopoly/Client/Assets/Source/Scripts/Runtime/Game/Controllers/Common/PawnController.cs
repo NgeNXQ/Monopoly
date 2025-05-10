@@ -5,35 +5,38 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
 using Monopoly.Client.Runtime.Game.Core;
+using Monopoly.Client.Runtime.Game.Board;
+using Monopoly.Client.Runtime.Game.Tiles.Common;
+using Monopoly.Client.Runtime.Game.Tiles.Properties.Common;
 using Monopoly.Client.Runtime.Game.Serializables;
 using Monopoly.Client.Runtime.UI.Managers;
-using Monopoly.Client.Scriptable.Objects.Cards;
+using Monopoly.Client.Scriptable.Objects.Cards.Chance;
 
 namespace Monopoly.Client.Runtime.Game.Controllers.Common
 {
     internal abstract class PawnController : NetworkBehaviour
     {
-        [Header("Visuals")]
-
-        [Space]
         [SerializeField]
         private protected Image pawnImageToken;
 
-        private protected const float TURN_DELAY = 0.25f;
+        [SerializeField, Range(0.0f, 10.0f)]
+        private protected float turnDelay = 0.25f;
+
+        [SerializeField, Range(0.0f, 100.0f)]
+        private protected float movementSpeed = 35.0f;
 
         private protected bool IsInJail;
         private protected bool IsSkipTurn;
         private protected int TurnsInJailCount;
 
-        internal int NetworkIndex { get; private set; }
-
-        internal string Nickname { get; private protected set; }
-
         internal Color PawnColor { get; private set; }
-        internal MonopolyTile CurrentTile { get; private set; }
+        internal int NetworkIndex { get; private set; }
+        internal string Nickname { get; private protected set; }
         internal NetworkVariable<int> Balance { get; private set; }
-        internal List<MonopolyTile> OwnedTiles { get; private set; }
-        internal int NetWorth => this.Balance.Value + this.OwnedTiles.Sum(node => node.WorthTotal);
+        internal List<PropertyMonopolyTile> OwnedTiles { get; private set; }
+        internal int NetWorth => this.Balance.Value + this.OwnedTiles.Sum(tile => tile.Worth);
+
+        internal MonopolyTile CurrentTile { get; private set; }
 
         internal abstract void PerformTurn();
         private protected abstract void HandleJailLanding();
@@ -47,16 +50,19 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
 
         private void Awake()
         {
-            this.NetworkIndex = GameManager.Instance.PawnsCount;
-
-            this.Balance = new NetworkVariable<int>(GameManager.Instance.StartingBalance, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+            this.Balance = new NetworkVariable<int>(
+                GameManager.Instance.InitialBalance,
+                NetworkVariableReadPermission.Everyone,
+                NetworkVariableWritePermission.Server
+            );
 
             if (NetworkManager.Singleton.IsHost)
-                this.Balance.Value = GameManager.Instance.StartingBalance;
+                this.Balance.Value = GameManager.Instance.InitialBalance;
 
-            this.OwnedTiles = new List<MonopolyTile>();
-            this.CurrentTile = MonopolyBoard.Instance.NodeStart;
-            this.transform.position = MonopolyBoard.Instance.NodeStart.transform.position;
+            this.OwnedTiles = new List<PropertyMonopolyTile>();
+            this.CurrentTile = MonopolyBoard.Instance.TileStart;
+            this.NetworkIndex = GameManager.Instance.PawnsCount;
+            this.transform.position = MonopolyBoard.Instance.TileStart.transform.position;
             this.PawnColor = GameManager.Instance.PawnsVisuals[this.NetworkIndex].PawnTokenColor;
             this.pawnImageToken.sprite = GameManager.Instance.PawnsVisuals[this.NetworkIndex].PawnTokenSprite;
 
@@ -65,96 +71,100 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
 
         private void MoveToken(int steps)
         {
-            const float POSITION_THRESHOLD = 0.001f;
+            // const float POSITION_THRESHOLD = 0.001f;
 
-            Vector3 targetPosition;
-            bool hasMovedOverStart = false;
-            int currentNodeIndex = MonopolyBoard.Instance.GetIndexOfNode(this.CurrentTile);
+            // Vector3 targetPosition;
+            // bool hasMovedOverStart = false;
+            // int currentNodeIndex = MonopolyBoard.Instance.GetIndexOfTile(this.CurrentTile);
 
-            this.StartCoroutine(MoveCoroutine());
+            // this.StartCoroutine(MoveCoroutine());
 
-            IEnumerator MoveCoroutine()
-            {
-                while (steps != 0)
-                {
-                    if (steps < 0)
-                    {
-                        ++steps;
-                        currentNodeIndex = Mathf.Abs(--currentNodeIndex + MonopolyBoard.Instance.NodesCount) % MonopolyBoard.Instance.NodesCount;
-                    }
-                    else
-                    {
-                        --steps;
-                        currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.NodesCount;
-                    }
+            // IEnumerator MoveCoroutine()
+            // {
+            //     while (steps != 0)
+            //     {
+            //         if (steps < 0)
+            //         {
+            //             ++steps;
+            //             currentNodeIndex = Mathf.Abs(--currentNodeIndex + MonopolyBoard.Instance.TilesCount) % MonopolyBoard.Instance.TilesCount;
+            //         }
+            //         else
+            //         {
+            //             --steps;
+            //             currentNodeIndex = ++currentNodeIndex % MonopolyBoard.Instance.TilesCount;
+            //         }
 
-                    targetPosition = MonopolyBoard.Instance.GetNodeByIndex(currentNodeIndex).transform.position;
+            //         targetPosition = MonopolyBoard.Instance.GetTileByIndex(currentNodeIndex).transform.position;
 
-                    if (MonopolyBoard.Instance.NodeStart == MonopolyBoard.Instance.GetNodeByIndex(currentNodeIndex))
-                        hasMovedOverStart = true;
+            //         if (MonopolyBoard.Instance.TileStart == MonopolyBoard.Instance.GetTileByIndex(currentNodeIndex))
+            //             hasMovedOverStart = true;
 
-                    yield return StartCoroutine(MoveStepCoroutine(targetPosition));
-                }
+            //         yield return StartCoroutine(MoveStepCoroutine(targetPosition));
+            //     }
 
-                this.CurrentTile = MonopolyBoard.Instance.GetNodeByIndex(currentNodeIndex);
+            //     this.CurrentTile = MonopolyBoard.Instance.GetTileByIndex(currentNodeIndex);
+            //     // this.CurrentTile.HandleLanding();
 
-                if (hasMovedOverStart && this.CurrentTile != MonopolyBoard.Instance.NodeStart)
-                    this.UpdateBalanceServerRpc(this.NetworkIndex, this.Balance.Value + GameManager.Instance.CircleBonus, GameManager.Instance.SenderLocalClient);
+            //     // if (hasMovedOverStart && this.CurrentTile != MonopolyBoard.Instance.NodeStart)
+            //     //     this.UpdateBalanceServerRpc(this.NetworkIndex, this.Balance.Value + GameManager.Instance.CircleBonus, GameManager.Instance.SenderLocalClient);
 
-                this.HandleLanding();
-            }
+            //     this.HandleLanding();
+            // }
 
-            IEnumerator MoveStepCoroutine(Vector3 targetPosition)
-            {
-                while (Vector3.Distance(this.transform.position, targetPosition) > POSITION_THRESHOLD)
-                {
-                    this.transform.position = Vector3.MoveTowards(this.transform.position, targetPosition, GameManager.Instance.PawnMovementSpeed * Time.deltaTime);
-                    yield return null;
-                }
+            // IEnumerator MoveStepCoroutine(Vector3 targetPosition)
+            // {
+            //     while (Vector3.Distance(this.transform.position, targetPosition) > POSITION_THRESHOLD)
+            //     {
+            //         this.transform.position = Vector3.MoveTowards(this.transform.position, targetPosition, this.movementSpeed * Time.deltaTime);
+            //         yield return null;
+            //     }
 
-                this.transform.position = targetPosition;
-            }
+            //     this.transform.position = targetPosition;
+            // }
         }
 
-        private void HandleLanding()
-        {
-            switch (this.CurrentTile.TileType)
-            {
-                case MonopolyTile.Type.Tax:
-                    this.HandleChanceLanding();
-                    break;
-                case MonopolyTile.Type.Jail:
-                    this.HandleJailLanding();
-                    break;
-                case MonopolyTile.Type.Start:
-                    this.HandleStartLanding();
-                    break;
-                case MonopolyTile.Type.Chance:
-                    this.HandleChanceLanding();
-                    break;
-                case MonopolyTile.Type.SendJail:
-                    this.HandleSendJailLanding();
-                    break;
-                case MonopolyTile.Type.Property:
-                    this.HandlePropertyLanding();
-                    break;
-                case MonopolyTile.Type.Gambling:
-                    this.HandlePropertyLanding();
-                    break;
-                case MonopolyTile.Type.Transport:
-                    this.HandlePropertyLanding();
-                    break;
-                case MonopolyTile.Type.FreeParking:
-                    this.HandleFreeParkingLanding();
-                    break;
-            }
-        }
+        // private void HandleLanding()
+        // {
+        //     switch (this.CurrentTile)
+        //     {
+        //         case PropertyMonopolyTile:
+        //             this.HandlePropertyLanding();
+        //             break;
+        //         // case MonopolyTile.Type.Tax:
+        //         //     this.HandleChanceLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.Jail:
+        //         //     this.HandleJailLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.Start:
+        //         //     this.HandleStartLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.Chance:
+        //         //     this.HandleChanceLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.SendJail:
+        //         //     this.HandleSendJailLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.Property:
+        //         //     this.HandlePropertyLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.Gambling:
+        //         //     this.HandlePropertyLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.Transport:
+        //         //     this.HandlePropertyLanding();
+        //         //     break;
+        //         // case MonopolyTile.Type.FreeParking:
+        //         //     this.HandleFreeParkingLanding();
+        //         //     break;
+        //     }
+        // }
 
         internal void GoToJail()
         {
             this.IsInJail = true;
             this.TurnsInJailCount = 0;
-            this.MoveToken(MonopolyBoard.Instance.GetDistance(this.CurrentTile, MonopolyBoard.Instance.NodeJail));
+            this.MoveToken(MonopolyBoard.Instance.GetDistance(this.CurrentTile, MonopolyBoard.Instance.TileJailVisit));
         }
 
         internal bool HasFullMonopoly(MonopolySet monopolySet)
@@ -162,7 +172,7 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
             if (monopolySet == null)
                 throw new System.NullReferenceException($"{nameof(monopolySet)} cannot be null.");
 
-            return this.OwnedTiles.Where(node => node.AffiliatedMonopoly == monopolySet).Count() == monopolySet.NodesInSet.Count;
+            return this.OwnedTiles.Where(tile => tile.Monopoly == monopolySet).Count() == monopolySet.Tiles.Count;
         }
 
         internal bool HasPartialMonopoly(MonopolySet monopolySet)
@@ -171,7 +181,7 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
                 throw new System.NullReferenceException($"{nameof(monopolySet)} cannot be null.");
 
             const float MONOPOLY_PERCENTAGE_THRESHOLD = 0.5f;
-            return (float)this.OwnedTiles.Where(node => node.AffiliatedMonopoly == monopolySet).Count() / monopolySet.NodesCount >= MONOPOLY_PERCENTAGE_THRESHOLD;
+            return (float)this.OwnedTiles.Where(tile => tile.Monopoly == monopolySet).Count() / monopolySet.Tiles.Count >= MONOPOLY_PERCENTAGE_THRESHOLD;
         }
 
         [ServerRpc(RequireOwnership = false)]
@@ -179,48 +189,50 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
         {
             MonopolyTile[] MonopolyTiles = this.OwnedTiles.ToArray();
 
-            foreach (MonopolyTile monopolyTile in MonopolyTiles)
-                monopolyTile.ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
+            // foreach (MonopolyTile monopolyTile in MonopolyTiles)
+            //     monopolyTile.ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
 
-            this.DeclineTradeServerRpc(TradeCredentials.Blank, GameManager.Instance.SenderLocalClient);
+            // this.DeclineTradeServerRpc(TradeCredentials.Blank, GameManager.Instance.SenderLocalClient);
 
             GameManager.Instance.GetPawnPanel(this.NetworkIndex).GetComponent<NetworkObject>().Despawn();
             GameManager.Instance.GetPawnController(this.NetworkIndex).GetComponent<NetworkObject>().Despawn();
             GameManager.Instance.RemoveSurrenderedPawn(this.NetworkIndex);
         }
 
-        [ServerRpc(RequireOwnership = false)]
-        private protected void UpdateBalanceServerRpc(int networkIndex, int newBalance, ServerRpcParams serverRpcParams)
+        [Rpc(SendTo.Server, RequireOwnership = false)]
+        internal void UpdateBalanceRpc(int networkIndex, int newBalance)
         {
             GameManager.Instance.GetPawnController(networkIndex).Balance.Value = newBalance;
         }
 
-        private protected void PerformChanceAction(ChanceCardScriptableObject chanceNode)
+        private protected void PerformChanceAction(CardChanceScriptableObject chanceCard)
         {
-            switch (chanceNode.ChanceType)
-            {
-                case ChanceCardScriptableObject.Type.Reward:
-                    this.UpdateBalanceServerRpc(this.NetworkIndex, this.Balance.Value + chanceNode.Reward, GameManager.Instance.SenderLocalClient);
-                    this.CompleteTurn();
-                    break;
-                case ChanceCardScriptableObject.Type.SkipTurn:
-                    this.IsSkipTurn = true;
-                    this.CompleteTurn();
-                    break;
-                case ChanceCardScriptableObject.Type.SendJail:
-                    this.GoToJail();
-                    break;
-                case ChanceCardScriptableObject.Type.MoveForward:
-                    GameManager.Instance.RollDice();
-                    UIManagerGame.Instance.ShowDiceAnimation();
-                    this.MoveToken(GameManager.Instance.TotalRollResult);
-                    break;
-                case ChanceCardScriptableObject.Type.MoveBackwards:
-                    GameManager.Instance.RollDice();
-                    UIManagerGame.Instance.ShowDiceAnimation();
-                    this.MoveToken(-GameManager.Instance.TotalRollResult);
-                    break;
-            }
+            chanceCard.Effect.Apply(this);
+
+            // switch (chanceNode.ChanceType)
+            // {
+            //     case ChanceCardScriptableObject.Type.Reward:
+            //         this.UpdateBalanceServerRpc(this.NetworkIndex, this.Balance.Value + chanceNode.Reward, GameManager.Instance.SenderLocalClient);
+            //         this.CompleteTurn();
+            //         break;
+            //     case ChanceCardScriptableObject.Type.SkipTurn:
+            //         this.IsSkipTurn = true;
+            //         this.CompleteTurn();
+            //         break;
+            //     case ChanceCardScriptableObject.Type.SendJail:
+            //         this.GoToJail();
+            //         break;
+            //     case ChanceCardScriptableObject.Type.MoveForward:
+            //         GameManager.Instance.RollDice();
+            //         UIManagerGame.Instance.ShowDiceAnimation();
+            //         this.MoveToken(GameManager.Instance.TotalRollResult);
+            //         break;
+            //     case ChanceCardScriptableObject.Type.MoveBackwards:
+            //         GameManager.Instance.RollDice();
+            //         UIManagerGame.Instance.ShowDiceAnimation();
+            //         this.MoveToken(-GameManager.Instance.TotalRollResult);
+            //         break;
+            // }
         }
 
         private protected void PerformDiceRolling()
@@ -229,7 +241,7 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
             {
                 ++this.TurnsInJailCount;
 
-                if (GameManager.Instance.HasRolledDouble || this.TurnsInJailCount > GameManager.Instance.MaxTurnsInJail)
+                if (GameManager.Instance.HasRolledDouble || this.TurnsInJailCount > GameManager.Instance.MaxJailTurns)
                 {
                     this.ReleaseFromJail();
                     this.MoveToken(GameManager.Instance.TotalRollResult);
@@ -253,10 +265,10 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
 
         private protected void CompleteTurn()
         {
-            if (this.IsInJail || this.IsSkipTurn)
-                GameManager.Instance.SwitchPlayerForcefullyServerRpc(GameManager.Instance.SenderLocalClient);
-            else
-                GameManager.Instance.SwitchPawnServerRpc(GameManager.Instance.SenderLocalClient);
+            // if (this.IsInJail || this.IsSkipTurn)
+            //     GameManager.Instance.SwitchPlayerForcefullyServerRpc(GameManager.Instance.SenderLocalClient);
+            // else
+            //     GameManager.Instance.SwitchPawnServerRpc(GameManager.Instance.SenderLocalClient);
         }
 
         [ServerRpc]
@@ -283,7 +295,7 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
 //             Debug.Log($"{sender.Nickname} sends offer to the {receiver.Nickname} ({senderNode?.name} and {senderBalance} for {receiverNode?.name} and {receiverBalance})");
 // #endif
 
-            this.ReceiveTradeClientRpc(credentials, GameManager.Instance.TargetAllClients);
+            // this.ReceiveTradeClientRpc(credentials, GameManager.Instance.TargetAllClients);
         }
 
         [ClientRpc]
@@ -309,7 +321,7 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
 // #endif
 
             credentials.Result = TradeResult.Failure;
-            this.HandleTradeResponseClientRpc(credentials, GameManager.Instance.TargetAllClients);
+            // this.HandleTradeResponseClientRpc(credentials, GameManager.Instance.TargetAllClients);
         }
 
         [ServerRpc]
@@ -324,25 +336,25 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Common
 //             Debug.Log($"{sender.Nickname} accepted offer from {receiver.Nickname}");
 // #endif
 
-            this.UpdateBalanceServerRpc(credentials.SenderNetworkIndex, sender.Balance.Value - credentials.SenderBalanceAmount, GameManager.Instance.SenderLocalClient);
-            this.UpdateBalanceServerRpc(credentials.ReceiverNetworkIndex, receiver.Balance.Value + credentials.SenderBalanceAmount, GameManager.Instance.SenderLocalClient);
+            // this.UpdateBalanceServerRpc(credentials.SenderNetworkIndex, sender.Balance.Value - credentials.SenderBalanceAmount, GameManager.Instance.SenderLocalClient);
+            // this.UpdateBalanceServerRpc(credentials.ReceiverNetworkIndex, receiver.Balance.Value + credentials.SenderBalanceAmount, GameManager.Instance.SenderLocalClient);
 
-            this.UpdateBalanceServerRpc(credentials.SenderNetworkIndex, sender.Balance.Value + credentials.ReceiverBalanceAmount, GameManager.Instance.SenderLocalClient);
-            this.UpdateBalanceServerRpc(credentials.ReceiverNetworkIndex, receiver.Balance.Value - credentials.ReceiverBalanceAmount, GameManager.Instance.SenderLocalClient);
+            // this.UpdateBalanceServerRpc(credentials.SenderNetworkIndex, sender.Balance.Value + credentials.ReceiverBalanceAmount, GameManager.Instance.SenderLocalClient);
+            // this.UpdateBalanceServerRpc(credentials.ReceiverNetworkIndex, receiver.Balance.Value - credentials.ReceiverBalanceAmount, GameManager.Instance.SenderLocalClient);
 
-            if (credentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
-            {
-                MonopolyBoard.Instance.GetNodeByIndex(credentials.SenderNodeIndex).ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
-                MonopolyBoard.Instance.GetNodeByIndex(credentials.SenderNodeIndex).UpdateOwnershipServerRpc(credentials.ReceiverNetworkIndex, GameManager.Instance.SenderLocalClient);
-            }
+            // if (credentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
+            // {
+            //     MonopolyBoard.Instance.GetTileByIndex(credentials.SenderNodeIndex).ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
+            //     MonopolyBoard.Instance.GetTileByIndex(credentials.SenderNodeIndex).UpdateOwnershipServerRpc(credentials.ReceiverNetworkIndex, GameManager.Instance.SenderLocalClient);
+            // }
 
-            if (credentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
-            {
-                MonopolyBoard.Instance.GetNodeByIndex(credentials.ReceiverNodeIndex).ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
-                MonopolyBoard.Instance.GetNodeByIndex(credentials.ReceiverNodeIndex).UpdateOwnershipServerRpc(credentials.SenderNetworkIndex, GameManager.Instance.SenderLocalClient);
-            }
+            // if (credentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
+            // {
+            //     MonopolyBoard.Instance.GetTileByIndex(credentials.ReceiverNodeIndex).ResetOwnershipServerRpc(GameManager.Instance.SenderLocalClient);
+            //     MonopolyBoard.Instance.GetTileByIndex(credentials.ReceiverNodeIndex).UpdateOwnershipServerRpc(credentials.SenderNetworkIndex, GameManager.Instance.SenderLocalClient);
+            // }
 
-            this.HandleTradeResponseClientRpc(credentials, GameManager.Instance.TargetAllClients);
+            // this.HandleTradeResponseClientRpc(credentials, GameManager.Instance.TargetAllClients);
         }
 
         [ClientRpc]

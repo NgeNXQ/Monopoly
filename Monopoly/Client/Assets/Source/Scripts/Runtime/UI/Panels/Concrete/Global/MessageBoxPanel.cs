@@ -10,73 +10,50 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
 {
     internal sealed class MessageBoxPanel : MonoBehaviour, IPanel, ICallableAction, ICallableState
     {
-        [Header("Panel Template")]
+        [SerializeField, Header("Canvas"), Space]
+        private Canvas canvas;
 
-        [Space]
-        [SerializeField]
-        private Canvas panelTemplate;
-
-        [Space]
         [SerializeField]
         private Image imageIcon;
 
-        [Space]
         [SerializeField]
         private TMP_Text textMessage;
 
-        [Header("Panel OK")]
+        [SerializeField, Header("Canvas Ok"), Space]
+        private RectTransform canvasOk;
 
-        [Space]
         [SerializeField]
-        private RectTransform panelOK;
+        private Button buttonOkCanvasOk;
 
-        [Space]
+        [SerializeField, Header("Canvas Ok/Cancel"), Space]
+        private RectTransform canvasOkCancel;
+
         [SerializeField]
-        private Button buttonConfirmPanelOK;
+        private Button buttonOkCanvasOkCancel;
 
-        [Header("Panel OK/Cancel")]
-
-        [Space]
         [SerializeField]
-        private RectTransform panelOKCancel;
+        private Button buttonCancelCanvasOkCancel;
 
-        [Space]
-        [SerializeField]
-        private Button buttonConfirmPanelOKCancel;
-
-        [Space]
-        [SerializeField]
-        private Button buttonCancelPanelOKCancel;
-
-        [Header("Assets")]
-
-        [Space]
-        [SerializeField]
+        [SerializeField, Header("Assets"), Space]
         private Sprite spriteError;
 
-        [Space]
         [SerializeField]
         private Sprite spriteTrophy;
 
-        [Space]
         [SerializeField]
         private Sprite spriteWarning;
 
-        [Space]
         [SerializeField]
         private Sprite spriteLoading;
 
-        [Space]
-        [SerializeField]
-        private Sprite spriteQuestion;
-
-        [Space]
         [SerializeField]
         private Sprite spriteSuccess;
 
-        [Space]
         [SerializeField]
         private Sprite spriteFailure;
+
+        [SerializeField]
+        private Sprite spriteQuestion;
 
         internal enum Type : byte
         {
@@ -92,9 +69,9 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
             Trophy,
             Warning,
             Loading,
-            Question,
             Success,
-            Failure
+            Failure,
+            Question,
         }
 
         internal enum DialogResult : byte
@@ -142,14 +119,14 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
                     case Icon.Loading:
                         this.imageIcon.sprite = this.spriteLoading;
                         break;
-                    case Icon.Question:
-                        this.imageIcon.sprite = this.spriteQuestion;
-                        break;
                     case Icon.Success:
                         this.imageIcon.sprite = this.spriteSuccess;
                         break;
                     case Icon.Failure:
                         this.imageIcon.sprite = this.spriteFailure;
+                        break;
+                    case Icon.Question:
+                        this.imageIcon.sprite = this.spriteQuestion;
                         break;
                 }
             }
@@ -159,37 +136,35 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
         {
             SceneManager.activeSceneChanged += this.OnActiveSceneChanged;
 
-            this.buttonConfirmPanelOK.onClick.AddListener(this.OnButtonOkClicked);
-            this.buttonConfirmPanelOKCancel.onClick.AddListener(this.OnButtonOkClicked);
-            this.buttonCancelPanelOKCancel.onClick.AddListener(this.OnButtonCancelClicked);
+            this.buttonOkCanvasOk.onClick.AddListener(this.OnButtonOkClicked);
+            this.buttonOkCanvasOkCancel.onClick.AddListener(this.OnButtonOkClicked);
+            this.buttonCancelCanvasOkCancel.onClick.AddListener(this.OnButtonCancelClicked);
         }
 
         private void OnDestroy()
         {
             SceneManager.activeSceneChanged -= this.OnActiveSceneChanged;
 
-            this.buttonConfirmPanelOK.onClick.RemoveListener(this.OnButtonOkClicked);
-            this.buttonConfirmPanelOKCancel.onClick.RemoveListener(this.OnButtonOkClicked);
-            this.buttonCancelPanelOKCancel.onClick.RemoveListener(this.OnButtonCancelClicked);
+            this.buttonOkCanvasOk.onClick.RemoveListener(this.OnButtonOkClicked);
+            this.buttonOkCanvasOkCancel.onClick.RemoveListener(this.OnButtonOkClicked);
+            this.buttonCancelCanvasOkCancel.onClick.RemoveListener(this.OnButtonCancelClicked);
         }
 
         public void Show()
         {
-            this.panelTemplate.gameObject.SetActive(true);
+            this.canvas.gameObject.SetActive(true);
 
             switch (this.messageBoxType)
             {
                 case Type.OK:
-                    this.panelOK.gameObject.SetActive(true);
+                    this.canvasOk.gameObject.SetActive(true);
                     break;
                 case Type.None:
-                    {
-                        if (this.stateHandler != null)
-                            this.StartCoroutine(this.WaitStateCoroutine());
-                    }
+                    if (this.stateHandler != null)
+                        this.StartCoroutine(this.WaitStateCoroutine());
                     break;
                 case Type.OKCancel:
-                    this.panelOKCancel.gameObject.SetActive(true);
+                    this.canvasOkCancel.gameObject.SetActive(true);
                     break;
             }
         }
@@ -217,15 +192,15 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
             this.stateHandler = null;
             this.actionsHandler = null;
 
-            this.panelTemplate.gameObject.SetActive(false);
+            this.canvas.gameObject.SetActive(false);
 
             switch (this.messageBoxType)
             {
                 case Type.OK:
-                    this.panelOK.gameObject.SetActive(false);
+                    this.canvasOk.gameObject.SetActive(false);
                     break;
                 case Type.OKCancel:
-                    this.panelOKCancel.gameObject.SetActive(false);
+                    this.canvasOkCancel.gameObject.SetActive(false);
                     break;
             }
         }

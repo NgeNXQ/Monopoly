@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -13,45 +14,29 @@ namespace Monopoly.Client.Runtime.UI.Managers
 {
     internal sealed class UIManagerUnrankedLobby : MonoBehaviour
     {
-        [Header("Shared Visuals")]
+        [SerializeField, Header("Lobby Code"), Space]
+        private TMP_Text textLabelCode;
 
-        [Space]
-        [SerializeField]
-        private TMP_Text labelJoinCode;
+        [SerializeField, Header("Players List"), Space]
+        private Canvas canvasPlayersList;
 
-        [Space]
-        [SerializeField]
-        private Canvas canvaslPlayersList;
-
-        [Space]
-        [SerializeField]
-        private PlayerUnrankedLobbyPanel panelPlayer;
-
-        [Space]
-        [Header("Host Controls")]
-
-        [Space]
-        [SerializeField]
+        [SerializeField, Header("Host's Canvas"), Space]
         private Canvas canvasHost;
 
-        [Space]
         [SerializeField]
-        private Button buttonStartGame;
+        private Button buttonStartHost;
 
-        [Space]
         [SerializeField]
         private Button buttonDisconnectHost;
 
-        [Space]
-        [Header("Client Controls")]
-
-        [Space]
-        [SerializeField]
+        [SerializeField, Header("Client's Canvas"), Space]
         private Canvas canvasClient;
 
-        [Space]
         [SerializeField]
         private Button buttonDisconnectClient;
+
+        [SerializeField, Header("Lobby Player's Panel"), Space]
+        private PlayerUnrankedLobbyPanel panelPlayerLobby;
 
         [Space]
         [Header("Messages")]
@@ -181,42 +166,60 @@ namespace Monopoly.Client.Runtime.UI.Managers
         private void Awake()
         {
             if (UIManagerUnrankedLobby.Instance != null)
-                throw new System.InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
+                throw new TypeInitializationException(nameof(UIManagerUnrankedLobby), new ApplicationException($"Singleton has already been initialized."));
 
             UIManagerUnrankedLobby.Instance = this;
         }
 
         private void Start()
         {
-            this.labelJoinCode.text = LobbyManager.Instance.JoinCode;
+            if (LobbyManager.Instance.IsHost)
+                this.canvasHost.gameObject.SetActive(true);
+            else
+                this.canvasClient.gameObject.SetActive(true);
 
-            GameCoordinator.Instance.UpdateInitializedObjects(this.GetType());
+            this.textLabelCode.text = LobbyManager.Instance.JoinCode;
+            this.InitializePlayersList(LobbyManager.Instance.LocalLobby.Players);
+
+            // this.InitializePlayersList(LobbyManager.Instance.LocalLobby.Players);
+            // GameCoordinator.Instance.UpdateInitializedObjects(this.GetType());
         }
 
         private void OnEnable()
         {
-            this.buttonStartGame.onClick.AddListener(this.HandleButtonStartGameClicked);
-            this.buttonDisconnectHost.onClick.AddListener(this.HandleButtonDisconnectClicked);
-            this.buttonDisconnectClient.onClick.AddListener(this.HandleButtonDisconnectClicked);
+            this.buttonStartHost.onClick.AddListener(this.OnButtonStartHostClicked);
+            this.buttonDisconnectHost.onClick.AddListener(this.OnButtonDisconnectClicked);
+            this.buttonDisconnectClient.onClick.AddListener(this.OnButtonDisconnectClicked);
 
-            LobbyManager.Instance.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
-            LobbyManager.Instance.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
+            // LobbyManager.Instance.GameLobbyLoadedEvent += this.OnGameLobbyLoaded;
+            LobbyManager.Instance.MonopolyGameFailedToLoadEvent += this.OnMonopolyGameFailedToLoad;
 
-            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft += this.HandlePlayerLeft;
-            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
+            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft += this.OnPlayerLeft;
+            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined += this.OnPlayerJoined;
         }
 
         private void OnDisable()
         {
-            this.buttonStartGame.onClick.RemoveListener(this.HandleButtonStartGameClicked);
-            this.buttonDisconnectHost.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
-            this.buttonDisconnectClient.onClick.RemoveListener(this.HandleButtonDisconnectClicked);
+            this.buttonStartHost.onClick.RemoveListener(this.OnButtonStartHostClicked);
+            this.buttonDisconnectHost.onClick.RemoveListener(this.OnButtonDisconnectClicked);
+            this.buttonDisconnectClient.onClick.RemoveListener(this.OnButtonDisconnectClicked);
 
-            LobbyManager.Instance.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
-            LobbyManager.Instance.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
+            // LobbyManager.Instance.GameLobbyLoadedEvent -= this.OnGameLobbyLoaded;
+            LobbyManager.Instance.MonopolyGameFailedToLoadEvent -= this.OnMonopolyGameFailedToLoad;
 
-            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft -= this.HandlePlayerLeft;
-            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
+            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerLeft -= this.OnPlayerLeft;
+            LobbyManager.Instance.LocalLobbyEventCallbacks.PlayerJoined -= this.OnPlayerJoined;
+        }
+
+        // private void OnGameLobbyLoaded()
+        // {
+
+        // }
+
+        private void InitializePlayersList(List<Player> players)
+        {
+            foreach (Player player in players)
+                this.AddPlayerToList(player);
         }
 
         private void AddPlayerToList(Player player)
@@ -226,34 +229,7 @@ namespace Monopoly.Client.Runtime.UI.Managers
             newPanel.name = player.Id;
         }
 
-        private void RemovePlayerFromList(int playerIndex)
-        {
-            this.canvaslPlayersList.transform.GetChild(playerIndex).gameObject.SetActive(false);
-        }
-
-        private void InitializePlayersList(List<Player> players)
-        {
-            foreach (Player player in players)
-            {
-                this.AddPlayerToList(player);
-            }
-        }
-
-        private void HandleGameLobbyLoaded()
-        {
-            if (LobbyManager.Instance.IsHost)
-            {
-                this.canvasHost.gameObject.SetActive(true);
-            }
-            else
-            {
-                this.canvasClient.gameObject.SetActive(true);
-            }
-
-            this.InitializePlayersList(LobbyManager.Instance.LocalLobby.Players);
-        }
-
-        private void HandleMonopolyGameFailedToLoad()
+        private void OnMonopolyGameFailedToLoad()
         {
             UIManagerGlobal.Instance.ShowMessageBox(
                 MessageBoxPanel.Type.OK,
@@ -262,31 +238,24 @@ namespace Monopoly.Client.Runtime.UI.Managers
             );
         }
 
-        private void HandlePlayerLeft(List<int> leftPlayers)
+        private void OnPlayerLeft(List<int> leftPlayers)
         {
             foreach (int playerIndex in leftPlayers)
-            {
                 this.RemovePlayerFromList(playerIndex);
-            }
         }
 
-        private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayers)
+        private void RemovePlayerFromList(int playerIndex)
+        {
+            this.canvasPlayersList.transform.GetChild(playerIndex).gameObject.SetActive(false);
+        }
+
+        private void OnPlayerJoined(List<LobbyPlayerJoined> joinedPlayers)
         {
             foreach (LobbyPlayerJoined newPlayer in joinedPlayers)
-            {
                 this.AddPlayerToList(newPlayer.Player);
-            }
         }
 
-        private void CallbackButtonStartGame()
-        {
-            if (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult == MessageBoxPanel.DialogResult.OK)
-            {
-                LobbyManager.Instance.StartGame();
-            }
-        }
-
-        private void HandleButtonStartGameClicked()
+        private void OnButtonStartHostClicked()
         {
             UIManagerGlobal.Instance.ShowMessageBox(
                 MessageBoxPanel.Type.OKCancel,
@@ -296,7 +265,13 @@ namespace Monopoly.Client.Runtime.UI.Managers
             );
         }
 
-        private void HandleButtonDisconnectClicked()
+        private void CallbackButtonStartGame()
+        {
+            if (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult == MessageBoxPanel.DialogResult.OK)
+                LobbyManager.Instance.StartGame();
+        }
+
+        private void OnButtonDisconnectClicked()
         {
             UIManagerGlobal.Instance.ShowMessageBox(
                 MessageBoxPanel.Type.OKCancel,

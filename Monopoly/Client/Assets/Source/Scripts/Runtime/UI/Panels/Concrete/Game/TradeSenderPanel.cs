@@ -4,9 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using Monopoly.Client.Runtime.Game.Core;
+using Monopoly.Client.Runtime.Game.Board;
 using Monopoly.Client.Runtime.Game.Serializables;
 using Monopoly.Client.Runtime.Game.Controllers.Common;
 using Monopoly.Client.Runtime.UI.Panels.Common;
+using Monopoly.Client.Runtime.Game.Tiles.Properties.Common;
 
 namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Game
 {
@@ -62,8 +64,8 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Game
         private Action callback;
         private PawnController sender;
         private PawnController receiver;
-        private MonopolyTile senderTile;
-        private MonopolyTile receiverTile;
+        private PropertyMonopolyTile senderTile;
+        private PropertyMonopolyTile receiverTile;
 
         internal static TradeSenderPanel Instance { get; private set; }
 
@@ -72,25 +74,25 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Game
         internal int senderBalanceAmount => this.textBoxSenderBalanceAmount.text.Length == 0 ? 0 : Int32.Parse(this.textBoxSenderBalanceAmount.text);
         internal int receiverBalanceAmount => this.textBoxReceiverBalanceAmount.text.Length == 0 ? 0 : Int32.Parse(this.textBoxReceiverBalanceAmount.text);
 
-        internal MonopolyTile SenderNode
+        internal PropertyMonopolyTile SenderTile
         {
             get => this.senderTile;
             set
             {
                 this.senderTile = value;
                 this.imageSender.gameObject.SetActive(value != null);
-                this.imageSender.sprite = this.senderTile?.TileSprite;
+                // this.imageSender.sprite = this.senderTile?.TileSprite;
             }
         }
 
-        internal MonopolyTile ReceiverNode
+        internal PropertyMonopolyTile ReceiverTile
         {
             get => this.receiverTile;
             set
             {
                 this.receiverTile = value;
                 this.imageReceiver.gameObject.SetActive(value != null);
-                this.imageReceiver.sprite = this.receiverTile?.TileSprite;
+                // this.imageReceiver.sprite = this.receiverTile?.TileSprite;
             }
         }
 
@@ -122,8 +124,8 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Game
                 int receiverNetworkIndex = this.Receiver.NetworkIndex;
                 int clampedSenderBalanceAmount = this.senderBalanceAmount;
                 int clampedReceiverBalanceAmount = this.receiverBalanceAmount;
-                int senderNodeIndex = this.SenderNode == null ? TradeCredentials.PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfNode(this.SenderNode);
-                int receiverNodeIndex = this.ReceiverNode == null ? TradeCredentials.PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfNode(this.ReceiverNode);
+                int senderNodeIndex = this.SenderTile == null ? TradeCredentials.PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfTile(this.SenderTile);
+                int receiverNodeIndex = this.ReceiverTile == null ? TradeCredentials.PLACEHOLDER : MonopolyBoard.Instance.GetIndexOfTile(this.ReceiverTile);
 
                 if (this.senderBalanceAmount > GameManager.Instance.GetPawnController(senderNetworkIndex).Balance.Value)
                     clampedSenderBalanceAmount = GameManager.Instance.GetPawnController(senderNetworkIndex).Balance.Value;
@@ -172,9 +174,9 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Game
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.pointerCurrentRaycast.gameObject == this.imageSender.gameObject)
-                this.SenderNode = null;
+                this.SenderTile = null;
             else if (eventData.pointerCurrentRaycast.gameObject == this.imageReceiver.gameObject)
-                this.ReceiverNode = null;
+                this.ReceiverTile = null;
         }
 
         public void Show(Action actionCallback)

@@ -1,4 +1,3 @@
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,15 +9,11 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Lobby
 {
     internal sealed class PlayerUnrankedLobbyPanel : MonoBehaviour
     {
-        [Header("Visuals")]
+        [SerializeField]
+        private Button buttonKickPlayer;
 
-        [Space]
-        [SerializeField] private Button buttonKickPlayer;
-
-        [Header("Controls")]
-
-        [Space]
-        [SerializeField] private TMP_Text textLabelPlayerNickname;
+        [SerializeField]
+        private TMP_Text textLabelPlayerNickname;
 
         private string playerId;
 
@@ -43,25 +38,6 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Lobby
             this.buttonKickPlayer.onClick.RemoveListener(this.HandleButtonKickPlayerClicked);
         }
 
-        private async void CallbackKickPlayer()
-        {
-            if (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult == MessageBoxPanel.DialogResult.OK)
-            {
-                if (this == null || !(bool)LobbyManager.Instance?.LocalLobby?.Players.Any(player => player.Id.Equals(this.playerId, System.StringComparison.Ordinal)))
-                {
-                    UIManagerGlobal.Instance.ShowMessageBox(
-                        MessageBoxPanel.Type.OK,
-                        MessageBoxPanel.Icon.Error,
-                        UIManagerUnrankedLobby.Instance.MessageCannotKickPlayerAlreadyLeft
-                    );
-                }
-                else
-                {
-                    await LobbyManager.Instance?.KickFromLobbyAsync(this.playerId);
-                }
-            }
-        }
-
         private void HandleButtonKickPlayerClicked()
         {
             if (LobbyManager.Instance.IsHost)
@@ -79,7 +55,7 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Lobby
                     UIManagerGlobal.Instance.ShowMessageBox(
                         MessageBoxPanel.Type.OKCancel,
                         MessageBoxPanel.Icon.Question,
-                        $"{UIManagerUnrankedLobby.Instance.MessageConfirmKickPlayer} {this.PlayerNickname}?",
+                        $"{UIManagerUnrankedLobby.Instance.MessageConfirmKickPlayer} {this.PlayerNickname}",
                         this.CallbackKickPlayer
                     );
                 }
@@ -91,6 +67,25 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Lobby
                     MessageBoxPanel.Icon.Error,
                     UIManagerUnrankedLobby.Instance.MessageCannotKickNotHost
                 );
+            }
+        }
+
+        private async void CallbackKickPlayer()
+        {
+            if (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult == MessageBoxPanel.DialogResult.OK)
+            {
+                if (!LobbyManager.Instance.HasPlayerWithId(this.playerId))
+                {
+                    UIManagerGlobal.Instance.ShowMessageBox(
+                        MessageBoxPanel.Type.OK,
+                        MessageBoxPanel.Icon.Error,
+                        UIManagerUnrankedLobby.Instance.MessageCannotKickPlayerAlreadyLeft
+                    );
+                }
+                else
+                {
+                    await LobbyManager.Instance?.KickFromLobbyAsync(this.playerId);
+                }
             }
         }
     }

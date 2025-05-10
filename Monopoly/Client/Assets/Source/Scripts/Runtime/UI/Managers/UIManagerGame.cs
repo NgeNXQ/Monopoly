@@ -4,11 +4,13 @@ using UnityEngine.UI;
 using Unity.Netcode;
 using Monopoly.Client.Runtime.P2P;
 using Monopoly.Client.Runtime.Game.Core;
+using Monopoly.Client.Runtime.Game.Board;
 using Monopoly.Client.Runtime.Game.Serializables;
 using Monopoly.Client.Runtime.Game.Controllers.Common;
 using Monopoly.Client.Runtime.Game.Controllers.Concrete;
 using Monopoly.Client.Runtime.UI.Panels.Concrete.Game;
 using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
+using Monopoly.Client.Runtime.Game.Tiles.Properties.Common;
 
 namespace Monopoly.Client.Runtime.UI.Managers
 {
@@ -187,7 +189,7 @@ namespace Monopoly.Client.Runtime.UI.Managers
 
         private void Start()
         {
-            GameCoordinator.Instance?.UpdateInitializedObjects(this.GetType());
+            // GameCoordinator.Instance?.UpdateInitializedObjects(this.GetType());
         }
 
         private void OnEnable()
@@ -211,7 +213,7 @@ namespace Monopoly.Client.Runtime.UI.Managers
         [ServerRpc(RequireOwnership = false)]
         internal void ShowPanelInfoServerRpc(string descriptionText, ServerRpcParams serverRpcParams)
         {
-            this.ShowPanelInfoClientRpc(descriptionText, GameManager.Instance.TargetAllClientsExcludingCurrentPlayer);
+            // this.ShowPanelInfoClientRpc(descriptionText, GameManager.Instance.TargetAllClientsExcludingCurrentPlayer);
         }
 
         [ClientRpc]
@@ -220,12 +222,12 @@ namespace Monopoly.Client.Runtime.UI.Managers
             this.ShowPanelTileInformation(descriptionText);
         }
 
-        internal void ShowPanelTileProposal(MonopolyTile tile, Action callback)
+        internal void ShowPanelTileProposal(PropertyMonopolyTile tile, Action callback)
         {
-            this.PanelTileProposal.PictureSprite = tile.TileSprite;
-            this.PanelTileProposal.MonopolyTypeColor = tile.AffiliatedMonopoly.ColorOfSet;
-            this.PanelTileProposal.PriceText = $"{this.Currency} {tile.PricePurchase}";
-            this.PanelTileProposal.Show(callback);
+            // this.PanelTileProposal.PictureSprite = tile.TileSprite;
+            // this.PanelTileProposal.MonopolyTypeColor = tile.AffiliatedMonopoly.ColorOfSet;
+            // this.PanelTileProposal.PriceText = $"{this.Currency} {tile.PricePurchase}";
+            // this.PanelTileProposal.Show(callback);
         }
 
         internal void HidePanelNodeOffer()
@@ -256,29 +258,29 @@ namespace Monopoly.Client.Runtime.UI.Managers
             this.PanelTradeReceiver.Hide();
         }
 
-        internal void ShowPanelTileManagement(MonopolyTile tile, Action callback)
+        internal void ShowPanelTileManagement(PropertyMonopolyTile tile, Action callback)
         {
-            this.PanelTileManagement.PictureSprite = tile.TileSprite;
-            this.PanelTileManagement.MonopolyColor = tile.AffiliatedMonopoly.ColorOfSet;
+            // this.PanelTileManagement.PictureSprite = tile.TileSprite;
+            // this.PanelTileManagement.MonopolyColor = tile.AffiliatedMonopoly.ColorOfSet;
 
-            if (PlayerPawnController.LocalInstance.SelectedTile.TileType == MonopolyTile.Type.Property)
-            {
-                if (PlayerPawnController.LocalInstance.SelectedTile.Level == 0)
-                    this.PanelTileManagement.PriceText = $"- {this.Currency} {tile.PricePurchase}";
-                else if (PlayerPawnController.LocalInstance.SelectedTile.Level == 1)
-                    this.PanelTileManagement.PriceText = $"- {this.Currency} {tile.PriceUpgrade}\n+ {this.Currency} {tile.PricePurchase}";
-                else
-                    this.PanelTileManagement.PriceText = $"+- {this.Currency} {tile.PriceUpgrade}";
-            }
-            else
-            {
-                if (PlayerPawnController.LocalInstance.SelectedTile.Level == 0)
-                    this.PanelTileManagement.PriceText = $"- {this.Currency} {tile.PricePurchase}";
-                else
-                    this.PanelTileManagement.PriceText = $"+ {this.Currency} {tile.PricePurchase}";
-            }
+            // if (PlayerPawnController.LocalInstance.SelectedTile.TileType == MonopolyTile.Type.Property)
+            // {
+            //     if (PlayerPawnController.LocalInstance.SelectedTile.Level == 0)
+            //         this.PanelTileManagement.PriceText = $"- {this.Currency} {tile.PricePurchase}";
+            //     else if (PlayerPawnController.LocalInstance.SelectedTile.Level == 1)
+            //         this.PanelTileManagement.PriceText = $"- {this.Currency} {tile.PriceUpgrade}\n+ {this.Currency} {tile.PricePurchase}";
+            //     else
+            //         this.PanelTileManagement.PriceText = $"+- {this.Currency} {tile.PriceUpgrade}";
+            // }
+            // else
+            // {
+            //     if (PlayerPawnController.LocalInstance.SelectedTile.Level == 0)
+            //         this.PanelTileManagement.PriceText = $"- {this.Currency} {tile.PricePurchase}";
+            //     else
+            //         this.PanelTileManagement.PriceText = $"+ {this.Currency} {tile.PricePurchase}";
+            // }
 
-            this.PanelTileManagement.Show(callback);
+            // this.PanelTileManagement.Show(callback);
         }
 
         internal void HidePanelTileManagement()
@@ -297,11 +299,11 @@ namespace Monopoly.Client.Runtime.UI.Managers
             this.PanelChanceCardPayment.Hide();
         }
 
-        internal void ShowPanelTilePayment(MonopolyTile tile, Action callback)
+        internal void ShowPanelTilePayment(PropertyMonopolyTile tile, Action callback)
         {
-            this.PanelTilePayment.PictureSprite = tile.TileSprite;
-            this.PanelTilePayment.MonopolyColor = tile.AffiliatedMonopoly.ColorOfSet;
-            this.PanelTilePayment.PriceText = $"- {this.Currency} {tile.PriceRent}";
+            // this.PanelTilePayment.PictureSprite = tile.TileSprite;
+            // this.PanelTilePayment.MonopolyColor = tile.AffiliatedMonopoly.ColorOfSet;
+            // this.PanelTilePayment.PriceText = $"- {this.Currency} {tile.PriceRent}";
 
             this.PanelTilePayment.Show(callback);
         }
@@ -346,7 +348,7 @@ namespace Monopoly.Client.Runtime.UI.Managers
         internal void ShowDiceAnimation()
         {
             this.ShowDiceAnimationAsync();
-            this.ShowDiceAnimationServerRpc(GameManager.Instance.SenderLocalClient);
+            // this.ShowDiceAnimationServerRpc(GameManager.Instance.SenderLocalClient);
         }
 
         private async void ShowDiceAnimationAsync()
@@ -366,7 +368,7 @@ namespace Monopoly.Client.Runtime.UI.Managers
         [ServerRpc(RequireOwnership = false)]
         private void ShowDiceAnimationServerRpc(ServerRpcParams serverRpcParams)
         {
-            this.ShowDiceAnimationClientRpc(GameManager.Instance.TargetAllClientsExcludingCurrentPlayer);
+            // this.ShowDiceAnimationClientRpc(GameManager.Instance.TargetAllClientsExcludingCurrentPlayer);
         }
 
         [ClientRpc]

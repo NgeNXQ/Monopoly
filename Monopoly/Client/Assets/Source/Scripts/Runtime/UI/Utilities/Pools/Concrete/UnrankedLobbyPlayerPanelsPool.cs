@@ -8,16 +8,11 @@ namespace Monopoly.Client.Runtime.UI.Utilities.Pools.Concrete
 {
     internal sealed class UnrankedLobbyPlayerPanelsPool : ObjectPool<PlayerUnrankedLobbyPanel>
     {
-        [Header("Parent Object")]
+        [SerializeField]
+        private Canvas canvasParent;
 
-        [Space]
-        [SerializeField] private Canvas canvasParent;
-
-        [Space]
-        [Header("Panel Player Lobby")]
-
-        [Space]
-        [SerializeField] private PlayerUnrankedLobbyPanel panelPlayer;
+        [SerializeField]
+        private PlayerUnrankedLobbyPanel panelPlayer;
 
         internal static UnrankedLobbyPlayerPanelsPool Instance { get; private set; }
 
@@ -33,7 +28,7 @@ namespace Monopoly.Client.Runtime.UI.Utilities.Pools.Concrete
         {
             for (int i = 0; i < LobbyManager.MAX_PLAYERS; ++i)
             {
-                PlayerUnrankedLobbyPanel newPanel = GameObject.Instantiate(this.panelPlayer, this.gameObject.transform.parent.transform);
+                PlayerUnrankedLobbyPanel newPanel = GameObject.Instantiate(this.panelPlayer, base.gameObject.transform.parent.transform);
                 newPanel.gameObject.SetActive(false);
                 base.Append(newPanel);
             }

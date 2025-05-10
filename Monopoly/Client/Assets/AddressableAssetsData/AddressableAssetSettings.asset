@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 468a46d0ae32c3544b7d98094e6448a9, type: 3}
   m_Name: AddressableAssetSettings
   m_EditorClassIdentifier: 
-  m_DefaultGroup: 7f003d54e773c7241b11f6eca5fdeb77
+  m_DefaultGroup: 7928ed8d436e25240a9c940ee66bf404
   m_currentHash:
     serializedVersion: 2
-    Hash: bc07fa6e4e2c6dc8666e6aded077ee9e
+    Hash: 91135ebe11b129af593ef072c0e2011d
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_CatalogRequestsTimeout: 0
@@ -53,7 +53,7 @@ MonoBehaviour:
     m_Id: 
   m_RemoteCatalogLoadPath:
     m_Id: 
-  m_ContentStateBuildPathProfileVariableName: 
+  m_ContentStateBuildPathProfileVariableName: <default settings path>
   m_CustomContentStateBuildPath: 
   m_ContentStateBuildPath: 
   m_BuildAddressablesWithPlayerBuild: 0
@@ -62,6 +62,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: beca6ec12c87ee84c8f5c06fafde5a06, type: 2}
   - {fileID: 11400000, guid: 105ae2f4eeb41274a97b6fc2720dd67c, type: 2}
   - {fileID: 11400000, guid: 8eea3fca5eb465b4a8a8865c4ab6733d, type: 2}
+  - {fileID: 11400000, guid: f081b16acbf3d1347aa1c6b4e26c6276, type: 2}
   - {fileID: 11400000, guid: c3b3379f72af43c4198796885d975269, type: 2}
   - {fileID: 11400000, guid: a1a71072b01d2bb45853d3c6c9a34936, type: 2}
   m_BuildSettings:

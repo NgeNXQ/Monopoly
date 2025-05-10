@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
@@ -16,25 +17,47 @@ namespace Monopoly.Client.Runtime.UI.Managers
 {
     internal sealed class UIManagerMainMenu : MonoBehaviour
     {
-        [Header("Main Menu Tab")]
+        [SerializeField, Header("Initial Tab"), Space]
+        private Canvas canvasTabInitial;
 
-        [Space]
-        [SerializeField] private Canvas canvasMainMenuTab;
+        [SerializeField]
+        private Button buttonPlayTabInitial;
 
-        [Space]
-        [Header("Controls")]
+        [SerializeField, Header("Game Mode Tab"), Space]
+        private Canvas canvasTabGameMode;
 
-        [Space]
-        [SerializeField] private TMP_InputField textBoxNickname;
+        [SerializeField]
+        private Button buttonBackTabGameMode;
 
-        [Space]
-        [SerializeField] private Button buttonConnectLobby;
+        [SerializeField]
+        private Button buttonLobbyRankedTabGameMode;
 
-        [Space]
-        [SerializeField] private Button buttonHostLobby;
+        [SerializeField]
+        private Button buttonLobbyUnrankedTabGameMode;
 
-        [Space]
-        [SerializeField] private Button buttonCloseGame;
+        [SerializeField, Header("Unranked Lobby Tab"), Space]
+        private Canvas canvasTabUnrankedLobby;
+
+        [SerializeField]
+        private Button buttonBackTabUnrankedLobby;
+
+        [SerializeField]
+        private Button buttonHostTabUnrankedLobby;
+
+        [SerializeField]
+        private Button buttonClientTabUnrankedLobby;
+
+        [SerializeField, Header("Unranked Lobby Connection Tab"), Space]
+        private Canvas canvasTabUnrankedLobbyConnection;
+
+        [SerializeField]
+        private Button buttonBackTabUnrankedLobbyConnection;
+
+        [SerializeField]
+        private Button buttonConnectTabUnrankedLobbyConnection;
+
+        [SerializeField]
+        private TMP_InputField textBoxCodeTabUnrankedLobbyConnection;
 
         [Space]
         [Header("Settings Nickname")]
@@ -44,24 +67,6 @@ namespace Monopoly.Client.Runtime.UI.Managers
 
         [Space]
         [SerializeField] private int nicknameMaxLength;
-
-        [Space]
-        [Header("Connection Tab")]
-
-        [Space]
-        [SerializeField] private Canvas canvasConnectionTab;
-
-        [Space]
-        [Header("Controls")]
-
-        [Space]
-        [SerializeField] private Button buttonCancel;
-
-        [Space]
-        [SerializeField] private Button buttonConnect;
-
-        [Space]
-        [SerializeField] private TMP_InputField textBoxJoinCode;
 
         [Space]
         [Header("Messages")]
@@ -125,19 +130,19 @@ namespace Monopoly.Client.Runtime.UI.Managers
 
         private const int JOIN_CODE_LENGTH = 6;
 
-        public static UIManagerMainMenu Instance { get; private set; }
+        internal static UIManagerMainMenu Instance { get; private set; }
 
-        public string MessageKicked
+        internal string MessageKicked
         {
             get => this.messageKicked;
         }
 
-        public string MessageDisconnecting
+        internal string MessageDisconnecting
         {
             get => this.messageDisconnecting;
         }
 
-        public string MessageHostDisconnected
+        internal string MessageHostDisconnected
         {
             get => this.messageHostDisconnected;
         }
@@ -152,143 +157,235 @@ namespace Monopoly.Client.Runtime.UI.Managers
 
         private void Start()
         {
-            this.textBoxNickname.text = PlayerPrefs.GetString(LobbyManager.KEY_PLAYER_NICKNAME);
+            this.canvasTabInitial.gameObject.SetActive(true);
+            this.canvasTabGameMode.gameObject.SetActive(false);
+            this.canvasTabUnrankedLobby.gameObject.SetActive(false);
+            this.canvasTabUnrankedLobbyConnection.gameObject.SetActive(false);
+
+            // this.textBoxNickname.text = PlayerPrefs.GetString(LobbyManager.KEY_PLAYER_NICKNAME);
         }
 
         private void OnEnable()
         {
-            this.buttonCancel.onClick.AddListener(this.HandleButtonCancelClicked);
-            this.buttonConnect.onClick.AddListener(this.HandleButtonConnectClickedAsync);
+            GameCoordinator.Instance.RelayConnectionFailedEvent += this.OnRelayConnectionFailed;
+            GameCoordinator.Instance.LobbyConnectionFailedEvent += this.OnLobbyConnectionFailed;
 
-            this.buttonCloseGame.onClick.AddListener(this.HandleButtonCloseGameClicked);
-            this.buttonHostLobby.onClick.AddListener(this.HandleButtonHostLobbyClickedAsync);
-            this.buttonConnectLobby.onClick.AddListener(this.HandleButtonConnectLobbyClicked);
+            this.buttonPlayTabInitial.onClick.AddListener(this.OnButtonPlayTabInitialClicked);
 
-            GameCoordinator.Instance.OnEstablishingConnectionRelayFailed += this.HandleEstablishingConnectionRelayFailed;
-            GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed += this.HandleEstablishingConnectionLobbyFailed;
+            this.buttonBackTabGameMode.onClick.AddListener(this.OnButtonBackTabGameModeClicked);
+            this.buttonLobbyRankedTabGameMode.onClick.AddListener(this.OnButtonLobbyRankedTabGameModeClicked);
+            this.buttonLobbyUnrankedTabGameMode.onClick.AddListener(this.OnButtonLobbyUnrankedTabGameModeClicked);
+
+            this.buttonBackTabUnrankedLobby.onClick.AddListener(this.OnButtonBackTabUnrankedLobbyClicked);
+            this.buttonHostTabUnrankedLobby.onClick.AddListener(this.OnButtonHostTabUnrankedLobbyClicked);
+            this.buttonClientTabUnrankedLobby.onClick.AddListener(this.OnButtonClientTabUnrankedLobbyClicked);
+
+            this.buttonBackTabUnrankedLobbyConnection.onClick.AddListener(this.OnButtonBackTabUnrankedLobbyConnectionClicked);
+            this.buttonConnectTabUnrankedLobbyConnection.onClick.AddListener(this.OnButtonConnectTabUnrankedLobbyConnectionClicked);
+            this.textBoxCodeTabUnrankedLobbyConnection.onValueChanged.AddListener(this.OnTextBoxCodeTabUnrankedLobbyConnectionValueChanged);
         }
 
         private void OnDisable()
         {
-            this.buttonCancel.onClick.RemoveListener(this.HandleButtonCancelClicked);
-            this.buttonConnect.onClick.RemoveListener(this.HandleButtonConnectClickedAsync);
+            GameCoordinator.Instance.RelayConnectionFailedEvent -= this.OnRelayConnectionFailed;
+            GameCoordinator.Instance.LobbyConnectionFailedEvent -= this.OnLobbyConnectionFailed;
 
-            this.buttonCloseGame.onClick.RemoveListener(this.HandleButtonCloseGameClicked);
-            this.buttonHostLobby.onClick.RemoveListener(this.HandleButtonHostLobbyClickedAsync);
-            this.buttonConnectLobby.onClick.RemoveListener(this.HandleButtonConnectLobbyClicked);
+            this.buttonPlayTabInitial.onClick.RemoveListener(this.OnButtonPlayTabInitialClicked);
 
-            GameCoordinator.Instance.OnEstablishingConnectionRelayFailed -= this.HandleEstablishingConnectionRelayFailed;
-            GameCoordinator.Instance.OnEstablishingConnectionLobbyFailed -= this.HandleEstablishingConnectionLobbyFailed;
+            this.buttonBackTabGameMode.onClick.RemoveListener(this.OnButtonBackTabGameModeClicked);
+            this.buttonLobbyRankedTabGameMode.onClick.RemoveListener(this.OnButtonLobbyRankedTabGameModeClicked);
+            this.buttonLobbyUnrankedTabGameMode.onClick.RemoveListener(this.OnButtonLobbyUnrankedTabGameModeClicked);
+
+            this.buttonBackTabUnrankedLobby.onClick.RemoveListener(this.OnButtonBackTabUnrankedLobbyClicked);
+            this.buttonHostTabUnrankedLobby.onClick.RemoveListener(this.OnButtonHostTabUnrankedLobbyClicked);
+            this.buttonClientTabUnrankedLobby.onClick.RemoveListener(this.OnButtonClientTabUnrankedLobbyClicked);
+
+            this.buttonBackTabUnrankedLobbyConnection.onClick.RemoveListener(this.OnButtonBackTabUnrankedLobbyConnectionClicked);
+            this.buttonConnectTabUnrankedLobbyConnection.onClick.RemoveListener(this.OnButtonConnectTabUnrankedLobbyConnectionClicked);
+            this.textBoxCodeTabUnrankedLobbyConnection.onValueChanged.RemoveListener(this.OnTextBoxCodeTabUnrankedLobbyConnectionValueChanged);
         }
 
-        private bool ValidateTextBoxNickname()
+        private void OnButtonPlayTabInitialClicked()
         {
-            const string pattern = @"[^\S ]";
-
-            if (String.IsNullOrWhiteSpace(this.textBoxNickname.text))
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Warning, this.messageNicknameEmpty);
-            }
-            else if (this.textBoxNickname.text.Length > this.nicknameMaxLength)
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageNicknameTooLong);
-            }
-            else if (this.textBoxNickname.text.Length < this.nicknameMinLength)
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageNicknameTooShort);
-            }
-            else if (Regex.IsMatch(this.textBoxNickname.text, pattern))
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageEnterCorrectNickname);
-            }
-            else
-            {
-                return true;
-            }
-
-            return false;
+            this.canvasTabInitial.gameObject.SetActive(false);
+            this.canvasTabGameMode.gameObject.SetActive(true);
         }
 
-        private bool ValidateTextBoxJoinCode()
+        private void OnButtonBackTabGameModeClicked()
         {
-            if (String.IsNullOrWhiteSpace(this.textBoxJoinCode.text))
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Warning, this.messageEmptyJoinCode);
-            }
-            else if (this.textBoxJoinCode.text.Length != UIManagerMainMenu.JOIN_CODE_LENGTH)
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageInvalidLengthJoinCode);
-            }
-            else
-            {
-                return true;
-            }
-
-            return false;
+            this.canvasTabInitial.gameObject.SetActive(true);
+            this.canvasTabGameMode.gameObject.SetActive(false);
         }
 
-        private void CallbackCloseGame()
+        private void OnButtonLobbyRankedTabGameModeClicked()
         {
-            if (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult == MessageBoxPanel.DialogResult.OK)
-            {
-#if UNITY_EDITOR
-                EditorApplication.ExitPlaymode();
-#else
-            Application.Quit();
-#endif
-            }
+
         }
 
-        private void HandleButtonCancelClicked()
+        private void OnButtonLobbyUnrankedTabGameModeClicked()
         {
-            this.canvasMainMenuTab.gameObject.SetActive(true);
-            this.canvasConnectionTab.gameObject.SetActive(false);
+            this.canvasTabGameMode.gameObject.SetActive(false);
+            this.canvasTabUnrankedLobby.gameObject.SetActive(true);
         }
 
-        private void HandleButtonCloseGameClicked()
+        private void OnButtonBackTabUnrankedLobbyClicked()
+        {
+            this.canvasTabGameMode.gameObject.SetActive(true);
+            this.canvasTabUnrankedLobby.gameObject.SetActive(false);
+        }
+
+        private async void OnButtonHostTabUnrankedLobbyClicked()
         {
             UIManagerGlobal.Instance.ShowMessageBox(
-                MessageBoxPanel.Type.OKCancel,
-                MessageBoxPanel.Icon.Question,
-                this.messageConfirmClosingGame,
-                this.CallbackCloseGame
+                MessageBoxPanel.Type.None,
+                MessageBoxPanel.Icon.Loading,
+                this.messageEstablishingConnection
             );
+
+            await GameCoordinator.Instance.HostLobbyAsync();
         }
 
-        private void HandleButtonConnectLobbyClicked()
+        private void OnButtonClientTabUnrankedLobbyClicked()
         {
-            if (this.ValidateTextBoxNickname())
-            {
-                this.canvasMainMenuTab.gameObject.SetActive(false);
-                this.canvasConnectionTab.gameObject.SetActive(true);
-            }
+            this.canvasTabUnrankedLobby.gameObject.SetActive(false);
+            this.canvasTabUnrankedLobbyConnection.gameObject.SetActive(true);
         }
 
-        private async void HandleButtonConnectClickedAsync()
+        private void OnButtonBackTabUnrankedLobbyConnectionClicked()
         {
-            if (this.ValidateTextBoxJoinCode())
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.None, MessageBoxPanel.Icon.Loading, this.messageEstablishingConnection);
-
-                GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
-
-                await GameCoordinator.Instance.ConnectLobbyAsync(this.textBoxJoinCode.text);
-            }
+            this.canvasTabUnrankedLobby.gameObject.SetActive(true);
+            this.canvasTabUnrankedLobbyConnection.gameObject.SetActive(false);
         }
 
-        private async void HandleButtonHostLobbyClickedAsync()
+        private async void OnButtonConnectTabUnrankedLobbyConnectionClicked()
         {
-            if (this.ValidateTextBoxNickname())
+            if (String.IsNullOrWhiteSpace(this.textBoxCodeTabUnrankedLobbyConnection.text))
             {
-                UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.None, MessageBoxPanel.Icon.Loading, this.messageEstablishingConnection);
-
-                GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
-
-                await GameCoordinator.Instance.HostLobbyAsync();
+                UIManagerGlobal.Instance.ShowMessageBox(
+                    MessageBoxPanel.Type.OK,
+                    MessageBoxPanel.Icon.Warning,
+                    this.messageEmptyJoinCode
+                );
+                return;
             }
+
+            if (this.textBoxCodeTabUnrankedLobbyConnection.text.Length != UIManagerMainMenu.JOIN_CODE_LENGTH)
+            {
+                UIManagerGlobal.Instance.ShowMessageBox(
+                    MessageBoxPanel.Type.OK,
+                    MessageBoxPanel.Icon.Error,
+                    this.messageInvalidLengthJoinCode
+                );
+                return;
+            }
+
+            UIManagerGlobal.Instance.ShowMessageBox(
+                MessageBoxPanel.Type.None,
+                MessageBoxPanel.Icon.Loading,
+                this.messageEstablishingConnection
+            );
+            // GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
+            await GameCoordinator.Instance.ConnectLobbyAsync(this.textBoxCodeTabUnrankedLobbyConnection.text);
         }
 
-        private void HandleEstablishingConnectionRelayFailed(RelayServiceException relayServiceException)
+        private void OnTextBoxCodeTabUnrankedLobbyConnectionValueChanged(string value)
+        {
+            this.textBoxCodeTabUnrankedLobbyConnection.text = value.ToUpper();
+        }
+
+        //         private bool ValidateTextBoxNickname()
+        //         {
+        //             const string pattern = @"[^\S ]";
+
+        //             if (String.IsNullOrWhiteSpace(this.textBoxNickname.text))
+        //             {
+        //                 UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Warning, this.messageNicknameEmpty);
+        //             }
+        //             else if (this.textBoxNickname.text.Length > this.nicknameMaxLength)
+        //             {
+        //                 UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageNicknameTooLong);
+        //             }
+        //             else if (this.textBoxNickname.text.Length < this.nicknameMinLength)
+        //             {
+        //                 UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageNicknameTooShort);
+        //             }
+        //             else if (Regex.IsMatch(this.textBoxNickname.text, pattern))
+        //             {
+        //                 UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageEnterCorrectNickname);
+        //             }
+        //             else
+        //             {
+        //                 return true;
+        //             }
+
+        //             return false;
+        //         }
+
+        //         private bool ValidateTextBoxJoinCode()
+        //         {
+
+
+        //             return false;
+        //         }
+
+        //         private void CallbackCloseGame()
+        //         {
+        //             if (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult == MessageBoxPanel.DialogResult.OK)
+        //             {
+        // #if UNITY_EDITOR
+        //                 EditorApplication.ExitPlaymode();
+        // #else
+        //             Application.Quit();
+        // #endif
+        //             }
+        //         }
+
+        //         private void HandleButtonCancelClicked()
+        //         {
+        //             this.canvasMainMenuTab.gameObject.SetActive(true);
+        //             this.canvasConnectionTab.gameObject.SetActive(false);
+        //         }
+
+        //         private void HandleButtonCloseGameClicked()
+        //         {
+        //             UIManagerGlobal.Instance.ShowMessageBox(
+        //                 MessageBoxPanel.Type.OKCancel,
+        //                 MessageBoxPanel.Icon.Question,
+        //                 this.messageConfirmClosingGame,
+        //                 this.CallbackCloseGame
+        //             );
+        //         }
+
+        //         private void HandleButtonConnectLobbyClicked()
+        //         {
+        //             if (this.ValidateTextBoxNickname())
+        //             {
+        //                 this.canvasMainMenuTab.gameObject.SetActive(false);
+        //                 this.canvasConnectionTab.gameObject.SetActive(true);
+        //             }
+        //         }
+
+        //         private async void HandleButtonConnectClickedAsync()
+        //         {
+        //             if (this.ValidateTextBoxJoinCode())
+        //             {
+
+        //             }
+        //         }
+
+        //         private async void HandleButtonHostLobbyClickedAsync()
+        //         {
+        //             if (this.ValidateTextBoxNickname())
+        //             {
+        //                 UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.None, MessageBoxPanel.Icon.Loading, this.messageEstablishingConnection);
+
+        //                 GameCoordinator.Instance.UpdateLocalPlayer(this.textBoxNickname.text);
+
+        //                 await GameCoordinator.Instance.HostLobbyAsync();
+        //             }
+        //         }
+
+        private void OnRelayConnectionFailed(RelayServiceException relayServiceException)
         {
             switch (relayServiceException.Reason)
             {
@@ -309,7 +406,7 @@ namespace Monopoly.Client.Runtime.UI.Managers
             }
         }
 
-        private void HandleEstablishingConnectionLobbyFailed(LobbyServiceException lobbyServiceException)
+        private void OnLobbyConnectionFailed(LobbyServiceException lobbyServiceException)
         {
             switch (lobbyServiceException.Reason)
             {

@@ -7,13 +7,10 @@ namespace Monopoly.Client.Runtime.UI.Utilities.Pools.Concrete
 {
     internal sealed class MessageBoxPanelsPool : ObjectPool<MessageBoxPanel>
     {
-        [Space]
         [SerializeField]
         private MessageBoxPanel panelMessageBox;
 
-        [Space]
-        [SerializeField]
-        [Range(1, 10)]
+        [SerializeField, Range(1, 10)]
         private int messageBoxPoolSize;
 
         internal static MessageBoxPanelsPool Instance { get; private set; }
@@ -30,7 +27,7 @@ namespace Monopoly.Client.Runtime.UI.Utilities.Pools.Concrete
         {
             for (int i = 0; i < this.messageBoxPoolSize; ++i)
             {
-                MessageBoxPanel newMessageBox = GameObject.Instantiate(this.panelMessageBox, this.gameObject.transform.parent.transform);
+                MessageBoxPanel newMessageBox = GameObject.Instantiate(this.panelMessageBox, base.gameObject.transform.parent.transform);
                 newMessageBox.gameObject.SetActive(false);
                 base.Append(newMessageBox);
             }

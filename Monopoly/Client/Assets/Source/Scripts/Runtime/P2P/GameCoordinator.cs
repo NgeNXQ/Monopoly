@@ -16,42 +16,36 @@ using Unity.Services.CloudSave.Models;
 using Unity.Services.CloudSave.Models.Data.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.AddressableAssets;
 using Monopoly.Backend.Gateway.Services;
 using Monopoly.Client.Runtime.Game.Core;
-using Monopoly.Client.Runtime.UI.Managers;
-using Monopoly.Client.Runtime.UI.Panels.Concrete.Lobby;
+using Monopoly.Client.Runtime.Game.Board;
+// using UnityEditor.SearchService;
+using Monopoly.Client.Runtime.Core.Models;
+using Monopoly.Client.Runtime.Core.Utilities;
+// using Monopoly.Client.Runtime.Core
 
 namespace Monopoly.Client.Runtime.P2P
 {
     internal sealed class GameCoordinator : MonoBehaviour
     {
-        public enum MonopolyScene : byte
-        {
-            Bootstrap,
-            MainMenu,
-            GameLobby,
-            MonopolyGame
-        }
-
         private const string CONNECTION_TYPE = "dtls";
 
-        public static GameCoordinator Instance { get; private set; }
+        internal static GameCoordinator Instance { get; private set; }
 
-        private LinkedList<Type> objectsToLoad;
-        private LinkedList<Type> initializedObjects;
+        // private LinkedList<Type> objectsToLoad;
+        // private LinkedList<Type> initializedObjects;
 
-        public event Action OnAuthenticationFailed;
-        public event Action<RelayServiceException> OnEstablishingConnectionRelayFailed;
-        public event Action<LobbyServiceException> OnEstablishingConnectionLobbyFailed;
+        internal event Action AuthenticationFailedEvent;
+        internal event Action<RelayServiceException> RelayConnectionFailedEvent;
+        internal event Action<LobbyServiceException> LobbyConnectionFailedEvent;
 
-        public bool IsGameQuiting { get; private set; }
-        public Player LocalPlayer { get; private set; }
-        public MonopolyScene ActiveScene { get; private set; }
+        internal Player LocalPlayer { get; private set; }
 
         private void Awake()
         {
             if (GameCoordinator.Instance != null)
-                throw new InvalidOperationException($"Singleton {this.GetType().FullName} has already been initialized.");
+                throw new TypeInitializationException(nameof(GameCoordinator), new ApplicationException($"Singleton has already been initialized."));
 
             GameCoordinator.Instance = this;
             UnityEngine.Object.DontDestroyOnLoad(this.gameObject);
@@ -59,29 +53,35 @@ namespace Monopoly.Client.Runtime.P2P
 
         private void OnEnable()
         {
-            SceneManager.activeSceneChanged += this.HandleActiveSceneChanged;
+            // SceneManager.activeSceneChanged += this.HandleActiveSceneChanged;
         }
 
         private void OnDisable()
         {
-            SceneManager.activeSceneChanged -= this.HandleActiveSceneChanged;
+            // SceneManager.activeSceneChanged -= this.HandleActiveSceneChanged;
         }
 
         private async void Start()
         {
-            this.objectsToLoad = new LinkedList<Type>();
-            this.initializedObjects = new LinkedList<Type>();
+            // this.objectsToLoad = new LinkedList<Type>();
+            // this.initializedObjects = new LinkedList<Type>();
 
             try
             {
                 await UnityServices.InitializeAsync();
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                await SceneManagerUtility.LoadSceneDefaultAsync(MonopolyApplication.Instance.SceneAssetLobbyUnranked, LoadSceneMode.Single);
 
-                var playerData = await CloudSaveService.Instance.Data.Player.LoadAsync(new HashSet<string> { "mmr", "matchesPlayed" });
-                if (playerData.TryGetValue("mmr", out var mmr))
-                {
-                    Debug.Log($"Player MMR: {mmr.Value.GetAs<int>()}");
-                }
+                RankedServiceBindings rankedService = new RankedServiceBindings(CloudCodeService.Instance);
+                Debug.Log(await rankedService.GetELO());
+
+
+                // var playerData = await CloudSaveService.Instance.Data.Player.LoadAsync(new HashSet<string> { "elo" });
+
+                // if (playerData.TryGetValue("mmr", out var mmr))
+                // {
+                //     Debug.Log($"Player MMR: {mmr.Value.GetAs<int>()}");
+                // }
 
                 // Debug.Log($"Authenticated player ID: {AuthenticationService.Instance.PlayerId}");
                 // RatingServiceBindings module = new RatingServiceBindings(CloudCodeService.Instance);
@@ -91,19 +91,14 @@ namespace Monopoly.Client.Runtime.P2P
             }
             catch
             {
-                this.OnAuthenticationFailed?.Invoke();
+                this.AuthenticationFailedEvent?.Invoke();
                 return;
             }
 
-            await this.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
+            // await this.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
         }
 
-        private void OnApplicationQuit()
-        {
-            this.IsGameQuiting = true;
-        }
-
-        public void UpdateLocalPlayer(string newNickname)
+        internal void UpdateLocalPlayer(string newNickname)
         {
             newNickname = newNickname.Trim();
 
@@ -113,104 +108,94 @@ namespace Monopoly.Client.Runtime.P2P
             PlayerPrefs.Save();
         }
 
-        public void InitializeLocalPlayer(string nickname)
+        internal void InitializeLocalPlayer(string nickname)
         {
-            nickname = nickname.Trim();
+            // nickname = nickname.Trim();
+            nickname = "Player";
 
-            Player player = new Player(AuthenticationService.Instance.PlayerId)
+            PlayerDataObject nicknamePlayerData = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname);
+            PlayerDataObject scenePlayerData = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, SceneManagerUtility.CurrentScene.name);
+
+            this.LocalPlayer = new Player(AuthenticationService.Instance.PlayerId)
             {
                 Data = new Dictionary<string, PlayerDataObject>
-                 {
-                    { LobbyManager.KEY_PLAYER_NICKNAME, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, nickname) },
-                    { LobbyManager.KEY_PLAYER_SCENE, new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString()) }
+                {
+                    { LobbyManager.KEY_PLAYER_SCENE, scenePlayerData },
+                    { LobbyManager.KEY_PLAYER_NICKNAME, nicknamePlayerData },
                 }
             };
 
             PlayerPrefs.SetString(LobbyManager.KEY_PLAYER_NICKNAME, nickname);
             PlayerPrefs.Save();
-
-            this.LocalPlayer = player;
         }
 
-        public void LoadSceneNetwork(MonopolyScene scene)
-        {
-            NetworkManager.Singleton.SceneManager.LoadScene(scene.ToString(), LoadSceneMode.Single);
-        }
+        // internal void UpdateInitializedObjects(Type gameObject)
+        // {
+        //     if (this.objectsToLoad == null)
+        //     {
+        //         throw new System.InvalidOperationException($"You have to call {nameof(this.SetupInitializedObjects)} at first.");
+        //     }
 
-        public async Task LoadSceneAsync(MonopolyScene scene)
-        {
-            await SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Single);
-        }
+        //     if (!this.objectsToLoad.Contains(gameObject))
+        //     {
+        //         throw new System.ArgumentException($"{nameof(gameObject)} is not in {nameof(this.SetupInitializedObjects)}.");
+        //     }
 
-        public void UpdateInitializedObjects(Type gameObject)
-        {
-            if (this.objectsToLoad == null)
-            {
-                throw new System.InvalidOperationException($"You have to call {nameof(this.SetupInitializedObjects)} at first.");
-            }
+        //     if (this.initializedObjects.Contains(gameObject))
+        //     {
+        //         throw new System.ArgumentException($"{nameof(gameObject)} has already been initialized.");
+        //     }
 
-            if (!this.objectsToLoad.Contains(gameObject))
-            {
-                throw new System.ArgumentException($"{nameof(gameObject)} is not in {nameof(this.SetupInitializedObjects)}.");
-            }
+        //     this.initializedObjects.AddLast(gameObject);
 
-            if (this.initializedObjects.Contains(gameObject))
-            {
-                throw new System.ArgumentException($"{nameof(gameObject)} has already been initialized.");
-            }
+        //     if (this.initializedObjects.Count == this.objectsToLoad.Count)
+        //     {
+        //         LobbyManager.Instance?.UpdateLocalPlayerDataAsync();
+        //     }
+        // }
 
-            this.initializedObjects.AddLast(gameObject);
+        // internal void SetupInitializedObjects(params Type[] gameObjectsToLoad)
+        // {
+        //     foreach (Type gameObject in gameObjectsToLoad)
+        //     {
+        //         this.objectsToLoad.AddLast(gameObject);
+        //     }
+        // }
 
-            if (this.initializedObjects.Count == this.objectsToLoad.Count)
-            {
-                LobbyManager.Instance?.UpdateLocalPlayerDataAsync();
-            }
-        }
+        // private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
+        // {
+        //     this.objectsToLoad?.Clear();
+        //     this.initializedObjects?.Clear();
 
-        public void SetupInitializedObjects(params Type[] gameObjectsToLoad)
-        {
-            foreach (Type gameObject in gameObjectsToLoad)
-            {
-                this.objectsToLoad.AddLast(gameObject);
-            }
-        }
+        //     switch (newActiveScene.name)
+        //     {
+        //         case nameof(GameCoordinator.MonopolyScene.MainMenu):
+        //             this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
+        //             break;
+        //         case nameof(GameCoordinator.MonopolyScene.GameLobby):
+        //             {
+        //                 this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
 
-        private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
-        {
-            this.objectsToLoad?.Clear();
-            this.initializedObjects?.Clear();
+        //                 this.SetupInitializedObjects(typeof(UIManagerUnrankedLobby), typeof(PlayerUnrankedLobbyPanel));
 
-            switch (newActiveScene.name)
-            {
-                case nameof(GameCoordinator.MonopolyScene.MainMenu):
-                    this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
-                    break;
-                case nameof(GameCoordinator.MonopolyScene.GameLobby):
-                    {
-                        this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
+        //                 LobbyManager.Instance?.OnGameLobbyLoaded?.Invoke();
+        //             }
+        //             break;
+        //         case nameof(GameCoordinator.MonopolyScene.MonopolyGame):
+        //             {
+        //                 this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
 
-                        this.SetupInitializedObjects(typeof(UIManagerUnrankedLobby), typeof(PlayerUnrankedLobbyPanel));
+        //                 this.SetupInitializedObjects(typeof(GameManager), typeof(MonopolyBoard), typeof(UIManagerGame));
+        //                 LobbyManager.Instance?.OnMonopolyGameLoaded?.Invoke();
+        //             }
+        //             break;
+        //     }
+        // }
 
-                        LobbyManager.Instance?.OnGameLobbyLoaded?.Invoke();
-                    }
-                    break;
-                case nameof(GameCoordinator.MonopolyScene.MonopolyGame):
-                    {
-                        this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
-
-                        this.SetupInitializedObjects(typeof(GameManager), typeof(MonopolyBoard), typeof(UIManagerGame));
-                        LobbyManager.Instance?.OnMonopolyGameLoaded?.Invoke();
-                    }
-                    break;
-            }
-        }
-
-        public async Task HostLobbyAsync()
+        internal async Task HostLobbyAsync()
         {
             if (this.LocalPlayer == null)
-            {
                 throw new InvalidOperationException($"{nameof(this.LocalPlayer)} is null.");
-            }
 
             try
             {
@@ -224,15 +209,15 @@ namespace Monopoly.Client.Runtime.P2P
             }
             catch (RelayServiceException relayServiceException)
             {
-                this.OnEstablishingConnectionRelayFailed?.Invoke(relayServiceException);
+                this.RelayConnectionFailedEvent?.Invoke(relayServiceException);
             }
             catch (LobbyServiceException lobbyServiceException)
             {
-                this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
+                this.LobbyConnectionFailedEvent?.Invoke(lobbyServiceException);
             }
         }
 
-        public async Task ConnectLobbyAsync(string joinCode)
+        internal async Task ConnectLobbyAsync(string joinCode)
         {
             if (this.LocalPlayer == null)
             {
@@ -249,11 +234,11 @@ namespace Monopoly.Client.Runtime.P2P
             }
             catch (RelayServiceException relayServiceException)
             {
-                this.OnEstablishingConnectionRelayFailed?.Invoke(relayServiceException);
+                this.RelayConnectionFailedEvent?.Invoke(relayServiceException);
             }
             catch (LobbyServiceException lobbyServiceException)
             {
-                this.OnEstablishingConnectionLobbyFailed?.Invoke(lobbyServiceException);
+                this.LobbyConnectionFailedEvent?.Invoke(lobbyServiceException);
             }
         }
     }

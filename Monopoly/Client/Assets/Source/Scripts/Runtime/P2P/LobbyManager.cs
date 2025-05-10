@@ -4,6 +4,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Unity.Netcode;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
@@ -11,6 +12,8 @@ using Monopoly.Client.Runtime.UI.Managers;
 using Monopoly.Client.Runtime.UI.Panels.Concrete;
 using Monopoly.Client.Runtime.UI.Utilities.Pools.Concrete;
 using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
+using Monopoly.Client.Runtime.Core.Models;
+using Monopoly.Client.Runtime.Core.Utilities;
 
 namespace Monopoly.Client.Runtime.P2P
 {
@@ -18,19 +21,19 @@ namespace Monopoly.Client.Runtime.P2P
     {
         private const float LOBBY_UPTIME = 25.0f;
 
-        public const int MIN_PLAYERS = 1;
-        public const int MAX_PLAYERS = 5;
+        internal const int MIN_PLAYERS = 1;
+        internal const int MAX_PLAYERS = 5;
 
-        public const float LOBBY_LOADING_TIMEOUT = 15.0f;
+        internal const float LOBBY_LOADING_TIMEOUT = 15.0f;
 
-        public const string KEY_PLAYER_SCENE = "Scene";
-        public const string KEY_PLAYER_NICKNAME = "Nickname";
-        public const string KEY_LOBBY_STATE = "State";
-        public const string LOBBY_STATE_GAME = "Game";
-        public const string LOBBY_STATE_LOBBY = "Lobby";
-        public const string LOBBY_STATE_LOADING = "Loading";
-        public const string LOBBY_STATE_PENDING = "Waiting";
-        public const string LOBBY_STATE_RETURNING = "Returning";
+        internal const string KEY_PLAYER_SCENE = "Scene";
+        internal const string KEY_PLAYER_NICKNAME = "Nickname";
+        internal const string KEY_LOBBY_STATE = "State";
+        internal const string LOBBY_STATE_GAME = "Game";
+        internal const string LOBBY_STATE_LOBBY = "Lobby";
+        internal const string LOBBY_STATE_LOADING = "Loading";
+        internal const string LOBBY_STATE_PENDING = "Waiting";
+        internal const string LOBBY_STATE_RETURNING = "Returning";
 
         private string lobbyName
         {
@@ -53,27 +56,28 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        public static LobbyManager Instance { get; private set; }
+        internal static LobbyManager Instance { get; private set; }
 
-        public Action OnGameLobbyLoaded;
-        public Action OnMonopolyGameLoaded;
-        public Action OnGameLobbyFailedToLoad;
-        public Action OnMonopolyGameFailedToLoad;
+        internal Action GameLobbyLoadedEvent;
+        internal Action MonopolyGameLoadedEvent;
+        internal Action GameLobbyFailedToLoadEvent;
+        internal Action MonopolyGameFailedToLoadEvent;
 
-        public bool HavePlayersLoaded
+        internal bool HavePlayersLoaded
         {
             get
             {
-                return this.LocalLobby != null ? this.LocalLobby.Players.All(player => player.Data[LobbyManager.KEY_PLAYER_SCENE].Value.Equals(GameCoordinator.Instance.ActiveScene.ToString(), StringComparison.Ordinal)) : false;
+                return false;
+                // return this.LocalLobby != null ? this.LocalLobby.Players.All(player => player.Data[LobbyManager.KEY_PLAYER_SCENE].Value.Equals(GameCoordinator.Instance.ActiveScene.ToString(), StringComparison.Ordinal)) : false;
             }
         }
 
-        public bool IsHost { get; private set; }
-        public string JoinCode { get; private set; }
-        public bool HasHostLeft { get; private set; }
-        public Lobby LocalLobby { get; private set; }
-        public bool HasLocalPlayerLeft { get; private set; }
-        public LobbyEventCallbacks LocalLobbyEventCallbacks { get; private set; }
+        internal bool IsHost { get; private set; }
+        internal string JoinCode { get; private set; }
+        internal bool HasHostLeft { get; private set; }
+        internal Lobby LocalLobby { get; private set; }
+        internal bool HasLocalPlayerLeft { get; private set; }
+        internal LobbyEventCallbacks LocalLobbyEventCallbacks { get; private set; }
 
         private void Awake()
         {
@@ -88,41 +92,39 @@ namespace Monopoly.Client.Runtime.P2P
         {
             this.LocalLobbyEventCallbacks = new LobbyEventCallbacks();
 
-            this.OnGameLobbyLoaded += this.HandleGameLobbyLoaded;
-            this.OnMonopolyGameLoaded += this.HandleMonopolyGameLoaded;
-            this.OnGameLobbyFailedToLoad += this.HandleGameLobbyFailedToLoad;
-            this.OnMonopolyGameFailedToLoad += this.HandleMonopolyGameFailedToLoad;
+            this.GameLobbyLoadedEvent += this.OnGameLobbyLoaded;
+            this.MonopolyGameLoadedEvent += this.OnMonopolyGameLoaded;
+            this.GameLobbyFailedToLoadEvent += this.OnGameLobbyFailedToLoad;
+            this.MonopolyGameFailedToLoadEvent += this.OnMonopolyGameFailedToLoad;
 
-            this.LocalLobbyEventCallbacks.PlayerLeft += this.HandlePlayerLeft;
-            this.LocalLobbyEventCallbacks.DataChanged += this.HandleDataChanged;
-            this.LocalLobbyEventCallbacks.LobbyDeleted += this.HandleLobbyDeleted;
-            this.LocalLobbyEventCallbacks.PlayerJoined += this.HandlePlayerJoined;
-            this.LocalLobbyEventCallbacks.KickedFromLobby += this.HandleKickedFromLobby;
-            this.LocalLobbyEventCallbacks.PlayerDataChanged += this.HandlePlayerDataChanged;
+            this.LocalLobbyEventCallbacks.PlayerLeft += this.OnPlayerLeft;
+            this.LocalLobbyEventCallbacks.DataChanged += this.OnDataChanged;
+            this.LocalLobbyEventCallbacks.LobbyDeleted += this.OnLobbyDeleted;
+            this.LocalLobbyEventCallbacks.PlayerJoined += this.OnPlayerJoined;
+            this.LocalLobbyEventCallbacks.KickedFromLobby += this.OnKickedFromLobby;
+            this.LocalLobbyEventCallbacks.PlayerDataChanged += this.OnPlayerDataChanged;
 
-            NetworkManager.Singleton.OnTransportFailure += this.HandleTransportFailure;
+            NetworkManager.Singleton.OnTransportFailure += this.OnTransportFailure;
         }
 
         private void OnDisable()
         {
             this.LocalLobbyEventCallbacks = new LobbyEventCallbacks();
 
-            this.OnGameLobbyLoaded -= this.HandleGameLobbyLoaded;
-            this.OnMonopolyGameLoaded -= this.HandleMonopolyGameLoaded;
-            this.OnGameLobbyFailedToLoad -= this.HandleGameLobbyFailedToLoad;
-            this.OnMonopolyGameFailedToLoad -= this.HandleMonopolyGameFailedToLoad;
+            this.GameLobbyLoadedEvent -= this.OnGameLobbyLoaded;
+            this.MonopolyGameLoadedEvent -= this.OnMonopolyGameLoaded;
+            this.GameLobbyFailedToLoadEvent -= this.OnGameLobbyFailedToLoad;
+            this.MonopolyGameFailedToLoadEvent -= this.OnMonopolyGameFailedToLoad;
 
-            this.LocalLobbyEventCallbacks.PlayerLeft -= this.HandlePlayerLeft;
-            this.LocalLobbyEventCallbacks.DataChanged -= this.HandleDataChanged;
-            this.LocalLobbyEventCallbacks.LobbyDeleted -= this.HandleLobbyDeleted;
-            this.LocalLobbyEventCallbacks.PlayerJoined -= this.HandlePlayerJoined;
-            this.LocalLobbyEventCallbacks.KickedFromLobby -= this.HandleKickedFromLobby;
-            this.LocalLobbyEventCallbacks.PlayerDataChanged -= this.HandlePlayerDataChanged;
+            this.LocalLobbyEventCallbacks.PlayerLeft -= this.OnPlayerLeft;
+            this.LocalLobbyEventCallbacks.DataChanged -= this.OnDataChanged;
+            this.LocalLobbyEventCallbacks.LobbyDeleted -= this.OnLobbyDeleted;
+            this.LocalLobbyEventCallbacks.PlayerJoined -= this.OnPlayerJoined;
+            this.LocalLobbyEventCallbacks.KickedFromLobby -= this.OnKickedFromLobby;
+            this.LocalLobbyEventCallbacks.PlayerDataChanged -= this.OnPlayerDataChanged;
 
             if (NetworkManager.Singleton != null)
-            {
-                NetworkManager.Singleton.OnTransportFailure -= this.HandleTransportFailure;
-            }
+                NetworkManager.Singleton.OnTransportFailure -= this.OnTransportFailure;
         }
 
         private async void OnDestroy()
@@ -138,13 +140,21 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        public void StartGame()
+        internal bool HasPlayerWithId(string playerId)
+        {
+            if (this.LocalLobby == null)
+                return false;
+
+            return this.LocalLobby.Players.Any(player => player.Id.Equals(playerId, StringComparison.Ordinal));
+        }
+
+        internal void StartGame()
         {
             if (!this.HavePlayersLoaded)
             {
                 UIManagerGlobal.Instance.ShowMessageBox(
-                    MessageBoxPanel.Type.OK, 
-                    MessageBoxPanel.Icon.Warning, 
+                    MessageBoxPanel.Type.OK,
+                    MessageBoxPanel.Icon.Warning,
                     UIManagerUnrankedLobby.Instance.MessageNotAllPlayersLoaded
                 );
                 return;
@@ -168,7 +178,7 @@ namespace Monopoly.Client.Runtime.P2P
                 UIManagerUnrankedLobby.Instance.MessagePendingGame
             );
 
-            GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.MonopolyGame);
+            // GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.MonopolyGame);
         }
 
         private async Task LeaveLobbyAsync()
@@ -185,14 +195,7 @@ namespace Monopoly.Client.Runtime.P2P
             NetworkManager.Singleton?.Shutdown();
 
             if (this != null)
-            {
                 await this.localLobbyEvents?.UnsubscribeAsync();
-            }
-
-            if (!GameCoordinator.Instance.IsGameQuiting)
-            {
-                await GameCoordinator.Instance?.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
-            }
 
             if (!this.IsHost && MessageBoxPanelsPool.Instance != null)
             {
@@ -220,7 +223,7 @@ namespace Monopoly.Client.Runtime.P2P
             this.HasLocalPlayerLeft = false;
         }
 
-        public async Task<bool> DoesLobbyExistAsync()
+        internal async Task<bool> DoesLobbyExistAsync()
         {
             try
             {
@@ -238,7 +241,7 @@ namespace Monopoly.Client.Runtime.P2P
             return true;
         }
 
-        public async Task DisconnectFromLobbyAsync()
+        internal async Task DisconnectFromLobbyAsync()
         {
             this.HasLocalPlayerLeft = true;
 
@@ -274,7 +277,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        public async Task HostLobbyAsync(string relayCode)
+        internal async Task HostLobbyAsync(string relayCode)
         {
             this.IsHost = true;
             this.HasHostLeft = false;
@@ -284,7 +287,6 @@ namespace Monopoly.Client.Runtime.P2P
             CreateLobbyOptions lobbyOptions = new CreateLobbyOptions()
             {
                 Player = GameCoordinator.Instance.LocalPlayer,
-
                 Data = new Dictionary<string, DataObject>()
                 {
                     { LobbyManager.KEY_LOBBY_STATE, new DataObject(DataObject.VisibilityOptions.Member, LobbyManager.LOBBY_STATE_LOBBY) }
@@ -298,19 +300,19 @@ namespace Monopoly.Client.Runtime.P2P
 
                 NetworkManager.Singleton?.StartHost();
             }
-            catch (LobbyServiceException lobbyServiceException)
+            catch
             {
-                throw lobbyServiceException;
+                throw;
             }
 
             if (this != null)
             {
                 this.StartCoroutine(this.PingLobbyCoroutine());
-                await GameCoordinator.Instance.LoadSceneAsync(GameCoordinator.MonopolyScene.GameLobby);
+                await SceneManagerUtility.LoadSceneDefaultAsync(MonopolyApplication.Instance.SceneAssetLobbyUnranked, LoadSceneMode.Single);
             }
         }
 
-        public async Task ConnectLobbyAsync(string joinCode)
+        internal async Task ConnectLobbyAsync(string joinCode)
         {
             this.IsHost = false;
             this.HasHostLeft = false;
@@ -340,7 +342,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        public async Task KickFromLobbyAsync(string playerId)
+        internal async Task KickFromLobbyAsync(string playerId)
         {
             await LobbyService.Instance.RemovePlayerAsync(this.LocalLobby.Id, playerId);
         }
@@ -356,11 +358,11 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        public async Task UpdateLocalPlayerDataAsync()
+        internal async Task UpdateLocalPlayerDataAsync()
         {
             try
             {
-                GameCoordinator.Instance.LocalPlayer.Data[LobbyManager.KEY_PLAYER_SCENE] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString());
+                // GameCoordinator.Instance.LocalPlayer.Data[LobbyManager.KEY_PLAYER_SCENE] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Member, GameCoordinator.Instance.ActiveScene.ToString());
 
                 UpdatePlayerOptions updatePlayerOptions = new UpdatePlayerOptions()
                 {
@@ -375,7 +377,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        public async Task UpdateLocalLobbyDataAsync(string lobbyState, bool isPrivate = true)
+        internal async Task UpdateLocalLobbyDataAsync(string lobbyState, bool isPrivate = true)
         {
             try
             {
@@ -395,22 +397,22 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        private void HandleLobbyDeleted()
+        private void OnLobbyDeleted()
         {
             this.HasHostLeft = true;
         }
 
-        private void HandleKickedFromLobby()
+        private void OnKickedFromLobby()
         {
             Task.Run(async () => await this.LeaveLobbyAsync());
         }
 
-        private void HandleTransportFailure()
+        private void OnTransportFailure()
         {
             Task.Run(async () => await this.DisconnectFromLobbyAsync());
         }
 
-        private void HandlePlayerLeft(List<int> leftPlayers)
+        private void OnPlayerLeft(List<int> leftPlayers)
         {
             foreach (int playerIndex in leftPlayers)
             {
@@ -418,7 +420,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        private void HandlePlayerJoined(List<LobbyPlayerJoined> joinedPlayers)
+        private void OnPlayerJoined(List<LobbyPlayerJoined> joinedPlayers)
         {
             foreach (LobbyPlayerJoined newPlayer in joinedPlayers)
             {
@@ -426,7 +428,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        private void HandleDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> changedLobbyData)
+        private void OnDataChanged(Dictionary<string, ChangedOrRemovedLobbyValue<DataObject>> changedLobbyData)
         {
             foreach (string key in changedLobbyData.Keys)
             {
@@ -453,7 +455,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        private void HandlePlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changedPlayerData)
+        private void OnPlayerDataChanged(Dictionary<int, Dictionary<string, ChangedOrRemovedLobbyValue<PlayerDataObject>>> changedPlayerData)
         {
             foreach (int playerIndex in changedPlayerData.Keys)
             {
@@ -464,7 +466,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        private void HandleGameLobbyLoaded()
+        private void OnGameLobbyLoaded()
         {
             if (this.IsHost)
             {
@@ -472,7 +474,7 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        private void HandleMonopolyGameLoaded()
+        private void OnMonopolyGameLoaded()
         {
             if (this.IsHost)
             {
@@ -480,16 +482,16 @@ namespace Monopoly.Client.Runtime.P2P
             }
         }
 
-        private void HandleMonopolyGameFailedToLoad()
+        private void OnMonopolyGameFailedToLoad()
         {
             if (this.IsHost)
             {
                 Task.Run(async () => await this.UpdateLocalLobbyDataAsync(LobbyManager.LOBBY_STATE_RETURNING, true));
-                GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.GameLobby);
+                // GameCoordinator.Instance.LoadSceneNetwork(GameCoordinator.MonopolyScene.GameLobby);
             }
         }
 
-        private void HandleGameLobbyFailedToLoad()
+        private void OnGameLobbyFailedToLoad()
         {
             Task.Run(async () => await this.DisconnectFromLobbyAsync());
         }

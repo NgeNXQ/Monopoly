@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Monopoly.Client.Runtime.Game.Core;
+using Monopoly.Client.Runtime.Game.Board;
 using Monopoly.Client.Runtime.Game.Serializables;
 using Monopoly.Client.Runtime.UI.Panels.Common;
 
@@ -73,13 +74,13 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Game
                 if (value.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
                 {
                     this.imageSender.gameObject.SetActive(true);
-                    this.imageSender.sprite = MonopolyBoard.Instance.GetNodeByIndex(value.SenderNodeIndex).TileSprite;
+                    // this.imageSender.sprite = MonopolyBoard.Instance.GetTileByIndex(value.SenderNodeIndex).TileSprite;
                 }
 
                 if (value.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
                 {
                     this.imageReceiver.gameObject.SetActive(true);
-                    this.imageReceiver.sprite = MonopolyBoard.Instance.GetNodeByIndex(value.ReceiverNodeIndex).TileSprite; ;
+                    // this.imageReceiver.sprite = MonopolyBoard.Instance.GetTileByIndex(value.ReceiverNodeIndex).TileSprite; ;
                 }
             }
         }

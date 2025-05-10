@@ -9,39 +9,43 @@ using Monopoly.Client.Runtime.Game.Controllers.Common;
 using Monopoly.Client.Runtime.UI.Managers;
 using Monopoly.Client.Runtime.UI.Panels.Concrete.Game;
 using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
+using Monopoly.Client.Scriptable.Objects.Cards.Chance;
 
 namespace Monopoly.Client.Runtime.Game.Core
 {
     internal sealed class GameManager : NetworkBehaviour
     {
-        [Space]
-        [SerializeField]
-        [Range(0, 100_000)] private int startingBalance = 15_000;
 
-        [Space]
-        [SerializeField]
-        [Range(0, 10)]
-        private int maxTurnsInJail = 3;
 
-        [Space]
-        [SerializeField]
-        [Range(0, 10)]
-        private int maxDoublesInRow = 2;
+        // [Space]
+        // [SerializeField]
+        // [Range(0.0f, 100.0f)]
+        // private float pawnMovementSpeed = 35.0f;
 
-        [Space]
-        [SerializeField]
-        [Range(0, 100_000)]
-        private int circleBonus = 2_000;
+        [field: SerializeField, Space]
+        internal int MaxJailTurns { get; private set; } = 3;
 
-        [Space]
-        [SerializeField]
-        [Range(0, 100_000)]
-        private int exactCircleBonus = 3_000;
+        [field: SerializeField, Range(0, 10), Space]
+        internal int MaxDoublesSequence { get; private set; } = 2;
 
-        [Space]
-        [SerializeField]
-        [Range(0.0f, 100.0f)]
-        private float pawnMovementSpeed = 35.0f;
+        [field: SerializeField, Range(0, 100_000), Space]
+        internal int InitialBalance { get; private set; } = 15_000;
+
+        [field: SerializeField, Range(0, 100_000), Space]
+        internal int CircleSuperBonus { get; private set; } = 3_000;
+
+        [field: SerializeField, Range(0, 100_000), Space]
+        internal int CircleDefaultBonus { get; private set; } = 2_000;
+
+
+        // internal float PawnMovementSpeed => this.pawnMovementSpeed;
+
+        // [Space]
+        // [SerializeField]
+        // private List<CardChanceScriptableObject> taxNodes = new List<CardChanceScriptableObject>();
+
+        [SerializeField, Space]
+        private List<CardChanceScriptableObject> cardsChance = new List<CardChanceScriptableObject>();
 
         [Space]
         [Header("Visuals")]
@@ -73,20 +77,15 @@ namespace Monopoly.Client.Runtime.Game.Core
         private IList<PawnController> pawns;
         private IList<PlayerGamePanel> pawnsPanels;
 
-        private ulong[] targetAllClients;
-        private ulong[] targetOtherClients;
-        private ulong[] targetAllDefaultClients;
-        private IDictionary<int, ulong[]> targetAllClientsExcludingCurrentPlayer;
+        // private ulong[] targetAllClients;
+        // private ulong[] targetOtherClients;
+        // private ulong[] targetAllDefaultClients;
+        // private IDictionary<int, ulong[]> targetAllClientsExcludingCurrentPlayer;
 
         private int nextPawnIndex => ++this.CurrentPawnIndex % this.pawns.Count;
 
         internal int PawnsCount => this.pawns.Count;
-        internal int CircleBonus => this.circleBonus;
-        internal int MaxTurnsInJail => this.maxTurnsInJail;
-        internal int MaxDoublesInRow => this.maxDoublesInRow;
-        internal int StartingBalance => this.startingBalance;
-        internal int ExactCircleBonus => this.exactCircleBonus;
-        internal float PawnMovementSpeed => this.pawnMovementSpeed;
+
 
         internal int FirstDieValue { get; private set; }
         internal int SecondDieValue { get; private set; }
@@ -106,60 +105,60 @@ namespace Monopoly.Client.Runtime.Game.Core
             }
         }
 
-        internal ServerRpcParams SenderLocalClient
-        {
-            get
-            {
-                return new ServerRpcParams
-                {
-                    Receive = new ServerRpcReceiveParams { SenderClientId = NetworkManager.Singleton.LocalClientId }
-                };
-            }
-        }
+        // internal ServerRpcParams SenderLocalClient
+        // {
+        //     get
+        //     {
+        //         return new ServerRpcParams
+        //         {
+        //             Receive = new ServerRpcReceiveParams { SenderClientId = NetworkManager.Singleton.LocalClientId }
+        //         };
+        //     }
+        // }
 
-        internal ClientRpcParams TargetAllClients
-        {
-            get
-            {
-                return new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams { TargetClientIds = this.targetAllClients }
-                };
-            }
-        }
+        // internal ClientRpcParams TargetAllClients
+        // {
+        //     get
+        //     {
+        //         return new ClientRpcParams
+        //         {
+        //             Send = new ClientRpcSendParams { TargetClientIds = this.targetAllClients }
+        //         };
+        //     }
+        // }
 
-        internal ClientRpcParams TargetOtherClients
-        {
-            get
-            {
-                return new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams { TargetClientIds = this.targetOtherClients }
-                };
-            }
-        }
+        // internal ClientRpcParams TargetOtherClients
+        // {
+        //     get
+        //     {
+        //         return new ClientRpcParams
+        //         {
+        //             Send = new ClientRpcSendParams { TargetClientIds = this.targetOtherClients }
+        //         };
+        //     }
+        // }
 
-        internal ClientRpcParams TargetAllDefaultClients
-        {
-            get
-            {
-                return new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams { TargetClientIds = this.targetAllDefaultClients }
-                };
-            }
-        }
+        // internal ClientRpcParams TargetAllDefaultClients
+        // {
+        //     get
+        //     {
+        //         return new ClientRpcParams
+        //         {
+        //             Send = new ClientRpcSendParams { TargetClientIds = this.targetAllDefaultClients }
+        //         };
+        //     }
+        // }
 
-        internal ClientRpcParams TargetAllClientsExcludingCurrentPlayer
-        {
-            get
-            {
-                return new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams { TargetClientIds = this.targetAllClientsExcludingCurrentPlayer[this.CurrentPawnIndex] }
-                };
-            }
-        }
+        // internal ClientRpcParams TargetAllClientsExcludingCurrentPlayer
+        // {
+        //     get
+        //     {
+        //         return new ClientRpcParams
+        //         {
+        //             Send = new ClientRpcSendParams { TargetClientIds = this.targetAllClientsExcludingCurrentPlayer[this.CurrentPawnIndex] }
+        //         };
+        //     }
+        // }
 
         private void Awake()
         {
@@ -185,7 +184,7 @@ namespace Monopoly.Client.Runtime.Game.Core
             if (LobbyManager.Instance.IsHost)
                 this.StartCoroutine(this.WaitOtherPlayersCoroutine());
 
-            GameCoordinator.Instance?.UpdateInitializedObjects(this.GetType());
+            // GameCoordinator.Instance?.UpdateInitializedObjects(this.GetType());
         }
 
         private void OnEnable()
@@ -214,39 +213,39 @@ namespace Monopoly.Client.Runtime.Game.Core
 
         private async void OnClientDisconnected(ulong disconnectedClientId)
         {
-            if (NetworkManager.Singleton.IsHost)
-            {
-                this.targetAllClients = this.targetAllClients.Where(clientId => clientId != disconnectedClientId).ToArray();
-                this.targetOtherClients = this.targetOtherClients.Where(clientId => clientId != disconnectedClientId).ToArray();
-                this.targetAllDefaultClients = this.targetAllDefaultClients.Where(clientId => clientId != disconnectedClientId).ToArray();
+            // if (NetworkManager.Singleton.IsHost)
+            // {
+            //     this.targetAllClients = this.targetAllClients.Where(clientId => clientId != disconnectedClientId).ToArray();
+            //     this.targetOtherClients = this.targetOtherClients.Where(clientId => clientId != disconnectedClientId).ToArray();
+            //     this.targetAllDefaultClients = this.targetAllDefaultClients.Where(clientId => clientId != disconnectedClientId).ToArray();
 
-                this.RemoveSurrenderedPawn(this.pawns.Where(pawn => pawn.OwnerClientId == disconnectedClientId).First().NetworkIndex);
-            }
-            else
-            {
-                if (disconnectedClientId != GameManager.CLIENT_ID_HOST)
-                    return;
+            //     this.RemoveSurrenderedPawn(this.pawns.Where(pawn => pawn.OwnerClientId == disconnectedClientId).First().NetworkIndex);
+            // }
+            // else
+            // {
+            //     if (disconnectedClientId != GameManager.CLIENT_ID_HOST)
+            //         return;
 
-                if (LobbyManager.Instance != null && await LobbyManager.Instance.DoesLobbyExistAsync())
-                {
-                    await LobbyManager.Instance.DisconnectFromLobbyAsync();
+            //     if (LobbyManager.Instance != null && await LobbyManager.Instance.DoesLobbyExistAsync())
+            //     {
+            //         await LobbyManager.Instance.DisconnectFromLobbyAsync();
 
-                    UIManagerGlobal.Instance?.ShowMessageBox(
-                        MessageBoxPanel.Type.OK,
-                        MessageBoxPanel.Icon.Error,
-                        UIManagerGame.Instance.MessageHostDisconnected
-                    );
-                }
-            }
+            //         UIManagerGlobal.Instance?.ShowMessageBox(
+            //             MessageBoxPanel.Type.OK,
+            //             MessageBoxPanel.Icon.Error,
+            //             UIManagerGame.Instance.MessageHostDisconnected
+            //         );
+            //     }
+            // }
         }
 
         internal void RemoveSurrenderedPawn(int networkIndex)
         {
-            if (this.CurrentPawn.NetworkIndex == networkIndex)
-                this.SwitchPlayerForcefullyServerRpc(this.SenderLocalClient);
+            // if (this.CurrentPawn.NetworkIndex == networkIndex)
+            //     this.SwitchPlayerForcefullyServerRpc(this.SenderLocalClient);
 
-            this.targetAllClientsExcludingCurrentPlayer.Remove(networkIndex);
-            this.RemoveSurrenderedPawnClientRpc(networkIndex, this.TargetAllClients);
+            // this.targetAllClientsExcludingCurrentPlayer.Remove(networkIndex);
+            // this.RemoveSurrenderedPawnClientRpc(networkIndex, this.TargetAllClients);
         }
 
         // [Rpc(SendTo.Everyone)]
@@ -287,70 +286,70 @@ namespace Monopoly.Client.Runtime.Game.Core
             }
 
             if (!LobbyManager.Instance.HavePlayersLoaded)
-                LobbyManager.Instance?.OnMonopolyGameFailedToLoad?.Invoke();
+                LobbyManager.Instance?.MonopolyGameFailedToLoadEvent?.Invoke();
             else
                 this.InitializeGameSession();
         }
 
         private void InitializeGameSession()
         {
-            this.targetAllClientsExcludingCurrentPlayer = new Dictionary<int, ulong[]>();
-            this.targetAllClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count];
-            this.targetOtherClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
-            this.targetAllDefaultClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
+            // this.targetAllClientsExcludingCurrentPlayer = new Dictionary<int, ulong[]>();
+            // this.targetAllClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count];
+            // this.targetOtherClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
+            // this.targetAllDefaultClients = new ulong[NetworkManager.Singleton.ConnectedClients.Count - 1];
 
-            int defaultClientsCount = NetworkManager.Singleton.ConnectedClients.Count - 1;
+            // int defaultClientsCount = NetworkManager.Singleton.ConnectedClients.Count - 1;
 
-            for (int i = 0; i < defaultClientsCount; ++i)
-                this.targetAllDefaultClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i + 1];
+            // for (int i = 0; i < defaultClientsCount; ++i)
+            //     this.targetAllDefaultClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i + 1];
 
-            for (int i = 0; i < NetworkManager.Singleton?.ConnectedClients.Count; ++i)
-            {
-                this.targetAllClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i];
-                this.targetAllClientsExcludingCurrentPlayer.Add(i, NetworkManager.Singleton.ConnectedClientsIds.Where(id => id != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
+            // for (int i = 0; i < NetworkManager.Singleton?.ConnectedClients.Count; ++i)
+            // {
+            //     this.targetAllClients[i] = NetworkManager.Singleton.ConnectedClientsIds[i];
+            //     this.targetAllClientsExcludingCurrentPlayer.Add(i, NetworkManager.Singleton.ConnectedClientsIds.Where(id => id != NetworkManager.Singleton.ConnectedClientsIds[i]).ToArray());
 
-                GameObject newPlayer = GameObject.Instantiate(this.player);
-                GameObject newPlayerPanel = GameObject.Instantiate(this.pawnPanel);
-                newPlayer.GetComponent<NetworkObject>().SpawnAsPlayerObject(NetworkManager.Singleton.ConnectedClientsIds[i], true);
-                newPlayerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
-            }
+            //     GameObject newPlayer = GameObject.Instantiate(this.player);
+            //     GameObject newPlayerPanel = GameObject.Instantiate(this.pawnPanel);
+            //     newPlayer.GetComponent<NetworkObject>().SpawnAsPlayerObject(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+            //     newPlayerPanel.GetComponent<NetworkObject>().SpawnWithOwnership(NetworkManager.Singleton.ConnectedClientsIds[i], true);
+            // }
 
-            for (int i = this.pawns.Count; i < LobbyManager.MAX_PLAYERS; ++i)
-            {
-                this.targetAllClientsExcludingCurrentPlayer.Add(i, NetworkManager.Singleton.ConnectedClientsIds.ToArray());
+            // for (int i = this.pawns.Count; i < LobbyManager.MAX_PLAYERS; ++i)
+            // {
+            //     this.targetAllClientsExcludingCurrentPlayer.Add(i, NetworkManager.Singleton.ConnectedClientsIds.ToArray());
 
-                GameObject newBot = GameObject.Instantiate(this.bot);
-                GameObject newBotPanel = GameObject.Instantiate(this.pawnPanel);
-                newBot.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.CLIENT_ID_HOST, true);
-                newBotPanel.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.CLIENT_ID_HOST, true);
-            }
+            //     GameObject newBot = GameObject.Instantiate(this.bot);
+            //     GameObject newBotPanel = GameObject.Instantiate(this.pawnPanel);
+            //     newBot.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.CLIENT_ID_HOST, true);
+            //     newBotPanel.GetComponent<NetworkObject>().SpawnWithOwnership(GameManager.CLIENT_ID_HOST, true);
+            // }
 
-            this.CurrentPawnIndex = 0;
-            this.SwitchPawnClientRpc(this.CurrentPawnIndex, this.TargetAllClients);
+            // this.CurrentPawnIndex = 0;
+            // this.SwitchPawnClientRpc(this.CurrentPawnIndex, this.TargetAllClients);
         }
 
         [ServerRpc(RequireOwnership = false)]
         internal void SwitchPawnServerRpc(ServerRpcParams serverRpcParams)
         {
-            if (this.HasRolledDouble)
-            {
-                ++this.rolledDoublesCount;
+            // if (this.HasRolledDouble)
+            // {
+            //     ++this.rolledDoublesCount;
 
-                if (this.rolledDoublesCount >= this.MaxDoublesInRow)
-                {
-                    this.rolledDoublesCount = 0;
-                    this.SendCurrentPawnToJailClientRpc(this.TargetAllClients);
-                }
-                else
-                {
-                    this.SwitchPawnClientRpc(this.CurrentPawnIndex, this.TargetAllClients);
-                }
-            }
-            else
-            {
-                this.rolledDoublesCount = 0;
-                this.SwitchPawnClientRpc(this.nextPawnIndex, this.TargetAllClients);
-            }
+            //     if (this.rolledDoublesCount >= this.MaxDoublesInRow)
+            //     {
+            //         this.rolledDoublesCount = 0;
+            //         this.SendCurrentPawnToJailClientRpc(this.TargetAllClients);
+            //     }
+            //     else
+            //     {
+            //         this.SwitchPawnClientRpc(this.CurrentPawnIndex, this.TargetAllClients);
+            //     }
+            // }
+            // else
+            // {
+            //     this.rolledDoublesCount = 0;
+            //     this.SwitchPawnClientRpc(this.nextPawnIndex, this.TargetAllClients);
+            // }
         }
 
         [ClientRpc]
@@ -363,8 +362,8 @@ namespace Monopoly.Client.Runtime.Game.Core
         [ServerRpc(RequireOwnership = false)]
         internal void SwitchPlayerForcefullyServerRpc(ServerRpcParams serverRpcParams)
         {
-            this.rolledDoublesCount = 0;
-            this.SwitchPawnClientRpc(this.nextPawnIndex, this.TargetAllClients);
+            // this.rolledDoublesCount = 0;
+            // this.SwitchPawnClientRpc(this.nextPawnIndex, this.TargetAllClients);
         }
 
         [ClientRpc]
@@ -404,7 +403,7 @@ namespace Monopoly.Client.Runtime.Game.Core
             this.FirstDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
             this.SecondDieValue = UnityEngine.Random.Range(MIN_DIE_VALUE, MAX_DIE_VALUE + 1);
 
-            this.RollDiceServerRpc(this.FirstDieValue, this.SecondDieValue, this.SenderLocalClient);
+            // this.RollDiceServerRpc(this.FirstDieValue, this.SecondDieValue, this.SenderLocalClient);
         }
 
         [ServerRpc(RequireOwnership = false)]
@@ -413,7 +412,7 @@ namespace Monopoly.Client.Runtime.Game.Core
             this.FirstDieValue = firstDieValue;
             this.SecondDieValue = secondDieValue;
 
-            this.RollDiceClientRpc(firstDieValue, secondDieValue, this.TargetAllDefaultClients);
+            // this.RollDiceClientRpc(firstDieValue, secondDieValue, this.TargetAllDefaultClients);
         }
 
         [ClientRpc]
@@ -421,6 +420,11 @@ namespace Monopoly.Client.Runtime.Game.Core
         {
             this.FirstDieValue = firstDieValue;
             this.SecondDieValue = secondDieValue;
+        }
+
+        internal CardChanceScriptableObject GetCardChance()
+        {
+            return this.cardsChance[UnityEngine.Random.Range(0, this.cardsChance.Count)];
         }
     }
 }

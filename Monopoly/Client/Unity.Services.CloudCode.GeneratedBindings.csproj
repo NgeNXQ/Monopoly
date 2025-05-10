@@ -15,7 +15,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultItems>false</EnableDefaultItems>
     <LangVersion>9.0</LangVersion>
-    <RootNamespace>Monopoly.Backend.Gateway.Services</RootNamespace>
+    <RootNamespace>Monopoly.Backed.Gateway.Services</RootNamespace>
     <OutputType>Library</OutputType>
     <AssemblyName>Unity.Services.CloudCode.GeneratedBindings</AssemblyName>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -49,10 +49,10 @@
     <Analyzer Include="D:\Programs\Unity\Editors\6000.0.45f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Source\Services\Rating\RatingServiceBindings.cs" />
+    <Compile Include="Assets\Source\Services\Ranked\RankedServiceBindings.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Source\Services\Rating\Unity.Services.CloudCode.GeneratedBindings.asmdef" />
+    <None Include="Assets\Source\Services\Ranked\Unity.Services.CloudCode.GeneratedBindings.asmdef" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

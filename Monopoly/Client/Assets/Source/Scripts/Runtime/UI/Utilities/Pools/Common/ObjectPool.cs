@@ -4,21 +4,21 @@ using UnityEngine;
 
 namespace Monopoly.Client.Runtime.UI.Utilities.Pools.Common
 {
-    internal abstract class ObjectPool<TBehaviour> : MonoBehaviour where TBehaviour : MonoBehaviour
+    internal abstract class ObjectPool<TComponent> : MonoBehaviour where TComponent : Component
     {
-        private readonly LinkedList<TBehaviour> pooledGameObjects = new LinkedList<TBehaviour>();
+        private readonly LinkedList<TComponent> pooledComponents = new LinkedList<TComponent>();
 
-        internal int Count => this.pooledGameObjects.Count;
+        internal int Count => this.pooledComponents.Count;
 
-        internal TBehaviour GetInactiveObject()
+        internal TComponent GetInactiveObject()
         {
-            foreach (TBehaviour gameObject in this.pooledGameObjects)
+            foreach (TComponent component in this.pooledComponents)
             {
-                if (gameObject.gameObject.activeInHierarchy)
+                if (component.gameObject.activeInHierarchy)
                     continue;
 
-                gameObject.gameObject.SetActive(true);
-                return gameObject;
+                component.gameObject.SetActive(true);
+                return component;
             }
 
             throw new OverflowException($"Unauthorized access to {GetType().FullName}!");
@@ -26,23 +26,23 @@ namespace Monopoly.Client.Runtime.UI.Utilities.Pools.Common
 
         internal void Clear()
         {
-            this.pooledGameObjects.Clear();
+            this.pooledComponents.Clear();
         }
 
-        internal void Append(TBehaviour gameObject)
+        internal void Append(TComponent component)
         {
-            if (this.pooledGameObjects.Contains(gameObject))
-                throw new ArgumentException($"Object {gameObject.name} is already in pool {GetType().FullName}!");
+            if (this.pooledComponents.Contains(component))
+                throw new ArgumentException($"Object {component.name} is already in pool {base.GetType().FullName}!");
 
-            this.pooledGameObjects.AddLast(gameObject);
+            this.pooledComponents.AddLast(component);
         }
 
-        internal void Remove(TBehaviour gameObject)
+        internal void Remove(TComponent component)
         {
-            if (!this.pooledGameObjects.Contains(gameObject))
-                throw new ArgumentException($"Object {gameObject.name} is not in pool {GetType().FullName}!");
+            if (!this.pooledComponents.Contains(component))
+                throw new ArgumentException($"Object {component.name} is not in pool {base.GetType().FullName}!");
 
-            this.pooledGameObjects.Remove(gameObject);
+            this.pooledComponents.Remove(component);
         }
     }
 }
