@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Monopoly.Client.Runtime.UI.Managers;
-using Monopoly.Client.Runtime.Game.Core;
-using Monopoly.Client.Runtime.Game.Board;
+// using Monopoly.Client.Runtime.Game.;
+using Monopoly.Client.Runtime.Game.Gameplay.Layout;
 using Monopoly.Client.Runtime.Game.Controllers.Common;
 using Monopoly.Client.Runtime.Game.Controllers.Concrete;
 

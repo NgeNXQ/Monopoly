@@ -1,9 +1,11 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Monopoly.Client.Runtime.P2P;
-using Monopoly.Client.Runtime.UI.Managers;
+using Monopoly.Client.Runtime.Core.P2P;
+using Monopoly.Client.Runtime.UI.Managers.Lobby;
+using Monopoly.Client.Runtime.UI.Managers.Global;
 using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
+using Monopoly.Unity.Services.Lobbies.Models.Extensions;
 
 namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Lobby
 {
@@ -74,7 +76,7 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Lobby
         {
             if (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult == MessageBoxPanel.DialogResult.OK)
             {
-                if (!LobbyManager.Instance.HasPlayerWithId(this.playerId))
+                if (!LobbyManager.Instance.LocalLobby.HasPlayerWithId(this.playerId))
                 {
                     UIManagerGlobal.Instance.ShowMessageBox(
                         MessageBoxPanel.Type.OK,

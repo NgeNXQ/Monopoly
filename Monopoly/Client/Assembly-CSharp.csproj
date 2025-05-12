@@ -51,61 +51,68 @@
   <ItemGroup>
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Effects\Concrete\TurnSkipCardEffect.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\Game\Controllers\Concrete\PlayerPawnController.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\P2P\LobbyManager.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Concrete\TaxMonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Concrete\ParkingMonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Interactable\PawnVisuals.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Board\MonopolyBoard.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Core\GameManager.cs" />
+    <Compile Include="Assets\Source\Scripts\Shared\Pools\ObjectPool.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Pools\MessageBoxPanelsPool.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\Lobby\UIManagerUnrankedLobby.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Layout\MonopolyBoard.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Properties\Concrete\SpecialPropertyMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Corners\StartMonopolyTile.cs" />
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Effects\Concrete\TeleportationBackwardsCardEffect.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Properties\Concrete\SpecialPropertyMonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Properties\Concrete\DefaultPropertyMonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\UIManagerGlobal.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\TileInformationPanel.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\TradeSenderPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Layout\MonopolySet.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\Menu\UIManagerMainMenu.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\TradeReceiverPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\MonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Shared\Machines\State.cs" />
+    <Compile Include="Assets\Source\Scripts\Shared\Machines\MachineManager.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Eventful\TaxMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Domain\MonopolyPlayer.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\TradeSenderPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Pools\UnrankedLobbyPlayerPanelsPool.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Common\ICallableState.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\Game\Controllers\Common\PawnController.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\ChanceCardPaymentPanel.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Board\MonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Utilities\Pools\Concrete\UnrankedLobbyPlayerPanelsPool.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\UIManagerUnrankedLobby.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\UIManagerBootstrap.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Serializables\TradeCredentialsSerializer.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Machines\Shared\State.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Shared\MonopolyTile.cs" />
+    <Compile Include="Assets\Source\Utilities\Trackers\Loading\LoadingTrackerUtility.cs" />
+    <Compile Include="Assets\Source\Domain\DTOs\Api\AccountPayload.cs" />
+    <Compile Include="Assets\Source\Utilities\Trackers\Loading\LoadingGroup.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Corners\JailTriggerMonopolyTile.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Global\MessageBoxPanel.cs" />
+    <Compile Include="Assets\Source\Domain\DTOs\Api\ApiResponse.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\Game\Controllers\Concrete\BotPawnController.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Concrete\ChanceMonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Properties\Common\PropertyMonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Common\MonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\UIManagerGame.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\TileProposalPanel.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Utilities\Pools\Concrete\MessageBoxPanelsPool.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\Gameplay\UIManagerGame.cs" />
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Effects\Concrete\TeleportationForwardCardEffect.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Board\MonopolySet.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\TilePaymentPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\PawnPanel.cs" />
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Effects\Concrete\BonusCardEffect.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Machines\Shared\MachineManager.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\Bootstrap\UIManagerBootstrap.cs" />
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Effects\Concrete\TaxCardEffect.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\UIManagerMainMenu.cs" />
+    <Compile Include="Assets\Source\Unity\Services\Lobbies\Models\Extensions\PlayerExtensions.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\UI\Interactable\UINodeTouchHandler.cs" />
+    <Compile Include="Assets\Source\Scriptable\Objects\Tokens\TokenScriptableObject.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Lobby\PlayerUnrankedLobbyPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Properties\Concrete\DefaultPropertyMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Corners\JailMonopolyTile.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Common\IPanel.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Concrete\JailTriggerMonopolyTile.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\P2P\GameCoordinator.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Core\Models\LoadingGroup.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Utilities\Pools\Common\ObjectPool.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Concrete\JailVisitorMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\App\MonopolyApplication.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\TilePaymentPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Properties\Concrete\GamblingPropertyMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Properties\Common\PropertyMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Utilities\Scenes\SceneManagerUtility.cs" />
+    <Compile Include="Assets\Source\Utilities\Trackers\Loading\LobbyLoadingGroup.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\TileInformationPanel.cs" />
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Effects\Concrete\JailCardEffect.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\TradeReceiverPanel.cs" />
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Effects\Common\CardEffectScriptableObject.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Core\Utilities\LoadingTrackerUtility.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\PlayerGamePanel.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Game\Tiles\Concrete\StartMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Managers\Global\UIManagerGlobal.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\ChanceCardPaymentPanel.cs" />
+    <Compile Include="Assets\Source\Unity\Services\Lobbies\Models\Extensions\LobbyExtensions.cs" />
     <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Common\ICallableAction.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Core\Utilities\SceneManagerUtility.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Core\P2P\LobbyManager.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Eventful\ChanceMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\TileProposalPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Gameplay\TileManagementPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Core\P2P\GameCoordinator.cs" />
     <Compile Include="Assets\Source\Scriptable\Objects\Cards\Chance\CardChanceScriptableObject.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\Core\Models\MonopolyApplication.cs" />
-    <Compile Include="Assets\Source\Scripts\Runtime\UI\Panels\Concrete\Game\TileManagementPanel.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Serializables\TradeCredentialsSerializable.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Gameplay\Tiles\Concrete\Corners\ParkingMonopolyTile.cs" />
+    <Compile Include="Assets\Source\Scripts\Runtime\Game\Managers\GameManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1080,6 +1087,10 @@
       <HintPath>D:\Programs\Unity\Editors\6000.0.45f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.Xml.Serialization.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Services.Leaderboards.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Services.Leaderboards.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="PsdPlugin">
       <HintPath>Library\ScriptAssemblies\PsdPlugin.dll</HintPath>
       <Private>False</Private>
@@ -1520,13 +1531,10 @@
       <HintPath>Library\ScriptAssemblies\Unity.Localization.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Services.Leaderboards.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Services.Leaderboards.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="Unity.Services.CloudCode.GeneratedBindings.csproj" />
+    <ProjectReference Include="Monopoly.Backed.Gateway.Services.Account.GeneratedBindings.csproj" />
+    <ProjectReference Include="Monopoly.Backed.Gateway.Services.Rating.GeneratedBindings.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>

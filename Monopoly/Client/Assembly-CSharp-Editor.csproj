@@ -1077,6 +1077,10 @@
       <HintPath>Library\ScriptAssemblies\UnityEditor.TestRunner.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Services.Leaderboards.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.Services.Leaderboards.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="PsdPlugin">
       <HintPath>Library\ScriptAssemblies\PsdPlugin.dll</HintPath>
       <Private>False</Private>
@@ -1517,14 +1521,11 @@
       <HintPath>Library\ScriptAssemblies\Unity.Localization.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.Services.Leaderboards.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.Services.Leaderboards.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp.csproj" />
-    <ProjectReference Include="Unity.Services.CloudCode.GeneratedBindings.csproj" />
+    <ProjectReference Include="Monopoly.Backed.Gateway.Services.Account.GeneratedBindings.csproj" />
+    <ProjectReference Include="Monopoly.Backed.Gateway.Services.Rating.GeneratedBindings.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>

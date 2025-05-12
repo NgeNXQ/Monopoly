@@ -1,0 +1,16 @@
+{
+    "name": "Monopoly.Backed.Gateway.Services.Rating.GeneratedBindings",
+    "rootNamespace": "Monopoly.Backed.Gateway.Services.Rating",
+    "references": [
+        "Unity.Services.CloudCode"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

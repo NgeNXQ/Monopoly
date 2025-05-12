@@ -2,14 +2,14 @@ using System.Linq;
 using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
-using Monopoly.Client.Runtime.P2P;
-using Monopoly.Client.Runtime.Game.Core;
-using Monopoly.Client.Runtime.Game.Board;
-using Monopoly.Client.Runtime.Game.Serializables;
-using Monopoly.Client.Runtime.Game.Controllers.Common;
-using Monopoly.Client.Scriptable.Objects.Cards;
+using Monopoly.Client.Runtime.Core.P2P;
 using Monopoly.Client.Runtime.UI.Managers;
-using Monopoly.Client.Runtime.Game.Tiles.Properties.Common;
+using Monopoly.Client.Runtime.Game.Managers;
+using Monopoly.Client.Runtime.Game.Gameplay.Layout;
+using Monopoly.Client.Runtime.Game.Gameplay.Tiles.Properties.Common;
+using Monopoly.Client.Runtime.Game.Controllers.Common;
+using Monopoly.Client.Runtime.Game.Serializables;
+using Monopoly.Client.Scriptable.Objects.Cards;
 
 namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
 {
@@ -22,7 +22,9 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
 
         public override void OnNetworkSpawn()
         {
-            this.Nickname = $"BOT_{base.NetworkIndex - LobbyManager.Instance.LocalLobby.Players.Count + 1}";
+            base.IsBot = true;
+            base.IsPlayer = false;
+            base.Nickname = $"BOT_{base.NetworkIndex - LobbyManager.Instance.LocalLobby.Players.Count + 1}";
         }
 
         internal override sealed async void PerformTurn()
@@ -30,7 +32,7 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
             if (base.IsSkipTurn)
             {
                 base.IsSkipTurn = false;
-                base.CompleteTurn();
+                // base.CompleteTurn();
                 return;
             }
 
@@ -187,120 +189,120 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
             // base.PerformDiceRolling();
         }
 
-        private protected override sealed void HandleJailLanding()
-        {
-            base.CompleteTurn();
-        }
+        // private protected override sealed void HandleJailVisitorLanding()
+        // {
+        //     // base.CompleteTurn();
+        // }
 
-        private protected override sealed void HandleStartLanding()
-        {
-            // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value + GameManager.Instance.ExactCircleBonus, GameManager.Instance.SenderLocalClient);
-            base.CompleteTurn();
-        }
+        // private protected override sealed void HandleStartLanding()
+        // {
+        //     // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value + GameManager.Instance.ExactCircleBonus, GameManager.Instance.SenderLocalClient);
+        //     // base.CompleteTurn();
+        // }
 
-        private protected override sealed void HandleSendJailLanding()
-        {
-            base.GoToJail();
-        }
+        // private protected override sealed void HandleJailTriggerLanding()
+        // {
+        //     // base.GoToJail();
+        // }
 
-        private protected override sealed void HandleFreeParkingLanding()
-        {
-            base.CompleteTurn();
-        }
+        // private protected override sealed void HandleParkingLanding()
+        // {
+        //     // base.CompleteTurn();
+        // }
 
-        private protected override sealed async void HandleChanceLanding()
-        {
-            // ChanceCardScriptableObject chanceNode = MonopolyBoard.Instance.GetChanceNode();
-            // UIManagerGame.Instance.ShowPanelInfoServerRpc(chanceNode.Description, GameManager.Instance.SenderLocalClient);
+        // private protected override sealed async void HandleChanceLanding()
+        // {
+        //     // ChanceCardScriptableObject chanceNode = MonopolyBoard.Instance.GetChanceNode();
+        //     // UIManagerGame.Instance.ShowPanelInfoServerRpc(chanceNode.Description, GameManager.Instance.SenderLocalClient);
 
-            // await Awaitable.WaitForSecondsAsync(BotPawnController.TURN_TIMEOUT_DELAY);
+        //     // await Awaitable.WaitForSecondsAsync(BotPawnController.TURN_TIMEOUT_DELAY);
 
-            // if (chanceNode.ChanceType != ChanceCardScriptableObject.Type.Penalty)
-            // {
-            //     base.PerformChanceAction(chanceNode);
-            //     return;
-            // }
+        //     // if (chanceNode.ChanceType != ChanceCardScriptableObject.Type.Penalty)
+        //     // {
+        //     //     base.PerformChanceAction(chanceNode);
+        //     //     return;
+        //     // }
 
-            // if (base.Balance.Value >= chanceNode.Penalty)
-            // {
-            //     base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - chanceNode.Penalty, GameManager.Instance.SenderLocalClient);
-            //     base.CompleteTurn();
-            // }
-            // else
-            // {
-            //     if (base.NetWorth < chanceNode.Penalty)
-            //     {
-            //         base.SurrenderServerRpc(GameManager.Instance.SenderLocalClient);
-            //     }
-            //     else
-            //     {
-            //         await this.ManagePropertiesToAvoidBankruptcy(chanceNode.Penalty);
+        //     // if (base.Balance.Value >= chanceNode.Penalty)
+        //     // {
+        //     //     base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - chanceNode.Penalty, GameManager.Instance.SenderLocalClient);
+        //     //     base.CompleteTurn();
+        //     // }
+        //     // else
+        //     // {
+        //     //     if (base.NetWorth < chanceNode.Penalty)
+        //     //     {
+        //     //         base.SurrenderServerRpc(GameManager.Instance.SenderLocalClient);
+        //     //     }
+        //     //     else
+        //     //     {
+        //     //         await this.ManagePropertiesToAvoidBankruptcy(chanceNode.Penalty);
 
-            //         base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - chanceNode.Penalty, GameManager.Instance.SenderLocalClient);
-            //         base.CompleteTurn();
-            //     }
-            // }
-        }
+        //     //         base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - chanceNode.Penalty, GameManager.Instance.SenderLocalClient);
+        //     //         base.CompleteTurn();
+        //     //     }
+        //     // }
+        // }
 
-        private protected override sealed async void HandlePropertyLanding()
-        {
-            // await Awaitable.WaitForSecondsAsync(BotPawnController.TURN_TIMEOUT_DELAY);
+        // private protected override sealed async void HandlePropertyLanding()
+        // {
+        //     // await Awaitable.WaitForSecondsAsync(BotPawnController.TURN_TIMEOUT_DELAY);
 
-            // if (base.CurrentTile.Owner == null)
-            // {
-            //     if (base.Balance.Value >= base.CurrentTile.PricePurchase)
-            //     {
-            //         // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PricePurchase, GameManager.Instance.SenderLocalClient);
-            //         base.CurrentTile.UpdateOwnershipServerRpc(base.NetworkIndex, GameManager.Instance.SenderLocalClient);
-            //         base.CompleteTurn();
-            //     }
-            //     else
-            //     {
-            //         if (base.HasPartialMonopoly(base.CurrentTile.AffiliatedMonopoly))
-            //         {
-            //             if (base.NetWorth >= base.CurrentTile.PricePurchase)
-            //             {
-            //                 await this.ManagePropertiesToAvoidBankruptcy(base.CurrentTile.PricePurchase);
+        //     // if (base.CurrentTile.Owner == null)
+        //     // {
+        //     //     if (base.Balance.Value >= base.CurrentTile.PricePurchase)
+        //     //     {
+        //     //         // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PricePurchase, GameManager.Instance.SenderLocalClient);
+        //     //         base.CurrentTile.UpdateOwnershipServerRpc(base.NetworkIndex, GameManager.Instance.SenderLocalClient);
+        //     //         base.CompleteTurn();
+        //     //     }
+        //     //     else
+        //     //     {
+        //     //         if (base.HasPartialMonopoly(base.CurrentTile.AffiliatedMonopoly))
+        //     //         {
+        //     //             if (base.NetWorth >= base.CurrentTile.PricePurchase)
+        //     //             {
+        //     //                 await this.ManagePropertiesToAvoidBankruptcy(base.CurrentTile.PricePurchase);
 
-            //                 // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PricePurchase, GameManager.Instance.SenderLocalClient);
-            //                 base.CurrentTile.UpdateOwnershipServerRpc(base.NetworkIndex, GameManager.Instance.SenderLocalClient);
-            //             }
-            //         }
+        //     //                 // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PricePurchase, GameManager.Instance.SenderLocalClient);
+        //     //                 base.CurrentTile.UpdateOwnershipServerRpc(base.NetworkIndex, GameManager.Instance.SenderLocalClient);
+        //     //             }
+        //     //         }
 
-            //         base.CompleteTurn();
-            //     }
-            // }
-            // else
-            // {
-            //     if (base.CurrentTile.Owner == this || base.CurrentTile.IsMortgaged)
-            //     {
-            //         base.CompleteTurn();
-            //         return;
-            //     }
+        //     //         base.CompleteTurn();
+        //     //     }
+        //     // }
+        //     // else
+        //     // {
+        //     //     if (base.CurrentTile.Owner == this || base.CurrentTile.IsMortgaged)
+        //     //     {
+        //     //         base.CompleteTurn();
+        //     //         return;
+        //     //     }
 
-            //     if (base.Balance.Value >= base.CurrentTile.PriceRent)
-            //     {
-            //         // base.UpdateBalanceServerRpc(base.CurrentTile.Owner.NetworkIndex, base.CurrentTile.Owner.Balance.Value + base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
-            //         // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
-            //         base.CompleteTurn();
-            //     }
-            //     else
-            //     {
-            //         if (base.NetWorth < base.CurrentTile.PriceRent)
-            //         {
-            //             base.SurrenderServerRpc(GameManager.Instance.SenderLocalClient);
-            //         }
-            //         else
-            //         {
-            //             await this.ManagePropertiesToAvoidBankruptcy(base.CurrentTile.PriceRent);
+        //     //     if (base.Balance.Value >= base.CurrentTile.PriceRent)
+        //     //     {
+        //     //         // base.UpdateBalanceServerRpc(base.CurrentTile.Owner.NetworkIndex, base.CurrentTile.Owner.Balance.Value + base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
+        //     //         // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
+        //     //         base.CompleteTurn();
+        //     //     }
+        //     //     else
+        //     //     {
+        //     //         if (base.NetWorth < base.CurrentTile.PriceRent)
+        //     //         {
+        //     //             base.SurrenderServerRpc(GameManager.Instance.SenderLocalClient);
+        //     //         }
+        //     //         else
+        //     //         {
+        //     //             await this.ManagePropertiesToAvoidBankruptcy(base.CurrentTile.PriceRent);
 
-            //             // base.UpdateBalanceServerRpc(base.CurrentTile.Owner.NetworkIndex, base.CurrentTile.Owner.Balance.Value + base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
-            //             // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
-            //             base.CompleteTurn();
-            //         }
-            //     }
-            // }
-        }
+        //     //             // base.UpdateBalanceServerRpc(base.CurrentTile.Owner.NetworkIndex, base.CurrentTile.Owner.Balance.Value + base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
+        //     //             // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.CurrentTile.PriceRent, GameManager.Instance.SenderLocalClient);
+        //     //             base.CompleteTurn();
+        //     //         }
+        //     //     }
+        //     // }
+        // }
 
         private async Task ManagePropertiesToAvoidBankruptcy(int targetBalance)
         {
@@ -317,110 +319,110 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
             // }
         }
 
-        private protected override sealed async void RespondToTrade(TradeCredentials credentials)
-        {
-            // await Awaitable.WaitForSecondsAsync(BotPawnController.TURN_TIMEOUT_DELAY);
+        // private protected override sealed async void RespondToTrade(TradeCredentials credentials)
+        // {
+        //     // await Awaitable.WaitForSecondsAsync(BotPawnController.TURN_TIMEOUT_DELAY);
 
-            // const float WORTH_SENT_FULL_MONOPOLY_RATIO_THRESHOLD = 2.25f;
-            // const float WORTH_RECEIVED_FULL_MONOPOLY_RATIO_THRESHOLD = 1.5f;
+        //     // const float WORTH_SENT_FULL_MONOPOLY_RATIO_THRESHOLD = 2.25f;
+        //     // const float WORTH_RECEIVED_FULL_MONOPOLY_RATIO_THRESHOLD = 1.5f;
 
-            // const float WORTH_SENT_PARTIAL_MONOPOLY_RATIO_THRESHOLD = 1.7f;
-            // const float WORTH_RECEIVED_PARTIAL_MONOPOLY_RATIO_THRESHOLD = 1.5f;
+        //     // const float WORTH_SENT_PARTIAL_MONOPOLY_RATIO_THRESHOLD = 1.7f;
+        //     // const float WORTH_RECEIVED_PARTIAL_MONOPOLY_RATIO_THRESHOLD = 1.5f;
 
-            // PropertyMonopolyTile nodeToSend = null;
-            // PropertyMonopolyTile nodeToReceive = null;
-            // bool willSenderHaveFullMonopoly = false;
-            // bool willReceiverHaveFullMonopoly = false;
-            // bool willSenderHavePartialMonopoly = false;
-            // bool willReceiverHavePartialMonopoly = false;
+        //     // PropertyMonopolyTile nodeToSend = null;
+        //     // PropertyMonopolyTile nodeToReceive = null;
+        //     // bool willSenderHaveFullMonopoly = false;
+        //     // bool willReceiverHaveFullMonopoly = false;
+        //     // bool willSenderHavePartialMonopoly = false;
+        //     // bool willReceiverHavePartialMonopoly = false;
 
-            // if (credentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
-            // {
-            //     nodeToSend = MonopolyBoard.Instance.GetTileByIndex(credentials.ReceiverNodeIndex);
-            //     PawnController sender = GameManager.Instance.GetPawnController(credentials.SenderNetworkIndex);
-            //     willSenderHavePartialMonopoly = sender.OwnedTiles.Count(tile => tile.Monopoly == nodeToSend.AffiliatedMonopoly) + 1 > 1;
-            //     willSenderHaveFullMonopoly = sender.OwnedTiles.Count(tile => tile.Monopoly == nodeToSend.AffiliatedMonopoly) + 1 == nodeToSend.AffiliatedMonopoly.NodesCount;
-            // }
+        //     // if (credentials.ReceiverNodeIndex != TradeCredentials.PLACEHOLDER)
+        //     // {
+        //     //     nodeToSend = MonopolyBoard.Instance.GetTileByIndex(credentials.ReceiverNodeIndex);
+        //     //     PawnController sender = GameManager.Instance.GetPawnController(credentials.SenderNetworkIndex);
+        //     //     willSenderHavePartialMonopoly = sender.OwnedTiles.Count(tile => tile.Monopoly == nodeToSend.AffiliatedMonopoly) + 1 > 1;
+        //     //     willSenderHaveFullMonopoly = sender.OwnedTiles.Count(tile => tile.Monopoly == nodeToSend.AffiliatedMonopoly) + 1 == nodeToSend.AffiliatedMonopoly.NodesCount;
+        //     // }
 
-            // if (credentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
-            // {
-            //     nodeToReceive = MonopolyBoard.Instance.GetTileByIndex(credentials.SenderNodeIndex);
-            //     willReceiverHavePartialMonopoly = this.OwnedTiles.Count(tile => tile.Monopoly == nodeToReceive.AffiliatedMonopoly) + 1 > 1;
-            //     willReceiverHaveFullMonopoly = this.OwnedTiles.Count(tile => tile.Monopoly == nodeToReceive.AffiliatedMonopoly) + 1 == nodeToReceive.AffiliatedMonopoly.NodesCount;
-            // }
+        //     // if (credentials.SenderNodeIndex != TradeCredentials.PLACEHOLDER)
+        //     // {
+        //     //     nodeToReceive = MonopolyBoard.Instance.GetTileByIndex(credentials.SenderNodeIndex);
+        //     //     willReceiverHavePartialMonopoly = this.OwnedTiles.Count(tile => tile.Monopoly == nodeToReceive.AffiliatedMonopoly) + 1 > 1;
+        //     //     willReceiverHaveFullMonopoly = this.OwnedTiles.Count(tile => tile.Monopoly == nodeToReceive.AffiliatedMonopoly) + 1 == nodeToReceive.AffiliatedMonopoly.NodesCount;
+        //     // }
 
-            // int worthToSend = credentials.ReceiverBalanceAmount + (nodeToSend?.PricePurchase ?? 0);
-            // int worthToReceive = credentials.SenderBalanceAmount + (nodeToReceive?.PricePurchase ?? 0);
+        //     // int worthToSend = credentials.ReceiverBalanceAmount + (nodeToSend?.PricePurchase ?? 0);
+        //     // int worthToReceive = credentials.SenderBalanceAmount + (nodeToReceive?.PricePurchase ?? 0);
 
-            // if (worthToSend == 0)
-            // {
-            //     base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     return;
-            // }
+        //     // if (worthToSend == 0)
+        //     // {
+        //     //     base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     return;
+        //     // }
 
-            // if (worthToReceive == 0)
-            // {
-            //     base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     return;
-            // }
+        //     // if (worthToReceive == 0)
+        //     // {
+        //     //     base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     return;
+        //     // }
 
-            // if (nodeToSend != null)
-            // {
-            //     if (base.OwnedTiles.Where(tile => tile.Monopoly == nodeToSend.AffiliatedMonopoly).Count() == nodeToSend.AffiliatedMonopoly.NodesCount)
-            //     {
-            //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //         return;
-            //     }
-            // }
+        //     // if (nodeToSend != null)
+        //     // {
+        //     //     if (base.OwnedTiles.Where(tile => tile.Monopoly == nodeToSend.AffiliatedMonopoly).Count() == nodeToSend.AffiliatedMonopoly.NodesCount)
+        //     //     {
+        //     //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //         return;
+        //     //     }
+        //     // }
 
-            // if (willReceiverHaveFullMonopoly)
-            // {
-            //     if (((float)worthToSend / worthToReceive) <= WORTH_SENT_FULL_MONOPOLY_RATIO_THRESHOLD)
-            //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     else
-            //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     return;
-            // }
+        //     // if (willReceiverHaveFullMonopoly)
+        //     // {
+        //     //     if (((float)worthToSend / worthToReceive) <= WORTH_SENT_FULL_MONOPOLY_RATIO_THRESHOLD)
+        //     //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     else
+        //     //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     return;
+        //     // }
 
-            // if (willSenderHaveFullMonopoly)
-            // {
-            //     if (((float)worthToReceive / worthToSend) >= WORTH_RECEIVED_FULL_MONOPOLY_RATIO_THRESHOLD)
-            //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     else
-            //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     return;
-            // }
+        //     // if (willSenderHaveFullMonopoly)
+        //     // {
+        //     //     if (((float)worthToReceive / worthToSend) >= WORTH_RECEIVED_FULL_MONOPOLY_RATIO_THRESHOLD)
+        //     //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     else
+        //     //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     return;
+        //     // }
 
-            // if (willReceiverHavePartialMonopoly)
-            // {
-            //     if (((float)worthToSend / worthToReceive) <= WORTH_SENT_PARTIAL_MONOPOLY_RATIO_THRESHOLD)
-            //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     else
-            //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     return;
-            // }
+        //     // if (willReceiverHavePartialMonopoly)
+        //     // {
+        //     //     if (((float)worthToSend / worthToReceive) <= WORTH_SENT_PARTIAL_MONOPOLY_RATIO_THRESHOLD)
+        //     //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     else
+        //     //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     return;
+        //     // }
 
-            // if (willSenderHavePartialMonopoly)
-            // {
-            //     if (((float)worthToReceive / worthToSend) >= WORTH_RECEIVED_PARTIAL_MONOPOLY_RATIO_THRESHOLD)
-            //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     else
-            //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            //     return;
-            // }
+        //     // if (willSenderHavePartialMonopoly)
+        //     // {
+        //     //     if (((float)worthToReceive / worthToSend) >= WORTH_RECEIVED_PARTIAL_MONOPOLY_RATIO_THRESHOLD)
+        //     //         base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     else
+        //     //         base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     //     return;
+        //     // }
 
-            // if (worthToReceive > worthToSend)
-            //     base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            // else
-            //     base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-        }
+        //     // if (worthToReceive > worthToSend)
+        //     //     base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     // else
+        //     //     base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        // }
 
-        private protected override sealed void HandleTradeResponse(TradeCredentials credentials)
-        {
-            if (credentials.Result == TradeResult.Success)
-                this.previousBalanceOffer = 0;
+        // private protected override sealed void HandleTradeResponse(TradeCredentials credentials)
+        // {
+        //     if (credentials.Result == TradeResult.Success)
+        //         this.previousBalanceOffer = 0;
 
-            this.isAbleToRollDice = true;
-        }
+        //     this.isAbleToRollDice = true;
+        // }
     }
 }

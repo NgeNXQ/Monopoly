@@ -1,0 +1,16 @@
+{
+    "name": "Monopoly.Backed.Gateway.Services.Account.GeneratedBindings",
+    "rootNamespace": "Monopoly.Backed.Gateway.Services.Account",
+    "references": [
+        "Unity.Services.CloudCode"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

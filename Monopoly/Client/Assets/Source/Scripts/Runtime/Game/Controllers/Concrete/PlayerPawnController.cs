@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using Unity.Netcode;
 using Unity.Services.Lobbies;
-using Monopoly.Client.Runtime.P2P;
-using Monopoly.Client.Runtime.Game.Core;
-using Monopoly.Client.Runtime.Game.Board;
+using Monopoly.Client.Runtime.Core.P2P;
+using Monopoly.Client.Runtime.Game.Managers;
+using Monopoly.Client.Runtime.Game.Gameplay.Layout;
 using Monopoly.Client.Runtime.Game.Serializables;
 using Monopoly.Client.Runtime.Game.Controllers.Common;
-using Monopoly.Client.Runtime.Game.Tiles.Properties.Common;
-using Monopoly.Client.Runtime.UI.Managers;
-using Monopoly.Client.Runtime.UI.Panels.Concrete.Game;
+using Monopoly.Client.Runtime.Game.Gameplay.Tiles.Properties.Common;
+using Monopoly.Client.Runtime.UI.Managers.Gameplay;
+using Monopoly.Client.Runtime.UI.Panels.Concrete.Gameplay;
 using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
 using Monopoly.Client.Scriptable.Objects.Cards;
 using Monopoly.Client.Scriptable.Objects.Cards.Chance;
@@ -31,7 +31,9 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
         {
             try
             {
-                this.Nickname = LobbyManager.Instance.LocalLobby.Players[GameManager.Instance.PawnsCount - 1].Data[LobbyManager.KEY_PLAYER_NICKNAME].Value;
+                base.IsBot = false;
+                base.IsPlayer = true;
+                this.Nickname = LobbyManager.Instance.LocalLobby.Players[GameManager.Instance.PawnsCount - 1].Data[GameCoordinator.KEY_PLAYER_DATA_NICKNAME].Value;
             }
             catch (LobbyServiceException)
             {
@@ -92,28 +94,29 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
             UIManagerGame.Instance.ShowButtonRollDice();
         }
 
-        private protected override sealed void HandleJailLanding()
-        {
-            base.CompleteTurn();
-        }
+        // internal override sealed void HandleJailVisitorLanding()
+        // {
+        //     base.CompleteTurn();
+        // }
 
-        private protected override sealed void HandleStartLanding()
-        {
-            // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value + GameManager.Instance.ExactCircleBonus, GameManager.Instance.SenderLocalClient);
-            // base.CompleteTurn();
-        }
+        // internal override sealed void HandleStartLanding()
+        // {
+        //     // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value + GameManager.Instance.ExactCircleBonus, GameManager.Instance.SenderLocalClient);
+        //     // base.CompleteTurn();
+        // }
 
-        private protected override sealed void HandleChanceLanding()
-        {
-            // CardChanceScriptableObject chanceCard = GameManager.Instance.GetCardChance();
+        // internal override sealed void HandleChanceLanding(CardChanceScriptableObject cardChance)
+        // {
+        //     cardChance.Effect.Apply(this);
+        //     // CardChanceScriptableObject chanceCard = GameManager.Instance.GetCardChance();
 
-            // if (this.currentChanceNode.ChanceType != ChanceCardScriptableObject.Type.Penalty)
-            //     UIManagerGame.Instance.ShowPanelTileInformation(this.currentChanceNode.Description, this.OnChanceActionAccepted);
-            // else
-            //     UIManagerGame.Instance.ShowPanelChancePayment(this.currentChanceNode.Description, this.OnChancePaymentAccepted);
+        //     // if (this.currentChanceNode.ChanceType != ChanceCardScriptableObject.Type.Penalty)
+        //     //     UIManagerGame.Instance.ShowPanelTileInformation(this.currentChanceNode.Description, this.OnChanceActionAccepted);
+        //     // else
+        //     //     UIManagerGame.Instance.ShowPanelChancePayment(this.currentChanceNode.Description, this.OnChancePaymentAccepted);
 
-            // UIManagerGame.Instance.ShowPanelInfoServerRpc(this.currentChanceNode.Description, GameManager.Instance.SenderLocalClient);
-        }
+        //     // UIManagerGame.Instance.ShowPanelInfoServerRpc(this.currentChanceNode.Description, GameManager.Instance.SenderLocalClient);
+        // }
 
         private void OnChanceActionAccepted()
         {
@@ -154,50 +157,44 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
             // }
         }
 
-        private protected override sealed void HandleSendJailLanding()
-        {
-            UIManagerGlobal.Instance.ShowMessageBox(
-                MessageBoxPanel.Type.OK,
-                MessageBoxPanel.Icon.Warning,
-                UIManagerGame.Instance.MessageSentJail
-            );
+        // internal override sealed void HandleJailTriggerLanding()
+        // {
 
-            base.GoToJail();
-        }
+        // }
 
-        private protected override sealed void HandlePropertyLanding()
-        {
-            // PropertyMonopolyTile tile = base.CurrentTile as PropertyMonopolyTile;
+        // internal override sealed void HandlePropertyLanding()
+        // {
+        //     // PropertyMonopolyTile tile = base.CurrentTile as PropertyMonopolyTile;
 
-            // if (tile == null)
-            // {
-            //     UIManagerGame.Instance.ShowPanelTileProposal(base.CurrentTile, this.OnTileProposalShown);
-            //     return;
-            // }
+        //     // if (tile == null)
+        //     // {
+        //     //     UIManagerGame.Instance.ShowPanelTileProposal(base.CurrentTile, this.OnTileProposalShown);
+        //     //     return;
+        //     // }
 
-            // if (tile == this || tile.IsMortgaged)
-            // {
-            //     base.CompleteTurn();
-            //     return;
-            // }
+        //     // if (tile == this || tile.IsMortgaged)
+        //     // {
+        //     //     base.CompleteTurn();
+        //     //     return;
+        //     // }
 
-            // if (base.NetWorth < base.CurrentTile.PriceRent)
-            // {
-            //     // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.NetWorth, GameManager.Instance.SenderLocalClient);
-            //     // base.UpdateBalanceServerRpc(base.CurrentTile.Owner.NetworkIndex, base.CurrentTile.Owner.Balance.Value + base.NetWorth, GameManager.Instance.SenderLocalClient);
+        //     // if (base.NetWorth < base.CurrentTile.PriceRent)
+        //     // {
+        //     //     // base.UpdateBalanceServerRpc(base.NetworkIndex, base.Balance.Value - base.NetWorth, GameManager.Instance.SenderLocalClient);
+        //     //     // base.UpdateBalanceServerRpc(base.CurrentTile.Owner.NetworkIndex, base.CurrentTile.Owner.Balance.Value + base.NetWorth, GameManager.Instance.SenderLocalClient);
 
-            //     UIManagerGlobal.Instance.ShowMessageBox(
-            //         MessageBoxPanel.Type.OK,
-            //         MessageBoxPanel.Icon.Error,
-            //         UIManagerGame.Instance.MessageBankrupt,
-            //         this.DeclareBankruptcy
-            //     );
-            // }
-            // else
-            // {
-            //     UIManagerGame.Instance.ShowPanelTilePayment(base.CurrentTile, this.OnTilePaymentShown);
-            // }
-        }
+        //     //     UIManagerGlobal.Instance.ShowMessageBox(
+        //     //         MessageBoxPanel.Type.OK,
+        //     //         MessageBoxPanel.Icon.Error,
+        //     //         UIManagerGame.Instance.MessageBankrupt,
+        //     //         this.DeclareBankruptcy
+        //     //     );
+        //     // }
+        //     // else
+        //     // {
+        //     //     UIManagerGame.Instance.ShowPanelTilePayment(base.CurrentTile, this.OnTilePaymentShown);
+        //     // }
+        // }
 
         private void OnTileProposalShown()
         {
@@ -247,10 +244,10 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
             // }
         }
 
-        private protected override sealed void HandleFreeParkingLanding()
-        {
-            base.CompleteTurn();
-        }
+        // internal override sealed void HandleParkingLanding()
+        // {
+        //     base.CompleteTurn();
+        // }
 
         internal void OnTileManagementShown()
         {
@@ -393,43 +390,43 @@ namespace Monopoly.Client.Runtime.Game.Controllers.Concrete
             // }
         }
 
-        private protected override sealed void RespondToTrade(TradeCredentials credentials)
-        {
-            UIManagerGame.Instance.ShowPanelTradeReceiver(credentials, () => this.OnTradeReceived(credentials));
-        }
+        // internal override sealed void RespondToTrade(TradeCredentials credentials)
+        // {
+        //     UIManagerGame.Instance.ShowPanelTradeReceiver(credentials, () => this.OnTradeReceived(credentials));
+        // }
 
-        private void OnTradeReceived(TradeCredentials credentials)
-        {
-            // if (UIManagerGame.Instance.PanelTradeReceiver.PanelDialogResult == TradeReceiverPanel.DialogResult.Accept)
-            //     base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
-            // else
-            //     base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        // private void OnTradeReceived(TradeCredentials credentials)
+        // {
+        //     // if (UIManagerGame.Instance.PanelTradeReceiver.PanelDialogResult == TradeReceiverPanel.DialogResult.Accept)
+        //     //     base.AcceptTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
+        //     // else
+        //     //     base.DeclineTradeServerRpc(credentials, GameManager.Instance.SenderLocalClient);
 
-            // UIManagerGame.Instance.HidePanelTradeReceiver();
-        }
+        //     // UIManagerGame.Instance.HidePanelTradeReceiver();
+        // }
 
-        private protected override sealed void HandleTradeResponse(TradeCredentials credentials)
-        {
-            this.TradeReceiver = null;
-            this.IsAbleToTrade = false;
+        // internal override sealed void HandleTradeResponse(TradeCredentials credentials)
+        // {
+        //     this.TradeReceiver = null;
+        //     this.IsAbleToTrade = false;
 
-            if (credentials.Result == TradeResult.Success)
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(
-                    MessageBoxPanel.Type.OK,
-                    MessageBoxPanel.Icon.Success,
-                    UIManagerGame.Instance.MessageTradeAccepted);
-            }
-            else
-            {
-                UIManagerGlobal.Instance.ShowMessageBox(
-                    MessageBoxPanel.Type.OK,
-                    MessageBoxPanel.Icon.Failure,
-                    UIManagerGame.Instance.MessageTradeDeclined
-                );
-            }
+        //     if (credentials.Result == TradeResult.Success)
+        //     {
+        //         UIManagerGlobal.Instance.ShowMessageBox(
+        //             MessageBoxPanel.Type.OK,
+        //             MessageBoxPanel.Icon.Success,
+        //             UIManagerGame.Instance.MessageTradeAccepted);
+        //     }
+        //     else
+        //     {
+        //         UIManagerGlobal.Instance.ShowMessageBox(
+        //             MessageBoxPanel.Type.OK,
+        //             MessageBoxPanel.Icon.Failure,
+        //             UIManagerGame.Instance.MessageTradeDeclined
+        //         );
+        //     }
 
-            UIManagerGame.Instance.ShowButtonRollDice();
-        }
+        //     UIManagerGame.Instance.ShowButtonRollDice();
+        // }
     }
 }

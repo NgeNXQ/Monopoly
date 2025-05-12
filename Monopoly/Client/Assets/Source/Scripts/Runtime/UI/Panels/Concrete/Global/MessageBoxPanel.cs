@@ -81,21 +81,15 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
             Cancel
         }
 
-        private Type messageBoxType;
         private Action actionsHandler;
         private Func<bool> stateHandler;
-
-        internal Type MessageBoxType
-        {
-            get => this.messageBoxType;
-            set => this.messageBoxType = value;
-        }
 
         internal string MessageBoxText
         {
             set => this.textMessage.text = value;
         }
 
+        internal Type MessageBoxType { get; set; }
         internal DialogResult PanelDialogResult { get; private set; }
 
         internal Icon MessageBoxIcon
@@ -150,11 +144,44 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
             this.buttonCancelCanvasOkCancel.onClick.RemoveListener(this.OnButtonCancelClicked);
         }
 
+        private void OnButtonOkClicked()
+        {
+            this.PanelDialogResult = MessageBoxPanel.DialogResult.OK;
+            this.actionsHandler?.Invoke();
+            this.Hide();
+        }
+
+        private void OnButtonCancelClicked()
+        {
+            this.PanelDialogResult = MessageBoxPanel.DialogResult.Cancel;
+            this.actionsHandler?.Invoke();
+            this.Hide();
+        }
+
+        private void OnActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
+        {
+            if (this.MessageBoxType == MessageBoxPanel.Type.None)
+                this.Hide();
+        }
+
+        public void Show(Func<bool> stateCallback = null)
+        {
+            this.stateHandler = stateCallback;
+            this.Show();
+        }
+
+        public void Show(Action actionCallback = null)
+        {
+            this.actionsHandler = actionCallback;
+            this.Show();
+        }
+
         public void Show()
         {
+            this.gameObject.SetActive(true);
             this.canvas.gameObject.SetActive(true);
 
-            switch (this.messageBoxType)
+            switch (this.MessageBoxType)
             {
                 case Type.OK:
                     this.canvasOk.gameObject.SetActive(true);
@@ -175,26 +202,15 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
             this.Hide();
         }
 
-        public void Show(Action actionCallback = null)
-        {
-            this.actionsHandler = actionCallback;
-            this.Show();
-        }
-
-        public void Show(Func<bool> stateCallback = null)
-        {
-            this.stateHandler = stateCallback;
-            this.Show();
-        }
-
         public void Hide()
         {
             this.stateHandler = null;
             this.actionsHandler = null;
 
+            this.gameObject.SetActive(false);
             this.canvas.gameObject.SetActive(false);
 
-            switch (this.messageBoxType)
+            switch (this.MessageBoxType)
             {
                 case Type.OK:
                     this.canvasOk.gameObject.SetActive(false);
@@ -203,26 +219,6 @@ namespace Monopoly.Client.Runtime.UI.Panels.Concrete.Global
                     this.canvasOkCancel.gameObject.SetActive(false);
                     break;
             }
-        }
-
-        private void OnButtonOkClicked()
-        {
-            this.PanelDialogResult = MessageBoxPanel.DialogResult.OK;
-            this.actionsHandler?.Invoke();
-            this.Hide();
-        }
-
-        private void OnButtonCancelClicked()
-        {
-            this.PanelDialogResult = MessageBoxPanel.DialogResult.Cancel;
-            this.actionsHandler?.Invoke();
-            this.Hide();
-        }
-
-        private void OnActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
-        {
-            if (this.messageBoxType == MessageBoxPanel.Type.None)
-                this.Hide();
         }
     }
 }
