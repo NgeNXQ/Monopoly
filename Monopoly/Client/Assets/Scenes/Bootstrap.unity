@@ -163,7 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4c81b1a08349e64a948a3c9cd038f03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  panelMessageBox: {fileID: 1416989555905128461, guid: c0f73dbc90690b046ab5a681b1e6862f, type: 3}
+  viewMessageBox: {fileID: 1416989555905128461, guid: c0f73dbc90690b046ab5a681b1e6862f, type: 3}
   messageBoxPoolSize: 3
 --- !u!1 &359445296
 GameObject:
@@ -215,14 +215,20 @@ MonoBehaviour:
     m_SubObjectType: 
     m_SubObjectGUID: 
     m_EditorAssetChanged: 0
-  <SceneAssetMonopolyGame>k__BackingField:
-    m_AssetGUID: 8c9cfa26abfee488c85f1582747f6a02
+  <SceneAssetLobbyPublic>k__BackingField:
+    m_AssetGUID: 695f18df400360845a6f6d61a898224e
     m_SubObjectName: 
     m_SubObjectType: 
     m_SubObjectGUID: 
     m_EditorAssetChanged: 0
-  <SceneAssetLobbyUnranked>k__BackingField:
+  <SceneAssetLobbyPrivate>k__BackingField:
     m_AssetGUID: f1ad620316b4a4047b63b3c1a2ae9438
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
+  <SceneAssetMonopolyGame>k__BackingField:
+    m_AssetGUID: 8c9cfa26abfee488c85f1582747f6a02
     m_SubObjectName: 
     m_SubObjectType: 
     m_SubObjectGUID: 
@@ -540,6 +546,74 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 897b9d617665dc04ca5cb9a4ec8c3e9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1169847664
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1169847667}
+  - component: {fileID: 1169847666}
+  - component: {fileID: 1169847665}
+  m_Layer: 0
+  m_Name: EventSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1169847665
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1169847664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
+  m_HorizontalAxis: Horizontal
+  m_VerticalAxis: Vertical
+  m_SubmitButton: Submit
+  m_CancelButton: Cancel
+  m_InputActionsPerSecond: 10
+  m_RepeatDelay: 0.5
+  m_ForceModuleActive: 0
+--- !u!114 &1169847666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1169847664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_FirstSelected: {fileID: 0}
+  m_sendNavigationEvents: 1
+  m_DragThreshold: 10
+--- !u!4 &1169847667
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1169847664}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1462819131
 GameObject:
   m_ObjectHideFlags: 0
@@ -660,7 +734,7 @@ MonoBehaviour:
     TimeResyncInterval: 30
     EnsureNetworkVariableLengthSafety: 0
     EnableSceneManagement: 1
-    ForceSamePrefabs: 1
+    ForceSamePrefabs: 0
     RecycleNetworkIds: 1
     NetworkIdRecycleDelay: 120
     RpcHashSize: 0
@@ -674,7 +748,7 @@ MonoBehaviour:
     NetworkProfilingMetrics: 1
     OldPrefabList: []
   RunInBackground: 1
-  LogLevel: 0
+  LogLevel: 3
 --- !u!4 &1512454449
 Transform:
   m_ObjectHideFlags: 0
@@ -746,3 +820,4 @@ SceneRoots:
   - {fileID: 750819663}
   - {fileID: 1129669958}
   - {fileID: 359445297}
+  - {fileID: 1169847667}

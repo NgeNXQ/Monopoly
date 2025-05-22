@@ -12,7 +12,10 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 8da808b9aed9687498a04622a45e2721
   - enabled: 1
-    path: Assets/Scenes/LobbyUnranked.unity
+    path: Assets/Scenes/LobbyPublic.unity
+    guid: 695f18df400360845a6f6d61a898224e
+  - enabled: 1
+    path: Assets/Scenes/LobbyPrivate.unity
     guid: f1ad620316b4a4047b63b3c1a2ae9438
   - enabled: 1
     path: Assets/Scenes/MonopolyGame.unity

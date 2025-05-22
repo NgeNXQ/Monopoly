@@ -183,8 +183,8 @@ RectTransform:
   m_Children:
   - {fileID: 3345175457386010141}
   - {fileID: 3679969385559060005}
-  - {fileID: 5309232468752399074}
   - {fileID: 1006680689109850229}
+  - {fileID: 5309232468752399074}
   - {fileID: 135812453267900284}
   - {fileID: 880850854775190752}
   - {fileID: 4339144747069952529}
@@ -722,7 +722,7 @@ GameObject:
   - component: {fileID: 8480877459581854634}
   - component: {fileID: 1573659100535416900}
   m_Layer: 0
-  m_Name: ImageLogo
+  m_Name: ImagePicture
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -841,7 +841,7 @@ MonoBehaviour:
   SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
-  SpawnWithObservers: 0
+  SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 0
   SyncOwnerTransformWhenParented: 0
@@ -859,10 +859,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  imageLogo: {fileID: 1573659100535416900}
+  imagePicture: {fileID: 1573659100535416900}
+  <SpritePicture>k__BackingField: {fileID: 0}
   imageOwner: {fileID: 1598070537042327945}
   imageMortgage: {fileID: 1002229604294734779}
   imageMonopoly: {fileID: 5028140065738607375}
+  pricesRenting: 
+  <PricePurchase>k__BackingField: 0
   imageMonopolyLevel1: {fileID: 7958125145294744178}
   imageMonopolyLevel2: {fileID: 60028967720746633}
   imageMonopolyLevel3: {fileID: 6455511569602826088}

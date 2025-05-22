@@ -13,22 +13,13 @@ using Unity.Services.Relay.Models;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.CloudCode;
-// using Unity.Services.CloudSave;
-// using Unity.Services.CloudSave.Models;
-// using Unity.Services.CloudSave.Models.Data.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-// using UnityEngine.AddressableAssets;
 using Monopoly.Domain.DTOs.Api;
 using Monopoly.Client.Runtime.App;
 using Monopoly.Client.Utilities.Scenes;
 using Monopoly.Backend.Gateway.Services.Account;
 using Monopoly.Unity.Services.Lobbies.Models.Extensions;
-// using Monopoly.Backend.Gateway.Services;
-// using Monopoly.Client.Runtime.Game.Core;
-// using Monopoly.Client.Runtime.Game.Board;
-// using UnityEditor.SearchService;
-// using Monopoly.Client.Runtime.Core.Models;
 
 namespace Monopoly.Client.Runtime.Core.P2P
 {
@@ -42,16 +33,11 @@ namespace Monopoly.Client.Runtime.Core.P2P
 
         internal static GameCoordinator Instance { get; private set; }
 
-        // private LinkedList<Type> objectsToLoad;
-        // private LinkedList<Type> initializedObjects;
-
         internal event Action AuthenticationFailedEvent;
         internal event Action<RelayServiceException> RelayConnectionFailedEvent;
         internal event Action<LobbyServiceException> LobbyConnectionFailedEvent;
 
         internal Player LocalPlayer { get; private set; }
-        // internal MonopolyPlayer Player { get; private set; }
-
         internal AccountServiceBinding ServiceAccount { get; private set; }
 
         private void Awake()
@@ -65,9 +51,6 @@ namespace Monopoly.Client.Runtime.Core.P2P
 
         private async void Start()
         {
-            // this.objectsToLoad = new LinkedList<Type>();
-            // this.initializedObjects = new LinkedList<Type>();
-
             try
             {
                 await UnityServices.InitializeAsync();
@@ -76,6 +59,7 @@ namespace Monopoly.Client.Runtime.Core.P2P
                 this.ServiceAccount = new AccountServiceBinding(CloudCodeService.Instance);
 
                 await this.InitializeLocalPlayer();
+                // await this.ServiceAccount.PutAccountTrophies("1000");
 
                 await SceneManagerUtility.LoadSceneDefaultAsync(MonopolyApplication.Instance.SceneAssetMainMenu, LoadSceneMode.Single);
             }
@@ -83,16 +67,7 @@ namespace Monopoly.Client.Runtime.Core.P2P
             {
                 this.AuthenticationFailedEvent?.Invoke();
             }
-            // finally
-            // {
-            //     SceneManager.activeSceneChanged += this.HandleActiveSceneChanged;
-            // }
         }
-
-        // private void OnDestroy()
-        // {
-        //     SceneManager.activeSceneChanged -= this.HandleActiveSceneChanged;
-        // }
 
         internal async Task InitializeLocalPlayer()
         {
@@ -145,115 +120,37 @@ namespace Monopoly.Client.Runtime.Core.P2P
             await GameCoordinator.Instance.ServiceAccount.PutAccountNickname(newNickname);
         }
 
-        // private void HandleActiveSceneChanged(Scene previousScene, Scene currentScene)
-        // {
-        //     this.LocalPlayer.SetDataLocally(
-        //         GameCoordinator.KEY_PLAYER_DATA_SCENE,
-        //         currentScene.name,
-        //         PlayerDataObject.VisibilityOptions.Member
-        //     );
-        // }
+        internal async Task HostPublicLobbyAsync()
+        {
+            await HostLobbyAsync(true);
+        }
 
-        // internal async Task UpdateLocalPlayerNicknameAsync(string newNickname)
-        // {
-        //     this.LocalPlayer.SetNickname(newNickname);
-        //     await this.ServiceAccount.PutAccountNickname(newNickname);
-        // }
+        internal async Task HostPrivateLobbyAsync()
+        {
+            await HostLobbyAsync(false);
+        }
 
-        // internal async Task UpdateLocalPlayerTrophies(int newTrophies)
-        // {
-        //     await this.ServiceAccount.PutAccountTrophies(newTrophies.ToString());
-        //     this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_DATA_TROPHIES].Value = newTrophies.ToString();
-        // }
-
-        // internal void UpdateLocalPlayerScene()
-        // {
-        //     this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_DATA_SCENE].Value = SceneManagerUtility.CurrentScene.name;
-        //     // this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_DATA_SCENE] = new PlayerDataObject(
-        //     //     PlayerDataObject.VisibilityOptions.Member,
-        //     //     SceneManagerUtility.CurrentScene.name
-        //     // );
-
-        //     // await this.ServiceAccount.PutAccountTrophies(newTrophies.ToString());
-        //     // this.LocalPlayer.Data[LobbyManager.KEY_PLAYER_DATA_TROPHIES].Value = newTrophies.ToString();
-        // }
-
-
-
-        // internal void UpdateInitializedObjects(Type gameObject)
-        // {
-        //     if (this.objectsToLoad == null)
-        //     {
-        //         throw new System.InvalidOperationException($"You have to call {nameof(this.SetupInitializedObjects)} at first.");
-        //     }
-
-        //     if (!this.objectsToLoad.Contains(gameObject))
-        //     {
-        //         throw new System.ArgumentException($"{nameof(gameObject)} is not in {nameof(this.SetupInitializedObjects)}.");
-        //     }
-
-        //     if (this.initializedObjects.Contains(gameObject))
-        //     {
-        //         throw new System.ArgumentException($"{nameof(gameObject)} has already been initialized.");
-        //     }
-
-        //     this.initializedObjects.AddLast(gameObject);
-
-        //     if (this.initializedObjects.Count == this.objectsToLoad.Count)
-        //     {
-        //         LobbyManager.Instance?.UpdateLocalPlayerDataAsync();
-        //     }
-        // }
-
-        // internal void SetupInitializedObjects(params Type[] gameObjectsToLoad)
-        // {
-        //     foreach (Type gameObject in gameObjectsToLoad)
-        //     {
-        //         this.objectsToLoad.AddLast(gameObject);
-        //     }
-        // }
-
-        // private void HandleActiveSceneChanged(Scene previousActiveScene, Scene newActiveScene)
-        // {
-        //     this.objectsToLoad?.Clear();
-        //     this.initializedObjects?.Clear();
-
-        //     switch (newActiveScene.name)
-        //     {
-        //         case nameof(GameCoordinator.MonopolyScene.MainMenu):
-        //             this.ActiveScene = GameCoordinator.MonopolyScene.MainMenu;
-        //             break;
-        //         case nameof(GameCoordinator.MonopolyScene.GameLobby):
-        //             {
-        //                 this.ActiveScene = GameCoordinator.MonopolyScene.GameLobby;
-
-        //                 this.SetupInitializedObjects(typeof(UIManagerUnrankedLobby), typeof(PlayerUnrankedLobbyPanel));
-
-        //                 LobbyManager.Instance?.OnGameLobbyLoaded?.Invoke();
-        //             }
-        //             break;
-        //         case nameof(GameCoordinator.MonopolyScene.MonopolyGame):
-        //             {
-        //                 this.ActiveScene = GameCoordinator.MonopolyScene.MonopolyGame;
-
-        //                 this.SetupInitializedObjects(typeof(GameManager), typeof(MonopolyBoard), typeof(UIManagerGame));
-        //                 LobbyManager.Instance?.OnMonopolyGameLoaded?.Invoke();
-        //             }
-        //             break;
-        //     }
-        // }
-
-        internal async Task HostLobbyAsync()
+        private async Task HostLobbyAsync(bool isPublic)
         {
             try
             {
                 Allocation hostAllocation = await RelayService.Instance.CreateAllocationAsync(LobbyManager.MAX_PLAYERS);
-                RelayServerData relayServerData = AllocationUtils.ToRelayServerData(hostAllocation, GameCoordinator.CONNECTION_TYPE);
-                NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
-
                 string relayCode = await RelayService.Instance.GetJoinCodeAsync(hostAllocation.AllocationId);
 
-                await LobbyManager.Instance?.HostLobbyAsync(relayCode);
+                if (isPublic)
+                    await LobbyManager.Instance?.HostPublicLobbyAsync(relayCode);
+                else
+                    await LobbyManager.Instance?.HostPrivateLobbyAsync(relayCode);
+
+                RelayServerData relayServerData = AllocationUtils.ToRelayServerData(hostAllocation, GameCoordinator.CONNECTION_TYPE);
+
+                NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
+                NetworkManager.Singleton?.StartHost();
+
+                if (isPublic)
+                    await SceneManagerUtility.LoadSceneDefaultAsync(MonopolyApplication.Instance.SceneAssetLobbyPublic, LoadSceneMode.Single);
+                else
+                    await SceneManagerUtility.LoadSceneDefaultAsync(MonopolyApplication.Instance.SceneAssetLobbyPrivate, LoadSceneMode.Single);
             }
             catch (RelayServiceException relayServiceException)
             {
@@ -269,11 +166,35 @@ namespace Monopoly.Client.Runtime.Core.P2P
         {
             try
             {
-                JoinAllocation clientAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
-                RelayServerData relayServerData = AllocationUtils.ToRelayServerData(clientAllocation, GameCoordinator.CONNECTION_TYPE);
-                NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
-
                 await LobbyManager.Instance?.JoinLobbyAsync(joinCode);
+
+                JoinAllocation clientAllocation = await RelayService.Instance.JoinAllocationAsync(LobbyManager.Instance.RelayCode);
+                RelayServerData relayServerData = AllocationUtils.ToRelayServerData(clientAllocation, GameCoordinator.CONNECTION_TYPE);
+
+                NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
+                NetworkManager.Singleton?.StartClient();
+            }
+            catch (RelayServiceException relayServiceException)
+            {
+                this.RelayConnectionFailedEvent?.Invoke(relayServiceException);
+            }
+            catch (LobbyServiceException lobbyServiceException)
+            {
+                this.LobbyConnectionFailedEvent?.Invoke(lobbyServiceException);
+            }
+        }
+
+        internal async Task FindLobbyAsync()
+        {
+            try
+            {
+                await LobbyManager.Instance?.FindLobbyAsync();
+
+                JoinAllocation clientAllocation = await RelayService.Instance.JoinAllocationAsync(LobbyManager.Instance.RelayCode);
+                RelayServerData relayServerData = AllocationUtils.ToRelayServerData(clientAllocation, GameCoordinator.CONNECTION_TYPE);
+
+                NetworkManager.Singleton?.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
+                NetworkManager.Singleton?.StartClient();
             }
             catch (RelayServiceException relayServiceException)
             {

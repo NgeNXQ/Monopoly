@@ -6,7 +6,7 @@ using UnityEngine.Localization.Tables;
 using UnityEngine.Localization.Settings;
 using Monopoly.Client.Runtime.Core.P2P;
 using Monopoly.Client.Runtime.UI.Managers.Global;
-using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
+using Monopoly.Client.Runtime.UI.Views.Concrete.Global;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -14,7 +14,7 @@ using UnityEditor;
 
 namespace Monopoly.Client.Runtime.UI.Managers.Bootstrap
 {
-    internal sealed class GUIManagerBootstrap : MonoBehaviour
+    internal sealed class UIManagerBootstrap : MonoBehaviour
     {
         private StringTable localizationTableMessages;
 
@@ -24,14 +24,14 @@ namespace Monopoly.Client.Runtime.UI.Managers.Bootstrap
         // string messageDefaultInitializingGameCoordinator;
         // private LocalizedString messageDefaultInitializingGameCoordinator;
 
-        internal static GUIManagerBootstrap Instance { get; private set; }
+        internal static UIManagerBootstrap Instance { get; private set; }
 
         private void Awake()
         {
-            if (GUIManagerBootstrap.Instance != null)
-                throw new TypeInitializationException(nameof(GUIManagerBootstrap), new ApplicationException($"Singleton has already been initialized."));
+            if (UIManagerBootstrap.Instance != null)
+                throw new TypeInitializationException(nameof(UIManagerBootstrap), new ApplicationException($"Singleton has already been initialized."));
 
-            GUIManagerBootstrap.Instance = this;
+            UIManagerBootstrap.Instance = this;
         }
 
         private async void Start()
@@ -39,8 +39,8 @@ namespace Monopoly.Client.Runtime.UI.Managers.Bootstrap
             await this.PreloadLocalizationAsync();
 
             UIManagerGlobal.Instance.ShowMessageBox(
-                MessageBoxPanel.Type.None,
-                MessageBoxPanel.Icon.Loading,
+                MessageBoxView.Type.None,
+                MessageBoxView.Icon.Loading,
                 this.messageDefaultInitializingGameCoordinator
             );
         }
@@ -72,9 +72,9 @@ namespace Monopoly.Client.Runtime.UI.Managers.Bootstrap
         private void OnAuthenticationFailed()
         {
             UIManagerGlobal.Instance.ShowMessageBox(
-                MessageBoxPanel.Type.OK, 
-                MessageBoxPanel.Icon.Error, 
-                this.messageExceptionGameCoordinatorInitializationFailed, 
+                MessageBoxView.Type.OK,
+                MessageBoxView.Icon.Error,
+                this.messageExceptionGameCoordinatorInitializationFailed,
                 this.HandleAuthenticationFailed
             );
         }
@@ -83,7 +83,7 @@ namespace Monopoly.Client.Runtime.UI.Managers.Bootstrap
         {
             switch (UIManagerGlobal.Instance.TopMessageBox.PanelDialogResult)
             {
-                case MessageBoxPanel.DialogResult.OK:
+                case MessageBoxView.DialogResult.OK:
                     {
 #if UNITY_EDITOR
                         EditorApplication.ExitPlaymode();
@@ -92,7 +92,7 @@ namespace Monopoly.Client.Runtime.UI.Managers.Bootstrap
 #endif
                     }
                     break;
-                case MessageBoxPanel.DialogResult.Cancel:
+                case MessageBoxView.DialogResult.Cancel:
                     {
                         // await GameCoordinator.Instance.LoadSceneAsync(GameCoordinator.MonopolyScene.MainMenu);
                     }

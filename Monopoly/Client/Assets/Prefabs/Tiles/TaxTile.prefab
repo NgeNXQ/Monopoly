@@ -114,7 +114,7 @@ GameObject:
   - component: {fileID: 6453892815440046309}
   - component: {fileID: 5980773078743537687}
   m_Layer: 0
-  m_Name: ImageLogo
+  m_Name: ImagePicture
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -337,5 +337,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  spriteLogo: {fileID: 0}
-  imageLogo: {fileID: 5980773078743537687}
+  imagePicture: {fileID: 5980773078743537687}
+  <SpritePicture>k__BackingField: {fileID: 0}

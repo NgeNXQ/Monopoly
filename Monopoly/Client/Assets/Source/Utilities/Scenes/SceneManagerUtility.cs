@@ -13,6 +13,7 @@ namespace Monopoly.Client.Utilities.Scenes
 {
     internal static class SceneManagerUtility
     {
+        private const int INDEX = 0;
         // internal static Scene CurrentScene { get; private set; }
         // internal static AssetReference CurrentSceneName { get; private set; }
         internal static AssetReference CurrentSceneAsset { get; private set; }
@@ -26,7 +27,7 @@ namespace Monopoly.Client.Utilities.Scenes
             IList<IResourceLocation> locations = await handler.Task;
             Addressables.Release(handler);
 
-            string sceneName = Path.GetFileNameWithoutExtension(locations[0].PrimaryKey);
+            string sceneName = Path.GetFileNameWithoutExtension(locations[SceneManagerUtility.INDEX].PrimaryKey);
             // SceneManagerUtility.CurrentScene = SceneManager.GetSceneByName(sceneName);
             await SceneManager.LoadSceneAsync(sceneName, loadMode);
             SceneManagerUtility.CurrentSceneAsset = sceneAsset;
@@ -41,7 +42,7 @@ namespace Monopoly.Client.Utilities.Scenes
             IList<IResourceLocation> locations = await handler.Task;
             Addressables.Release(handler);
 
-            string sceneName = Path.GetFileNameWithoutExtension(locations[0].PrimaryKey);
+            string sceneName = Path.GetFileNameWithoutExtension(locations[SceneManagerUtility.INDEX].PrimaryKey);
             // SceneManagerUtility.CurrentScene = SceneManager.GetSceneByName(sceneName);
             NetworkManager.Singleton?.SceneManager?.LoadScene(sceneName, loadMode);
             SceneManagerUtility.CurrentSceneAsset = sceneAsset;

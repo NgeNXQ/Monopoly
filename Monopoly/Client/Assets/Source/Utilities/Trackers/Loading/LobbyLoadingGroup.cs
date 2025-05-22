@@ -7,7 +7,7 @@ namespace Monopoly.Client.Runtime.Core.Models
     {
         internal LobbyLoadingGroup()
         {
-            base.Objects.Add(typeof(UIManagerUnrankedLobby), 1);
+            base.Objects.Add(typeof(UIManagerPrivateLobby), 1);
         }
     }
 }

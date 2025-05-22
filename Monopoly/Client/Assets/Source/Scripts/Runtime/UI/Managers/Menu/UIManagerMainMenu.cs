@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,12 +10,9 @@ using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Monopoly.Client.Runtime.Core.P2P;
 using Monopoly.Client.Runtime.UI.Managers.Global;
-using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
+using Monopoly.Client.Runtime.UI.Views.Concrete.Global;
 using Monopoly.Unity.Services.Lobbies.Models.Extensions;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
+using Monopoly.Domain.DTOs.Api;
 
 namespace Monopoly.Client.Runtime.UI.Managers.Menu
 {
@@ -48,34 +46,46 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
         private Button buttonBackTabGameMode;
 
         [SerializeField]
-        private Button buttonLobbyRankedTabGameMode;
+        private Button buttonPublicLobbyTabGameMode;
 
         [SerializeField]
-        private Button buttonLobbyUnrankedTabGameMode;
+        private Button buttonPrivateLobbyTabGameMode;
 
-        [SerializeField, Header("Unranked Lobby Tab"), Space]
-        private Canvas canvasTabUnrankedLobby;
-
-        [SerializeField]
-        private Button buttonBackTabUnrankedLobby;
+        [SerializeField, Header("Public Lobby Tab"), Space]
+        private Canvas canvasTabPublicLobby;
 
         [SerializeField]
-        private Button buttonHostTabUnrankedLobby;
+        private Button buttonBackTabPublicLobby;
 
         [SerializeField]
-        private Button buttonClientTabUnrankedLobby;
-
-        [SerializeField, Header("Unranked Lobby Connection Tab"), Space]
-        private Canvas canvasTabUnrankedLobbyConnection;
+        private Button buttonHostTabPublicLobby;
 
         [SerializeField]
-        private Button buttonBackTabUnrankedLobbyConnection;
+        private Button buttonSearchTabPublicLobby;
+
+        [SerializeField, Header("Private Lobby Tab"), Space]
+        private Canvas canvasTabPrivateLobby;
 
         [SerializeField]
-        private Button buttonConnectTabUnrankedLobbyConnection;
+        private Button buttonBackTabPrivateLobby;
 
         [SerializeField]
-        private TMP_InputField textBoxCodeTabUnrankedLobbyConnection;
+        private Button buttonHostTabPrivateLobby;
+
+        [SerializeField]
+        private Button buttonClientTabPrivateLobby;
+
+        [SerializeField, Header("Private Lobby Connection Tab"), Space]
+        private Canvas canvasTabPrivateLobbyConnection;
+
+        [SerializeField]
+        private Button buttonBackTabPrivateLobbyConnection;
+
+        [SerializeField]
+        private Button buttonConnectTabPrivateLobbyConnection;
+
+        [SerializeField]
+        private TMP_InputField textBoxCodeTabPrivateLobbyConnection;
 
         [Space]
         [Header("Settings Nickname")]
@@ -178,8 +188,8 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
             this.canvasTabInitial.gameObject.SetActive(true);
             this.canvasTabProfile.gameObject.SetActive(false);
             this.canvasTabGameMode.gameObject.SetActive(false);
-            this.canvasTabUnrankedLobby.gameObject.SetActive(false);
-            this.canvasTabUnrankedLobbyConnection.gameObject.SetActive(false);
+            this.canvasTabPrivateLobby.gameObject.SetActive(false);
+            this.canvasTabPrivateLobbyConnection.gameObject.SetActive(false);
 
             // this.textBoxNickname.text = PlayerPrefs.GetString(LobbyManager.KEY_PLAYER_NICKNAME);
         }
@@ -192,20 +202,23 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
             this.buttonPlayTabInitial.onClick.AddListener(this.OnButtonPlayTabInitialClicked);
             this.buttonProfileTabInitial.onClick.AddListener(this.OnButtonProfileTabInitialClicked);
 
-            this.buttonBackTabProfile.onClick.AddListener(this.OnButtonBackTabProfileClickedAsync);
-            // this.textBoxNicknameTabProfile.onEndEdit.AddListener(this.OnTextBoxNicknameTabProfileEndEdited);
+            this.buttonBackTabProfile.onClick.AddListener(this.OnButtonBackTabProfileClicked);
 
             this.buttonBackTabGameMode.onClick.AddListener(this.OnButtonBackTabGameModeClicked);
-            this.buttonLobbyRankedTabGameMode.onClick.AddListener(this.OnButtonLobbyRankedTabGameModeClicked);
-            this.buttonLobbyUnrankedTabGameMode.onClick.AddListener(this.OnButtonLobbyUnrankedTabGameModeClicked);
+            this.buttonPublicLobbyTabGameMode.onClick.AddListener(this.OnButtonPublicLobbyTabGameModeClicked);
+            this.buttonPrivateLobbyTabGameMode.onClick.AddListener(this.OnButtonPrivateLobbyTabGameModeClicked);
 
-            this.buttonBackTabUnrankedLobby.onClick.AddListener(this.OnButtonBackTabUnrankedLobbyClicked);
-            this.buttonHostTabUnrankedLobby.onClick.AddListener(this.OnButtonHostTabUnrankedLobbyClickedAsync);
-            this.buttonClientTabUnrankedLobby.onClick.AddListener(this.OnButtonClientTabUnrankedLobbyClicked);
+            this.buttonBackTabPublicLobby.onClick.AddListener(this.OnButtonBackTabPublicLobbyClicked);
+            this.buttonHostTabPublicLobby.onClick.AddListener(this.OnButtonHostTabPublicLobbyClicked);
+            this.buttonSearchTabPublicLobby.onClick.AddListener(this.OnButtonSearchTabPublicLobbyClicked);
 
-            this.buttonBackTabUnrankedLobbyConnection.onClick.AddListener(this.OnButtonBackTabUnrankedLobbyConnectionClicked);
-            this.buttonConnectTabUnrankedLobbyConnection.onClick.AddListener(this.OnButtonConnectTabUnrankedLobbyConnectionClicked);
-            this.textBoxCodeTabUnrankedLobbyConnection.onValueChanged.AddListener(this.OnTextBoxCodeTabUnrankedLobbyConnectionValueChanged);
+            this.buttonBackTabPrivateLobby.onClick.AddListener(this.OnButtonBackTabPrivateLobbyClicked);
+            this.buttonClientTabPrivateLobby.onClick.AddListener(this.OnButtonClientTabPrivateLobbyClicked);
+            this.buttonHostTabPrivateLobby.onClick.AddListener(this.OnButtonHostTabPrivateLobbyClicked);
+
+            this.buttonBackTabPrivateLobbyConnection.onClick.AddListener(this.OnButtonBackTabPrivateLobbyConnectionClicked);
+            this.buttonConnectTabPrivateLobbyConnection.onClick.AddListener(this.OnButtonConnectTabPrivateLobbyConnectionClicked);
+            this.textBoxCodeTabPrivateLobbyConnection.onValueChanged.AddListener(this.OnTextBoxCodeTabPrivateLobbyConnectionValueChanged);
         }
 
         private void OnDisable()
@@ -216,20 +229,23 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
             this.buttonPlayTabInitial.onClick.RemoveListener(this.OnButtonPlayTabInitialClicked);
             this.buttonProfileTabInitial.onClick.RemoveListener(this.OnButtonProfileTabInitialClicked);
 
-            this.buttonBackTabProfile.onClick.RemoveListener(this.OnButtonBackTabProfileClickedAsync);
-            // this.textBoxNicknameTabProfile.onValueChanged.RemoveListener(this.OnTextBoxNicknameTabProfileEndEdited);
+            this.buttonBackTabProfile.onClick.RemoveListener(this.OnButtonBackTabProfileClicked);
 
             this.buttonBackTabGameMode.onClick.RemoveListener(this.OnButtonBackTabGameModeClicked);
-            this.buttonLobbyRankedTabGameMode.onClick.RemoveListener(this.OnButtonLobbyRankedTabGameModeClicked);
-            this.buttonLobbyUnrankedTabGameMode.onClick.RemoveListener(this.OnButtonLobbyUnrankedTabGameModeClicked);
+            this.buttonPublicLobbyTabGameMode.onClick.RemoveListener(this.OnButtonPublicLobbyTabGameModeClicked);
+            this.buttonPrivateLobbyTabGameMode.onClick.RemoveListener(this.OnButtonPrivateLobbyTabGameModeClicked);
 
-            this.buttonBackTabUnrankedLobby.onClick.RemoveListener(this.OnButtonBackTabUnrankedLobbyClicked);
-            this.buttonHostTabUnrankedLobby.onClick.RemoveListener(this.OnButtonHostTabUnrankedLobbyClickedAsync);
-            this.buttonClientTabUnrankedLobby.onClick.RemoveListener(this.OnButtonClientTabUnrankedLobbyClicked);
+            this.buttonBackTabPublicLobby.onClick.RemoveListener(this.OnButtonBackTabPublicLobbyClicked);
+            this.buttonHostTabPublicLobby.onClick.RemoveListener(this.OnButtonHostTabPublicLobbyClicked);
+            this.buttonSearchTabPublicLobby.onClick.RemoveListener(this.OnButtonSearchTabPublicLobbyClicked);
 
-            this.buttonBackTabUnrankedLobbyConnection.onClick.RemoveListener(this.OnButtonBackTabUnrankedLobbyConnectionClicked);
-            this.buttonConnectTabUnrankedLobbyConnection.onClick.RemoveListener(this.OnButtonConnectTabUnrankedLobbyConnectionClicked);
-            this.textBoxCodeTabUnrankedLobbyConnection.onValueChanged.RemoveListener(this.OnTextBoxCodeTabUnrankedLobbyConnectionValueChanged);
+            this.buttonBackTabPrivateLobby.onClick.RemoveListener(this.OnButtonBackTabPrivateLobbyClicked);
+            this.buttonClientTabPrivateLobby.onClick.RemoveListener(this.OnButtonClientTabPrivateLobbyClicked);
+            this.buttonHostTabPrivateLobby.onClick.RemoveListener(this.OnButtonHostTabPrivateLobbyClicked);
+
+            this.buttonBackTabPrivateLobbyConnection.onClick.RemoveListener(this.OnButtonBackTabPrivateLobbyConnectionClicked);
+            this.buttonConnectTabPrivateLobbyConnection.onClick.RemoveListener(this.OnButtonConnectTabPrivateLobbyConnectionClicked);
+            this.textBoxCodeTabPrivateLobbyConnection.onValueChanged.RemoveListener(this.OnTextBoxCodeTabPrivateLobbyConnectionValueChanged);
         }
 
         private void OnButtonPlayTabInitialClicked()
@@ -238,19 +254,22 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
             this.canvasTabGameMode.gameObject.SetActive(true);
         }
 
-        private void OnButtonProfileTabInitialClicked()
+        private async void OnButtonProfileTabInitialClicked()
         {
             this.canvasTabProfile.gameObject.SetActive(true);
             this.canvasTabInitial.gameObject.SetActive(false);
 
-            string nickname = GameCoordinator.Instance.LocalPlayer.GetData(GameCoordinator.KEY_PLAYER_DATA_NICKNAME);
-            string trophies = GameCoordinator.Instance.LocalPlayer.GetData(GameCoordinator.KEY_PLAYER_DATA_TROPHIES);
+            string accountGetResponse = await GameCoordinator.Instance.ServiceAccount.GetAccount();
+            ApiResponse<AccountPayload> parsedAccountResponse = JsonConvert.DeserializeObject<ApiResponse<AccountPayload>>(accountGetResponse);
 
-            this.textBoxNicknameTabProfile.text = nickname;
-            this.textLabelTrophiesTabProfile.text = trophies;
+            //  LocalPlayer.GetData(GameCoordinator.KEY_PLAYER_DATA_NICKNAME);
+            // GameCoordinator.Instance.LocalPlayer.GetData(GameCoordinator.KEY_PLAYER_DATA_TROPHIES);
+
+            this.textBoxNicknameTabProfile.text = parsedAccountResponse.Payload.Nickname;
+            this.textLabelTrophiesTabProfile.text = parsedAccountResponse.Payload.Trophies;
         }
 
-        private async void OnButtonBackTabProfileClickedAsync()
+        private async void OnButtonBackTabProfileClicked()
         {
             this.canvasTabInitial.gameObject.SetActive(true);
             this.canvasTabProfile.gameObject.SetActive(false);
@@ -258,92 +277,115 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
             await GameCoordinator.Instance.UpdateLocalPlayerNickname(this.textBoxNicknameTabProfile.text);
         }
 
-        // private async void OnTextBoxNicknameTabProfileEndEdited(string value)
-        // {
-        //     await GameCoordinator.Instance.ServiceAccount.PutAccountNickname(value);
-        //     GameCoordinator.Instance.LocalPlayer.SetDataLocally(GameCoordinator.KEY_PLAYER_DATA_NICKNAME, value, PlayerDataObject.VisibilityOptions.Member);
-        // }
-
         private void OnButtonBackTabGameModeClicked()
         {
             this.canvasTabInitial.gameObject.SetActive(true);
             this.canvasTabGameMode.gameObject.SetActive(false);
         }
 
-        private void OnButtonLobbyRankedTabGameModeClicked()
-        {
-
-        }
-
-        private void OnButtonLobbyUnrankedTabGameModeClicked()
+        private void OnButtonPublicLobbyTabGameModeClicked()
         {
             this.canvasTabGameMode.gameObject.SetActive(false);
-            this.canvasTabUnrankedLobby.gameObject.SetActive(true);
+            this.canvasTabPublicLobby.gameObject.SetActive(true);
         }
 
-        private void OnButtonBackTabUnrankedLobbyClicked()
+        private void OnButtonPrivateLobbyTabGameModeClicked()
+        {
+            this.canvasTabGameMode.gameObject.SetActive(false);
+            this.canvasTabPrivateLobby.gameObject.SetActive(true);
+        }
+
+        private void OnButtonBackTabPublicLobbyClicked()
         {
             this.canvasTabGameMode.gameObject.SetActive(true);
-            this.canvasTabUnrankedLobby.gameObject.SetActive(false);
+            this.canvasTabPublicLobby.gameObject.SetActive(false);
         }
 
-        private async void OnButtonHostTabUnrankedLobbyClickedAsync()
+        private async void OnButtonHostTabPublicLobbyClicked()
         {
             UIManagerGlobal.Instance.ShowMessageBox(
-                MessageBoxPanel.Type.None,
-                MessageBoxPanel.Icon.Loading,
+                MessageBoxView.Type.None,
+                MessageBoxView.Icon.Loading,
                 this.messageEstablishingConnection
             );
 
-            await GameCoordinator.Instance.HostLobbyAsync();
+            await GameCoordinator.Instance.HostPublicLobbyAsync();
         }
 
-        private void OnButtonClientTabUnrankedLobbyClicked()
+        private async void OnButtonSearchTabPublicLobbyClicked()
         {
-            this.canvasTabUnrankedLobby.gameObject.SetActive(false);
-            this.canvasTabUnrankedLobbyConnection.gameObject.SetActive(true);
+            UIManagerGlobal.Instance.ShowMessageBox(
+                MessageBoxView.Type.None,
+                MessageBoxView.Icon.Loading,
+                this.messageEstablishingConnection
+            );
+
+            await GameCoordinator.Instance.FindLobbyAsync();
         }
 
-        private void OnButtonBackTabUnrankedLobbyConnectionClicked()
+        private void OnButtonBackTabPrivateLobbyClicked()
         {
-            this.canvasTabUnrankedLobby.gameObject.SetActive(true);
-            this.canvasTabUnrankedLobbyConnection.gameObject.SetActive(false);
+            this.canvasTabGameMode.gameObject.SetActive(true);
+            this.canvasTabPrivateLobby.gameObject.SetActive(false);
         }
 
-        private async void OnButtonConnectTabUnrankedLobbyConnectionClicked()
+        private async void OnButtonHostTabPrivateLobbyClicked()
         {
-            if (String.IsNullOrWhiteSpace(this.textBoxCodeTabUnrankedLobbyConnection.text))
+            UIManagerGlobal.Instance.ShowMessageBox(
+                MessageBoxView.Type.None,
+                MessageBoxView.Icon.Loading,
+                this.messageEstablishingConnection
+            );
+
+            await GameCoordinator.Instance.HostPrivateLobbyAsync();
+        }
+
+        private void OnButtonClientTabPrivateLobbyClicked()
+        {
+            this.canvasTabPrivateLobby.gameObject.SetActive(false);
+            this.canvasTabPrivateLobbyConnection.gameObject.SetActive(true);
+        }
+
+        private void OnButtonBackTabPrivateLobbyConnectionClicked()
+        {
+            this.canvasTabPrivateLobby.gameObject.SetActive(true);
+            this.canvasTabPrivateLobbyConnection.gameObject.SetActive(false);
+        }
+
+        private async void OnButtonConnectTabPrivateLobbyConnectionClicked()
+        {
+            if (String.IsNullOrWhiteSpace(this.textBoxCodeTabPrivateLobbyConnection.text))
             {
                 UIManagerGlobal.Instance.ShowMessageBox(
-                    MessageBoxPanel.Type.OK,
-                    MessageBoxPanel.Icon.Warning,
+                    MessageBoxView.Type.OK,
+                    MessageBoxView.Icon.Warning,
                     this.messageEmptyJoinCode
                 );
                 return;
             }
 
-            if (this.textBoxCodeTabUnrankedLobbyConnection.text.Length != UIManagerMainMenu.JOIN_CODE_LENGTH)
+            if (this.textBoxCodeTabPrivateLobbyConnection.text.Length != UIManagerMainMenu.JOIN_CODE_LENGTH)
             {
                 UIManagerGlobal.Instance.ShowMessageBox(
-                    MessageBoxPanel.Type.OK,
-                    MessageBoxPanel.Icon.Error,
+                    MessageBoxView.Type.OK,
+                    MessageBoxView.Icon.Error,
                     this.messageInvalidLengthJoinCode
                 );
                 return;
             }
 
             UIManagerGlobal.Instance.ShowMessageBox(
-                MessageBoxPanel.Type.None,
-                MessageBoxPanel.Icon.Loading,
+                MessageBoxView.Type.None,
+                MessageBoxView.Icon.Loading,
                 this.messageEstablishingConnection
             );
 
-            await GameCoordinator.Instance.JoinLobbyAsync(this.textBoxCodeTabUnrankedLobbyConnection.text);
+            await GameCoordinator.Instance.JoinLobbyAsync(this.textBoxCodeTabPrivateLobbyConnection.text);
         }
 
-        private void OnTextBoxCodeTabUnrankedLobbyConnectionValueChanged(string value)
+        private void OnTextBoxCodeTabPrivateLobbyConnectionValueChanged(string value)
         {
-            this.textBoxCodeTabUnrankedLobbyConnection.text = value.ToUpper();
+            this.textBoxCodeTabPrivateLobbyConnection.text = value.ToUpper();
         }
 
         private void OnRelayConnectionFailed(RelayServiceException relayServiceException)
@@ -352,17 +394,17 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
             {
                 case RelayExceptionReason.InvalidRequest:
                 case RelayExceptionReason.JoinCodeNotFound:
-                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageInvalidJoinCode);
+                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxView.Type.OK, MessageBoxView.Icon.Error, this.messageInvalidJoinCode);
                     break;
                 case RelayExceptionReason.NetworkError:
                 case RelayExceptionReason.EntityNotFound:
                 case RelayExceptionReason.RegionNotFound:
                 case RelayExceptionReason.NoSuitableRelay:
                 case RelayExceptionReason.AllocationNotFound:
-                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageGameCoordinatorIsDown);
+                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxView.Type.OK, MessageBoxView.Icon.Error, this.messageGameCoordinatorIsDown);
                     break;
                 default:
-                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, relayServiceException.Message);
+                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxView.Type.OK, MessageBoxView.Icon.Error, relayServiceException.Message);
                     break;
             }
         }
@@ -372,19 +414,19 @@ namespace Monopoly.Client.Runtime.UI.Managers.Menu
             switch (lobbyServiceException.Reason)
             {
                 case LobbyExceptionReason.LobbyFull:
-                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageLobbyIsFull);
+                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxView.Type.OK, MessageBoxView.Icon.Error, this.messageLobbyIsFull);
                     break;
                 case LobbyExceptionReason.LobbyNotFound:
                 case LobbyExceptionReason.InvalidJoinCode:
-                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageInvalidJoinCode);
+                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxView.Type.OK, MessageBoxView.Icon.Error, this.messageInvalidJoinCode);
                     break;
                 case LobbyExceptionReason.LobbyConflict:
                 case LobbyExceptionReason.LobbyAlreadyExists:
                 case LobbyExceptionReason.LobbyEventServiceConnectionError:
-                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, this.messageFailedToJoinLobby);
+                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxView.Type.OK, MessageBoxView.Icon.Error, this.messageFailedToJoinLobby);
                     break;
                 default:
-                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxPanel.Type.OK, MessageBoxPanel.Icon.Error, lobbyServiceException.Message);
+                    UIManagerGlobal.Instance.ShowMessageBox(MessageBoxView.Type.OK, MessageBoxView.Icon.Error, lobbyServiceException.Message);
                     break;
             }
         }

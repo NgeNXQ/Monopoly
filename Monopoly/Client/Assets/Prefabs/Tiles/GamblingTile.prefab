@@ -218,7 +218,7 @@ MonoBehaviour:
   SynchronizeTransform: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
-  SpawnWithObservers: 0
+  SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 0
   SyncOwnerTransformWhenParented: 0
@@ -236,13 +236,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  spriteLogo: {fileID: 0}
-  imageLogo: {fileID: 500795267506676462}
+  imagePicture: {fileID: 500795267506676462}
+  <SpritePicture>k__BackingField: {fileID: 0}
   imageOwner: {fileID: 5624710903432932372}
-  imageMortgage: {fileID: 4932917575632981247}
+  imageMortgage: {fileID: 792261684693347716}
   imageMonopoly: {fileID: 4932917575632981247}
+  pricesRenting: 
   <PricePurchase>k__BackingField: 0
-  <PricesRenting>k__BackingField: 
 --- !u!114 &7622500831122645107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -288,8 +288,8 @@ RectTransform:
   m_Children:
   - {fileID: 8480141260389376185}
   - {fileID: 849606697039964139}
-  - {fileID: 3700908929864722503}
   - {fileID: 7228058946100515922}
+  - {fileID: 3700908929864722503}
   m_Father: {fileID: 2500121639903945881}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -447,7 +447,7 @@ GameObject:
   - component: {fileID: 3927168020147306898}
   - component: {fileID: 500795267506676462}
   m_Layer: 0
-  m_Name: ImageLogo
+  m_Name: ImagePicture
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

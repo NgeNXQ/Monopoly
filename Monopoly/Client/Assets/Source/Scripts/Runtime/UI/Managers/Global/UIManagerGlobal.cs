@@ -3,31 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using Monopoly.Client.Runtime.UI.Pools;
 using Monopoly.Client.Runtime.UI.Managers.Bootstrap;
-using Monopoly.Client.Runtime.UI.Panels.Concrete.Global;
+using Monopoly.Client.Runtime.UI.Views.Concrete.Global;
 
 namespace Monopoly.Client.Runtime.UI.Managers.Global
 {
     internal sealed class UIManagerGlobal : MonoBehaviour
     {
-        private Stack<MessageBoxPanel> activeMessageBoxes;
+        private Stack<MessageBoxView> activeMessageBoxes;
 
         internal static UIManagerGlobal Instance { get; private set; }
 
-        internal MessageBoxPanel TopMessageBox
+        internal MessageBoxView TopMessageBox
         {
             get
             {
-                if (this.activeMessageBoxes.TryPop(out MessageBoxPanel lastMessageBox))
+                if (this.activeMessageBoxes.TryPop(out MessageBoxView lastMessageBox))
                     return lastMessageBox;
                 else
-                    throw new InvalidOperationException($"No active instances of {nameof(MessageBoxPanel)}.");
+                    throw new InvalidOperationException($"No active instances of {nameof(MessageBoxView)}.");
             }
         }
 
         private void Awake()
         {
             if (UIManagerGlobal.Instance != null)
-                throw new TypeInitializationException(nameof(GUIManagerBootstrap), new ApplicationException($"Singleton has already been initialized."));
+                throw new TypeInitializationException(nameof(UIManagerBootstrap), new ApplicationException($"Singleton has already been initialized."));
 
             UIManagerGlobal.Instance = this;
             GameObject.DontDestroyOnLoad(this);
@@ -35,7 +35,7 @@ namespace Monopoly.Client.Runtime.UI.Managers.Global
 
         private void Start()
         {
-            this.activeMessageBoxes = new Stack<MessageBoxPanel>();
+            this.activeMessageBoxes = new Stack<MessageBoxView>();
         }
 
         private void OnDestroy()
@@ -43,18 +43,18 @@ namespace Monopoly.Client.Runtime.UI.Managers.Global
             this.activeMessageBoxes.Clear();
         }
 
-        public void ShowMessageBox(MessageBoxPanel.Type type, MessageBoxPanel.Icon icon, string text)
+        public void ShowMessageBox(MessageBoxView.Type type, MessageBoxView.Icon icon, string text)
         {
-            if (this.activeMessageBoxes.TryPeek(out MessageBoxPanel lastMessageBox))
+            if (this.activeMessageBoxes.TryPeek(out MessageBoxView lastMessageBox))
             {
-                if (lastMessageBox.MessageBoxType == MessageBoxPanel.Type.None)
+                if (lastMessageBox.MessageBoxType == MessageBoxView.Type.None)
                 {
                     lastMessageBox.Hide();
                     this.activeMessageBoxes.Pop();
                 }
             }
 
-            MessageBoxPanel messageBox = MessageBoxPanelsPool.Instance?.GetInactiveObject();
+            MessageBoxView messageBox = MessageBoxViewsPool.Instance?.GetInactiveObject();
 
             messageBox.MessageBoxType = type;
             messageBox.MessageBoxIcon = icon;
@@ -64,18 +64,18 @@ namespace Monopoly.Client.Runtime.UI.Managers.Global
             messageBox.Show();
         }
 
-        public void ShowMessageBox(MessageBoxPanel.Type type, MessageBoxPanel.Icon icon, string text, Action actionHandler = default)
+        public void ShowMessageBox(MessageBoxView.Type type, MessageBoxView.Icon icon, string text, Action actionHandler = default)
         {
-            if (this.activeMessageBoxes.TryPeek(out MessageBoxPanel lastMessageBox))
+            if (this.activeMessageBoxes.TryPeek(out MessageBoxView lastMessageBox))
             {
-                if (lastMessageBox.MessageBoxType == MessageBoxPanel.Type.None)
+                if (lastMessageBox.MessageBoxType == MessageBoxView.Type.None)
                 {
                     lastMessageBox.Hide();
                     this.activeMessageBoxes.Pop();
                 }
             }
 
-            MessageBoxPanel messageBox = MessageBoxPanelsPool.Instance?.GetInactiveObject();
+            MessageBoxView messageBox = MessageBoxViewsPool.Instance?.GetInactiveObject();
 
             messageBox.MessageBoxType = type;
             messageBox.MessageBoxIcon = icon;
@@ -85,18 +85,18 @@ namespace Monopoly.Client.Runtime.UI.Managers.Global
             messageBox.Show(actionHandler != null ? actionHandler : null);
         }
 
-        public void ShowMessageBox(MessageBoxPanel.Type type, MessageBoxPanel.Icon icon, string text, Func<bool> stateHandler = default)
+        public void ShowMessageBox(MessageBoxView.Type type, MessageBoxView.Icon icon, string text, Func<bool> stateHandler = default)
         {
-            if (this.activeMessageBoxes.TryPeek(out MessageBoxPanel lastMessageBox))
+            if (this.activeMessageBoxes.TryPeek(out MessageBoxView lastMessageBox))
             {
-                if (lastMessageBox.MessageBoxType == MessageBoxPanel.Type.None)
+                if (lastMessageBox.MessageBoxType == MessageBoxView.Type.None)
                 {
                     lastMessageBox.Hide();
                     this.activeMessageBoxes.Pop();
                 }
             }
 
-            MessageBoxPanel messageBox = MessageBoxPanelsPool.Instance?.GetInactiveObject();
+            MessageBoxView messageBox = MessageBoxViewsPool.Instance?.GetInactiveObject();
 
             messageBox.MessageBoxType = type;
             messageBox.MessageBoxIcon = icon;

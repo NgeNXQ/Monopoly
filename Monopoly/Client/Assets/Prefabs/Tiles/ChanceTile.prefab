@@ -114,7 +114,7 @@ GameObject:
   - component: {fileID: 8480877459581854634}
   - component: {fileID: 1573659100535416900}
   m_Layer: 0
-  m_Name: ImageLogo
+  m_Name: ImagePicture
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -250,8 +250,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  spriteLogo: {fileID: 21300000, guid: cbe981eda52f1c7438d77953011e9b51, type: 3}
-  imageLogo: {fileID: 1573659100535416900}
+  imagePicture: {fileID: 1573659100535416900}
+  <SpritePicture>k__BackingField: {fileID: 21300000, guid: cbe981eda52f1c7438d77953011e9b51, type: 3}
 --- !u!1 &9190442215652073806
 GameObject:
   m_ObjectHideFlags: 0
